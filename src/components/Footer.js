@@ -11,6 +11,6 @@ const FooterWrapper = styled.footer`
 
 export const Footer = () => (
   <FooterWrapper>
-    <p>&copy; 2024 naama.online1. All rights reserved.</p>
+    <p>&copy; 2024 Naama.online. All rights reserved.</p>
   </FooterWrapper>
 );
