@@ -1,8 +1,6 @@
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyles = createGlobalStyle`
-  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Open+Sans:wght@400;600&display=swap');
-
   * {
     box-sizing: border-box;
     margin: 0;
@@ -13,15 +11,17 @@ export const GlobalStyles = createGlobalStyle`
     font-family: ${({ theme }) => theme.fonts.main};
     font-size: ${({ theme }) => theme.fontSizes.medium};
     line-height: ${({ theme }) => theme.lineHeights.body};
-    color: ${({ theme }) => theme.colors.text};
+    color: ${({ theme }) => theme.colors.textPrimary};
     background-color: ${({ theme }) => theme.colors.background};
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: ${({ theme }) => theme.fonts.headings};
     line-height: ${({ theme }) => theme.lineHeights.heading};
+    color: ${({ theme }) => theme.colors.textPrimary};
     margin-bottom: ${({ theme }) => theme.spacing.medium};
-    color: ${({ theme }) => theme.colors.dark};
   }
 
   h1 {
@@ -31,7 +31,7 @@ export const GlobalStyles = createGlobalStyle`
 
   h2 {
     font-size: ${({ theme }) => theme.fontSizes.xlarge};
-    font-weight: ${({ theme }) => theme.fontWeights.bold};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
   }
 
   h3 {
@@ -44,26 +44,62 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   a {
-    color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.link};
     text-decoration: none;
     transition: ${({ theme }) => theme.transitions.fast};
 
     &:hover {
-      color: ${({ theme }) => theme.colors.secondary};
+      text-decoration: underline;
     }
   }
 
   button {
     font-family: ${({ theme }) => theme.fonts.main};
     font-size: ${({ theme }) => theme.fontSizes.medium};
-    font-weight: ${({ theme }) => theme.fontWeights.medium};
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
     cursor: pointer;
     transition: ${({ theme }) => theme.transitions.fast};
+    border: none;
+    border-radius: ${({ theme }) => theme.borderRadius.medium};
+    padding: ${({ theme }) => `${theme.spacing.small} ${theme.spacing.medium}`};
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary};
+    }
   }
 
   input, textarea, select {
     font-family: ${({ theme }) => theme.fonts.main};
     font-size: ${({ theme }) => theme.fontSizes.medium};
-    color: ${({ theme }) => theme.colors.text};
+    color: ${({ theme }) => theme.colors.textPrimary};
+    border: 1px solid ${({ theme }) => theme.colors.borderColor};
+    border-radius: ${({ theme }) => theme.borderRadius.medium};
+    padding: ${({ theme }) => theme.spacing.small};
+    transition: ${({ theme }) => theme.transitions.fast};
+
+    &:focus {
+      outline: none;
+      border-color: ${({ theme }) => theme.colors.primary};
+      box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}40;
+    }
+  }
+
+  /* Custom scrollbar for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: ${({ theme }) => theme.colors.textSecondary};
+    border-radius: ${({ theme }) => theme.borderRadius.full};
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: ${({ theme }) => theme.colors.textPrimary};
   }
 `;

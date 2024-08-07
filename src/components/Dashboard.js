@@ -1,40 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
+import { Card } from './Card';
+import CreateGame from './CreateGame';
 
 const DashboardContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 20px;
-  padding: 20px;
+  gap: ${({ theme }) => theme.spacing.large};
+  padding: ${({ theme }) => theme.spacing.large};
 `;
 
-const UserProfile = styled.div`
-  background-color: #f0f0f0;
-  padding: 20px;
-  border-radius: 8px;
-`;
-
-const Feed = styled.div`
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-`;
-
-const GameSection = styled.div`
-  background-color: #f0f0f0;
-  padding: 20px;
-  border-radius: 8px;
+const Section = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.medium};
 `;
 
 const Button = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.surfaceLight};
   border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   cursor: pointer;
-  margin-top: 10px;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const Modal = styled.div`
@@ -47,66 +41,19 @@ const Modal = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 `;
 
 const ModalContent = styled.div`
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  padding: ${({ theme }) => theme.spacing.large};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
-
-const CreateGame = ({ onGameCreated }) => {
-  const [gameData, setGameData] = useState({
-    title: '',
-    description: '',
-    gameType: 'quiz'
-  });
-
-  const handleChange = (e) => {
-    setGameData({ ...gameData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const userId = localStorage.getItem('userId');
-    try {
-      const response = await axios.post('http://localhost:3001/games', {
-        ...gameData,
-        creatorId: userId
-      });
-      onGameCreated(response.data);
-    } catch (error) {
-      console.error('Error creating game:', error);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create New Game</h2>
-      <input
-        type="text"
-        name="title"
-        value={gameData.title}
-        onChange={handleChange}
-        placeholder="Game Title"
-        required
-      />
-      <textarea
-        name="description"
-        value={gameData.description}
-        onChange={handleChange}
-        placeholder="Game Description"
-        required
-      />
-      <select name="gameType" value={gameData.gameType} onChange={handleChange}>
-        <option value="quiz">Quiz</option>
-        <option value="puzzle">Puzzle</option>
-        <option value="adventure">Adventure</option>
-      </select>
-      <Button type="submit">Create Game</Button>
-    </form>
-  );
-};
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -140,43 +87,53 @@ const Dashboard = () => {
     setShowCreateGame(true);
   };
 
-  const handleGameCreated = (newGame) => {
-    setGames([...games, newGame]);
-    setShowCreateGame(false);
+  const handleGameCreated = async (newGame) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const response = await axios.post('http://localhost:3001/games', {
+        ...newGame,
+        creatorId: userId
+      });
+      setGames([...games, response.data]);
+      setShowCreateGame(false);
+    } catch (error) {
+      console.error('Error creating game:', error);
+    }
   };
 
   return (
     <DashboardContainer>
-      <UserProfile>
-        <h2>User Profile</h2>
-        {user && (
-          <>
-            <p>Username: {user.username}</p>
-            <p>Email: {user.email}</p>
-          </>
-        )}
-      </UserProfile>
+      <Section>
+        <Card title="User Profile">
+          {user && (
+            <>
+              <p>Username: {user.username}</p>
+              <p>Email: {user.email}</p>
+            </>
+          )}
+        </Card>
+      </Section>
 
-      <Feed>
+      <Section>
         <h2>Social Feed</h2>
         {posts.map(post => (
-          <div key={post.id}>
-            <h3>{post.title}</h3>
+          <Card key={post.id} title={post.title}>
             <p>{post.content}</p>
-          </div>
+          </Card>
         ))}
-      </Feed>
+      </Section>
 
-      <GameSection>
+      <Section>
         <h2>My Games</h2>
         {games.map(game => (
-          <div key={game.id}>
-            <h3>{game.title}</h3>
-            <p>{game.description}</p>
-          </div>
+          <Card key={game.id} title={game.title}>
+            <p>{game.description || 'No description available.'}</p>
+            <p>Type: {game.gameType}</p>
+            <p>Entities: {game.entities ? Object.keys(game.entities).length : 0}</p>
+          </Card>
         ))}
         <Button onClick={handleCreateGame}>Create New Game</Button>
-      </GameSection>
+      </Section>
 
       {showCreateGame && (
         <Modal>

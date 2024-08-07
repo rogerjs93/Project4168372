@@ -3,28 +3,53 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
+const RegisterWrapper = styled.div`
+  max-width: 400px;
+  margin: 0 auto;
+  padding: ${({ theme }) => theme.spacing.large};
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  box-shadow: ${({ theme }) => theme.boxShadow.medium};
+`;
+
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  max-width: 300px;
-  margin: 0 auto;
+  gap: ${({ theme }) => theme.spacing.medium};
 `;
 
 const Input = styled.input`
-  margin-bottom: 10px;
-  padding: 8px;
+  padding: ${({ theme }) => theme.spacing.medium};
+  border: 1px solid ${({ theme }) => theme.colors.borderColor};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  font-size: ${({ theme }) => theme.fontSizes.medium};
 `;
 
 const Button = styled.button`
-  padding: 10px;
+  padding: ${({ theme }) => theme.spacing.medium};
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.surfaceLight};
   border: none;
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  font-size: ${({ theme }) => theme.fontSizes.medium};
   cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondary};
+  }
 `;
 
 const ErrorMessage = styled.p`
-  color: red;
+  color: ${({ theme }) => theme.colors.error};
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  margin-top: ${({ theme }) => theme.spacing.small};
+`;
+
+const SuccessMessage = styled.p`
+  color: ${({ theme }) => theme.colors.success};
+  font-size: ${({ theme }) => theme.fontSizes.medium};
+  text-align: center;
 `;
 
 const Register = () => {
@@ -80,12 +105,12 @@ const Register = () => {
   };
 
   if (success) {
-    return <p>Registration successful! Redirecting to dashboard...</p>;
+    return <SuccessMessage>Registration successful! Redirecting to dashboard...</SuccessMessage>;
   }
 
   return (
-    <div>
-      <h1>Sign Up</h1>
+    <RegisterWrapper>
+      <h2>Sign Up</h2>
       <Form onSubmit={onSubmit}>
         <Input type="text" placeholder="Username" name="username" value={username} onChange={onChange} required />
         <Input type="email" placeholder="Email Address" name="email" value={email} onChange={onChange} required />
@@ -94,7 +119,7 @@ const Register = () => {
         <Button type="submit">Register</Button>
       </Form>
       {error && <ErrorMessage>{error}</ErrorMessage>}
-    </div>
+    </RegisterWrapper>
   );
 };
 
