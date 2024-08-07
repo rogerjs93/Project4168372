@@ -1,10 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
-import { Header, Footer, Sidebar } from './components';
+import { Header, Footer, Sidebar, Login, Register } from './components';
 import { Home, About, Services, Contact } from './pages';
-import Register from './components/Register';
-import Login from './components/Login';
 import { GlobalStyles, theme } from './styles';
 
 const AppWrapper = styled.div`
@@ -38,8 +36,8 @@ function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/services" element={<Services />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
               </Routes>
             </ContentArea>
           </MainContent>

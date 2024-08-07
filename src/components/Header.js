@@ -1,4 +1,3 @@
-// components/Header.js
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
@@ -27,12 +26,15 @@ const NavLink = styled(Link)`
 export const Header = () => (
   <HeaderWrapper>
     <Nav>
-      <NavLink to="/">naama.online1</NavLink>
       <div>
-        <NavLink to="/">Home</NavLink>
+        <NavLink to="/">naama.online1</NavLink>
         <NavLink to="/about">About</NavLink>
         <NavLink to="/services">Services</NavLink>
         <NavLink to="/contact">Contact</NavLink>
+      </div>
+      <div>
+        <NavLink to="/login">Login</NavLink>
+        <NavLink to="/register">Register</NavLink>
       </div>
     </Nav>
   </HeaderWrapper>
