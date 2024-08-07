@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { FaEnvelope, FaLock } from 'react-icons/fa';
 
 const LoginWrapper = styled.div`
   max-width: 400px;
-  margin: 0 auto;
-  padding: ${({ theme }) => theme.spacing.large};
+  margin: 2rem auto;
+  padding: ${({ theme }) => theme.spacing.xlarge};
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.large};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
+  box-shadow: ${({ theme }) => theme.boxShadow.large};
+`;
+
+const Title = styled.h2`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.fontSizes.xxlarge};
+  margin-bottom: ${({ theme }) => theme.spacing.large};
+  text-align: center;
 `;
 
 const Form = styled.form`
@@ -18,11 +26,32 @@ const Form = styled.form`
   gap: ${({ theme }) => theme.spacing.medium};
 `;
 
+const InputWrapper = styled.div`
+  position: relative;
+`;
+
 const Input = styled.input`
+  width: 100%;
   padding: ${({ theme }) => theme.spacing.medium};
+  padding-left: ${({ theme }) => theme.spacing.xlarge};
   border: 1px solid ${({ theme }) => theme.colors.borderColor};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   font-size: ${({ theme }) => theme.fontSizes.medium};
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}33;
+  }
+`;
+
+const InputIcon = styled.span`
+  position: absolute;
+  left: ${({ theme }) => theme.spacing.small};
+  top: 50%;
+  transform: translateY(-50%);
+  color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 const Button = styled.button`
@@ -32,11 +61,17 @@ const Button = styled.button`
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   font-size: ${({ theme }) => theme.fontSizes.medium};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.textSecondary};
+    cursor: not-allowed;
   }
 `;
 
@@ -44,29 +79,65 @@ const ErrorMessage = styled.p`
   color: ${({ theme }) => theme.colors.error};
   font-size: ${({ theme }) => theme.fontSizes.small};
   margin-top: ${({ theme }) => theme.spacing.small};
+  text-align: center;
+`;
+
+const RememberMeWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.small};
+`;
+
+const LinkWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: ${({ theme }) => theme.spacing.medium};
+`;
+
+const StyledLink = styled(Link)`
+  color: ${({ theme }) => theme.colors.primary};
+  text-decoration: none;
+  font-size: ${({ theme }) => theme.fontSizes.medium};
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    rememberMe: false
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const { email, password } = formData;
+  const { email, password, rememberMe } = formData;
 
-  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onChange = e => {
+    const { name, value, type, checked } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+  };
+
+  const validateForm = () => {
+    return email.length > 0 && password.length >= 6;
+  };
 
   const onSubmit = async e => {
     e.preventDefault();
-    setError(''); // Clear any previous errors
+    setError('');
     try {
       const res = await axios.get(`http://localhost:3001/users?email=${email}&password=${password}`);
       
       if (res.data.length > 0) {
         console.log('Login successful:', res.data[0]);
         localStorage.setItem('userId', res.data[0].id);
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', email);
+        } else {
+          localStorage.removeItem('rememberMe');
+        }
         navigate('/dashboard');
       } else {
         setError('Invalid email or password');
@@ -79,27 +150,47 @@ const Login = () => {
 
   return (
     <LoginWrapper>
-      <h2>Sign In</h2>
+      <Title>Sign In</Title>
       <Form onSubmit={onSubmit}>
-        <Input 
-          type="email" 
-          placeholder="Email Address" 
-          name="email" 
-          value={email} 
-          onChange={onChange} 
-          required 
-        />
-        <Input 
-          type="password" 
-          placeholder="Password" 
-          name="password" 
-          value={password} 
-          onChange={onChange} 
-          required 
-        />
-        <Button type="submit">Login</Button>
+        <InputWrapper>
+          <InputIcon><FaEnvelope /></InputIcon>
+          <Input 
+            type="email" 
+            placeholder="Email Address" 
+            name="email" 
+            value={email} 
+            onChange={onChange} 
+            required 
+          />
+        </InputWrapper>
+        <InputWrapper>
+          <InputIcon><FaLock /></InputIcon>
+          <Input 
+            type="password" 
+            placeholder="Password" 
+            name="password" 
+            value={password} 
+            onChange={onChange} 
+            required 
+          />
+        </InputWrapper>
+        <RememberMeWrapper>
+          <input
+            type="checkbox"
+            id="rememberMe"
+            name="rememberMe"
+            checked={rememberMe}
+            onChange={onChange}
+          />
+          <label htmlFor="rememberMe">Remember me</label>
+        </RememberMeWrapper>
+        <Button type="submit" disabled={!validateForm()}>Login</Button>
       </Form>
       {error && <ErrorMessage>{error}</ErrorMessage>}
+      <LinkWrapper>
+        <StyledLink to="/forgot-password">Forgot Password?</StyledLink>
+        <StyledLink to="/register">Don't have an account? Sign up</StyledLink>
+      </LinkWrapper>
     </LoginWrapper>
   );
 };

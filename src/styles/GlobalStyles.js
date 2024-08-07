@@ -7,6 +7,10 @@ export const GlobalStyles = createGlobalStyle`
     padding: 0;
   }
 
+  html, body {
+    height: 100%;
+  }
+
   body {
     font-family: ${({ theme }) => theme.fonts.main};
     font-size: ${({ theme }) => theme.fontSizes.medium};
@@ -15,6 +19,7 @@ export const GlobalStyles = createGlobalStyle`
     background-color: ${({ theme }) => theme.colors.background};
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    padding-bottom: 60px; // Adjust this value to match your footer height
   }
 
   h1, h2, h3, h4, h5, h6 {

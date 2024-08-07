@@ -1,44 +1,98 @@
-// pages/Home.js
 import React from 'react';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 const HomeWrapper = styled.div`
-  h1 {
-    color: ${({ theme }) => theme.colors.primary};
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: ${({ theme }) => theme.spacing.large};
+`;
+
+const Hero = styled.section`
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+  padding: ${({ theme }) => theme.spacing.xxlarge} ${({ theme }) => theme.spacing.large};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  margin-bottom: ${({ theme }) => theme.spacing.xlarge};
+  text-align: center;
+`;
+
+const HeroTitle = styled.h1`
+  font-size: ${({ theme }) => theme.fontSizes.xxxlarge};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
+`;
+
+const HeroSubtitle = styled.p`
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  margin-bottom: ${({ theme }) => theme.spacing.large};
+`;
+
+const Button = styled(Link)`
+  display: inline-block;
+  background-color: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+  padding: ${({ theme }) => theme.spacing.medium} ${({ theme }) => theme.spacing.large};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  text-decoration: none;
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  transition: ${({ theme }) => theme.transitions.medium};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondary};
   }
 `;
 
 const FeatureSection = styled.section`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
+  gap: ${({ theme }) => theme.spacing.large};
+  margin-top: ${({ theme }) => theme.spacing.xlarge};
 `;
 
 const FeatureCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.lightGrey};
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  padding: ${({ theme }) => theme.spacing.large};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  box-shadow: ${({ theme }) => theme.boxShadow.medium};
+  transition: ${({ theme }) => theme.transitions.medium};
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: ${({ theme }) => theme.boxShadow.large};
+  }
+`;
+
+const FeatureTitle = styled.h3`
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
+`;
+
+const FeatureDescription = styled.p`
+  color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 export const Home = () => (
   <HomeWrapper>
-    <h1>Welcome to naama.online1</h1>
-    <p>Discover our amazing services and solutions.</p>
+    <Hero>
+      <HeroTitle>Welcome to Naama Online</HeroTitle>
+      <HeroSubtitle>Discover our amazing services and solutions</HeroSubtitle>
+      <Button to="/register">Get Started</Button>
+    </Hero>
     
     <FeatureSection>
       <FeatureCard>
-        <h3>Feature 1</h3>
-        <p>Description of feature 1</p>
+        <FeatureTitle>Create Games</FeatureTitle>
+        <FeatureDescription>Design and build your own games with our easy-to-use tools.</FeatureDescription>
       </FeatureCard>
       <FeatureCard>
-        <h3>Feature 2</h3>
-        <p>Description of feature 2</p>
+        <FeatureTitle>Play Together</FeatureTitle>
+        <FeatureDescription>Enjoy multiplayer games with friends and meet new people.</FeatureDescription>
       </FeatureCard>
       <FeatureCard>
-        <h3>Feature 3</h3>
-        <p>Description of feature 3</p>
+        <FeatureTitle>Share & Discover</FeatureTitle>
+        <FeatureDescription>Share your creations and discover games made by the community.</FeatureDescription>
       </FeatureCard>
     </FeatureSection>
   </HomeWrapper>

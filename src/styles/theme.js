@@ -1,18 +1,21 @@
 export const theme = {
   colors: {
-    primary: '#4267B2',  // A softer blue, inspired by Facebook but unique to Naama
-    secondary: '#5B5B5B',  // A neutral dark gray for secondary elements
-    accent: '#FF6B6B',  // A soft coral for accents and call-to-actions
-    background: '#F0F2F5',  // Light grey background
-    surfaceLight: '#FFFFFF',  // White for cards and content areas
-    surfaceDark: '#2C2F33',  // Dark surface for potential dark mode
-    textPrimary: '#1C1E21',  // Near-black for primary text
-    textSecondary: '#65676B',  // Grey for secondary text
-    borderColor: '#DADDE1',  // Light grey for borders
-    link: '#4267B2',  // Matching primary for consistency
+    primary: '#4267B2',
+    secondary: '#5B5B5B',
+    accent: '#FF6B6B',
+    background: '#F0F2F5',
+    surfaceLight: '#FFFFFF',
+    surfaceDark: '#2C2F33',
+    textPrimary: '#1C1E21',
+    textSecondary: '#65676B',
+    borderColor: '#DADDE1',
+    link: '#4267B2',
     success: '#42B72A',
     warning: '#FFBA00',
     error: '#FA383E',
+    // Adding a few more utility colors
+    lightGrey: '#F2F3F5',
+    darkGrey: '#3A3B3C',
   },
   fonts: {
     main: "'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
@@ -25,6 +28,8 @@ export const theme = {
     large: '1.25rem',
     xlarge: '1.5rem',
     xxlarge: '2rem',
+    // Adding an additional size for extra large headings
+    xxxlarge: '2.5rem',
   },
   fontWeights: {
     normal: 400,
@@ -60,6 +65,8 @@ export const theme = {
     small: '0 1px 2px rgba(0, 0, 0, 0.1)',
     medium: '0 2px 4px rgba(0, 0, 0, 0.1)',
     large: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    // Adding an extra large shadow for more prominent elements
+    xlarge: '0 12px 24px rgba(0, 0, 0, 0.15)',
   },
   transitions: {
     fast: 'all 0.1s ease-in-out',

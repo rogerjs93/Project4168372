@@ -3,12 +3,17 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { Card } from './Card';
 import CreateGame from './CreateGame';
+import { FaUserCircle, FaSpinner } from 'react-icons/fa';
 
 const DashboardContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
   gap: ${({ theme }) => theme.spacing.large};
   padding: ${({ theme }) => theme.spacing.large};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Section = styled.div`
@@ -25,6 +30,7 @@ const Button = styled.button`
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondary};
@@ -52,7 +58,55 @@ const ModalContent = styled.div`
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ theme }) => theme.boxShadow.large};
+`;
+
+const UserProfile = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.medium};
+`;
+
+const Avatar = styled(FaUserCircle)`
+  font-size: 4rem;
+  color: ${({ theme }) => theme.colors.primary};
+`;
+
+const UserInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Username = styled.h3`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+const Email = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+const GameGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: ${({ theme }) => theme.spacing.medium};
+`;
+
+const LoadingSpinner = styled(FaSpinner)`
+  font-size: 2rem;
+  color: ${({ theme }) => theme.colors.primary};
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const ErrorMessage = styled.p`
+  color: ${({ theme }) => theme.colors.error};
+  text-align: center;
 `;
 
 const Dashboard = () => {
@@ -60,22 +114,29 @@ const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [games, setGames] = useState([]);
   const [showCreateGame, setShowCreateGame] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       const userId = localStorage.getItem('userId');
       if (userId) {
         try {
-          const userResponse = await axios.get(`http://localhost:3001/users/${userId}`);
+          setLoading(true);
+          const [userResponse, postsResponse, gamesResponse] = await Promise.all([
+            axios.get(`http://localhost:3001/users/${userId}`),
+            axios.get(`http://localhost:3001/posts?userId=${userId}`),
+            axios.get(`http://localhost:3001/games?creatorId=${userId}`)
+          ]);
+
           setUser(userResponse.data);
-
-          const postsResponse = await axios.get(`http://localhost:3001/posts?userId=${userId}`);
           setPosts(postsResponse.data);
-
-          const gamesResponse = await axios.get(`http://localhost:3001/games?creatorId=${userId}`);
           setGames(gamesResponse.data);
         } catch (error) {
           console.error('Error fetching data:', error);
+          setError('Failed to load dashboard data. Please try again later.');
+        } finally {
+          setLoading(false);
         }
       }
     };
@@ -98,18 +159,30 @@ const Dashboard = () => {
       setShowCreateGame(false);
     } catch (error) {
       console.error('Error creating game:', error);
+      setError('Failed to create game. Please try again.');
     }
   };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
+    return <ErrorMessage>{error}</ErrorMessage>;
+  }
 
   return (
     <DashboardContainer>
       <Section>
         <Card title="User Profile">
           {user && (
-            <>
-              <p>Username: {user.username}</p>
-              <p>Email: {user.email}</p>
-            </>
+            <UserProfile>
+              <Avatar />
+              <UserInfo>
+                <Username>{user.username}</Username>
+                <Email>{user.email}</Email>
+              </UserInfo>
+            </UserProfile>
           )}
         </Card>
       </Section>
@@ -125,13 +198,15 @@ const Dashboard = () => {
 
       <Section>
         <h2>My Games</h2>
-        {games.map(game => (
-          <Card key={game.id} title={game.title}>
-            <p>{game.description || 'No description available.'}</p>
-            <p>Type: {game.gameType}</p>
-            <p>Entities: {game.entities ? Object.keys(game.entities).length : 0}</p>
-          </Card>
-        ))}
+        <GameGrid>
+          {games.map(game => (
+            <Card key={game.id} title={game.title}>
+              <p>{game.description || 'No description available.'}</p>
+              <p>Type: {game.gameType}</p>
+              <p>Entities: {game.entities ? Object.keys(game.entities).length : 0}</p>
+            </Card>
+          ))}
+        </GameGrid>
         <Button onClick={handleCreateGame}>Create New Game</Button>
       </Section>
 

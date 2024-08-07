@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -22,6 +23,18 @@ const Nav = styled.nav`
 const NavSection = styled.div`
   display: flex;
   align-items: center;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    display: ${({ isMobile }) => (isMobile ? 'none' : 'flex')};
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: ${({ theme }) => theme.colors.surfaceLight};
+    padding: ${({ theme }) => theme.spacing.medium};
+    box-shadow: ${({ theme }) => theme.boxShadow.medium};
+  }
 `;
 
 const NavLink = styled(Link)`
@@ -33,12 +46,15 @@ const NavLink = styled(Link)`
   
   &:hover {
     color: ${({ theme }) => theme.colors.primary};
-    text-decoration: none;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    margin: ${({ theme }) => theme.spacing.small} 0;
   }
 `;
 
 const Logo = styled(Link)`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.xlarge};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   color: ${({ theme }) => theme.colors.primary};
   text-decoration: none;
@@ -49,27 +65,115 @@ const Button = styled(NavLink)`
   color: ${({ theme, primary }) => primary ? theme.colors.surfaceLight : theme.colors.primary};
   padding: ${({ theme }) => `${theme.spacing.small} ${theme.spacing.medium}`};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
+  border: 2px solid ${({ theme }) => theme.colors.primary};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  transition: ${({ theme }) => theme.transitions.medium};
 
   &:hover {
-    background-color: ${({ theme, primary }) => primary ? theme.colors.surfaceLight : theme.colors.primary};
-    color: ${({ theme, primary }) => primary ? theme.colors.primary : theme.colors.surfaceLight};
+    background-color: ${({ theme, primary }) => primary ? theme.colors.secondary : theme.colors.primary};
+    color: ${({ theme }) => theme.colors.surfaceLight};
+    border-color: ${({ theme, primary }) => primary ? theme.colors.secondary : theme.colors.primary};
   }
 `;
 
-export const Header = () => (
-  <HeaderWrapper>
-    <Nav>
-      <NavSection>
+const MobileMenuButton = styled.button`
+  display: none;
+  background: none;
+  border: none;
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  color: ${({ theme }) => theme.colors.primary};
+  cursor: pointer;
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    display: block;
+  }
+`;
+
+const UserMenu = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+`;
+
+const UserMenuDropdown = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  box-shadow: ${({ theme }) => theme.boxShadow.large};
+  padding: ${({ theme }) => theme.spacing.medium};
+  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+`;
+
+const UserMenuLink = styled(Link)`
+  display: block;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  text-decoration: none;
+  padding: ${({ theme }) => theme.spacing.small};
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.background};
+  }
+`;
+
+export const Header = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    setIsLoggedIn(!!userId);
+  }, []);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('userId');
+    setIsLoggedIn(false);
+    navigate('/');
+  };
+
+  return (
+    <HeaderWrapper>
+      <Nav>
         <Logo to="/">Naama</Logo>
-        <NavLink to="/about">About</NavLink>
-        <NavLink to="/services">Services</NavLink>
-        <NavLink to="/contact">Contact</NavLink>
-      </NavSection>
-      <NavSection>
-        <Button to="/login">Log In</Button>
-        <Button to="/register" primary>Sign Up</Button>
-      </NavSection>
-    </Nav>
-  </HeaderWrapper>
-);
+        <MobileMenuButton onClick={toggleMobileMenu}>
+          {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
+        </MobileMenuButton>
+        <NavSection isMobile={!isMobileMenuOpen}>
+          <NavLink to="/about">About</NavLink>
+          <NavLink to="/services">Services</NavLink>
+          <NavLink to="/contact">Contact</NavLink>
+        </NavSection>
+        <NavSection isMobile={!isMobileMenuOpen}>
+          {isLoggedIn ? (
+            <UserMenu onClick={toggleUserMenu}>
+              <FaUser />
+              <UserMenuDropdown isOpen={isUserMenuOpen}>
+                <UserMenuLink to="/dashboard">Dashboard</UserMenuLink>
+                <UserMenuLink to="/profile">Profile</UserMenuLink>
+                <UserMenuLink as="button" onClick={handleLogout}>Logout</UserMenuLink>
+              </UserMenuDropdown>
+            </UserMenu>
+          ) : (
+            <>
+              <Button to="/login">Log In</Button>
+              <Button to="/register" primary>Sign Up</Button>
+            </>
+          )}
+        </NavSection>
+      </Nav>
+    </HeaderWrapper>
+  );
+};
