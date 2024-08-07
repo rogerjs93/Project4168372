@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
+import { useAuth } from '../AuthContext'; // Import useAuth
 
 const LoginWrapper = styled.div`
   max-width: 400px;
@@ -112,6 +113,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth(); // Use the login function from AuthContext
 
   const { email, password, rememberMe } = formData;
 
@@ -128,11 +130,13 @@ const Login = () => {
     e.preventDefault();
     setError('');
     try {
+      // Use axios to query the JSON server
       const res = await axios.get(`http://localhost:3001/users?email=${email}&password=${password}`);
       
       if (res.data.length > 0) {
-        console.log('Login successful:', res.data[0]);
-        localStorage.setItem('userId', res.data[0].id);
+        const user = res.data[0];
+        // Call the login function from AuthContext
+        login(user.id);
         if (rememberMe) {
           localStorage.setItem('rememberMe', email);
         } else {
@@ -144,7 +148,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || err.message || 'An error occurred during login');
+      setError('An error occurred during login');
     }
   };
 

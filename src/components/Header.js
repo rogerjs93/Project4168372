@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { useAuth } from '../AuthContext'; // Updated import
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -122,13 +123,14 @@ const UserMenuLink = styled(Link)`
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    setIsLoggedIn(!!userId);
-  }, []);
+    setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
+  }, [location]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -139,8 +141,7 @@ export const Header = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('userId');
-    setIsLoggedIn(false);
+    logout();
     navigate('/');
   };
 

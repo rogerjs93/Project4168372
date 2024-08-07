@@ -7,7 +7,9 @@ import { Header, Footer, Sidebar } from './components';
 import { Home, About, Services, Contact, Register } from './pages';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import Profile from './components/Profile'; // Import the new Profile component
 import { GlobalStyles, theme } from './styles';
+import { AuthProvider } from './AuthContext';
 
 const AppWrapper = styled.div`
   display: flex;
@@ -43,32 +45,35 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <DndProvider backend={HTML5Backend}>
-        <GlobalStyles />
-        <Router>
-          <AppWrapper>
-            <Header />
-            <MainWrapper>
-              <Sidebar
-                isCollapsed={isSidebarCollapsed}
-                onCollapse={setIsSidebarCollapsed}
-              />
-              <ContentWrapper isSidebarCollapsed={isSidebarCollapsed}>
-                <ContentArea>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/services" element={<Services />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                  </Routes>
-                </ContentArea>
-              </ContentWrapper>
-            </MainWrapper>
-            <Footer />
-          </AppWrapper>
-        </Router>
+        <AuthProvider>
+          <GlobalStyles />
+          <Router>
+            <AppWrapper>
+              <Header />
+              <MainWrapper>
+                <Sidebar
+                  isCollapsed={isSidebarCollapsed}
+                  onCollapse={setIsSidebarCollapsed}
+                />
+                <ContentWrapper isSidebarCollapsed={isSidebarCollapsed}>
+                  <ContentArea>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/services" element={<Services />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/profile" element={<Profile />} /> {/* Add this line */}
+                    </Routes>
+                  </ContentArea>
+                </ContentWrapper>
+              </MainWrapper>
+              <Footer />
+            </AppWrapper>
+          </Router>
+        </AuthProvider>
       </DndProvider>
     </ThemeProvider>
   );

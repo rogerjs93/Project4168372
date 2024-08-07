@@ -2,7 +2,21 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 const User = require('../models/User');
+
+// @route   GET api/auth
+// @desc    Get logged in user
+// @access  Private
+router.get('/', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 // @route   POST api/auth
 // @desc    Authenticate user & get token
@@ -29,7 +43,7 @@ router.post('/', async (req, res) => {
 
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: 3600 }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
+      res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
     });
   } catch (err) {
     console.error(err.message);
