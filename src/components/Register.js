@@ -48,20 +48,33 @@ const Register = () => {
       setError('Passwords do not match');
     } else {
       try {
-        const config = {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+        // Check if user already exists
+        const checkUser = await axios.get(`http://localhost:3001/users?email=${email}`);
+        if (checkUser.data.length > 0) {
+          setError('User already exists');
+          return;
+        }
+
+        const newUser = {
+          username,
+          email,
+          password // In a real app, never store plain text passwords
         };
-        const body = JSON.stringify({ username, email, password });
-        const res = await axios.post('http://localhost:5000/api/users', body, config);
-        console.log(res.data);
-        localStorage.setItem('token', res.data.token);
-        setSuccess(true);
-        setError('');
-        setTimeout(() => navigate('/dashboard'), 2000);
+
+        const res = await axios.post('http://localhost:3001/users', newUser);
+        
+        if (res.data) {
+          console.log(res.data);
+          localStorage.setItem('userId', res.data.id);
+          setSuccess(true);
+          setError('');
+          setTimeout(() => navigate('/dashboard'), 2000);
+        } else {
+          setError('Registration failed');
+        }
       } catch (err) {
-        setError(err.response.data.msg || 'An error occurred during registration');
+        console.error('Registration error:', err);
+        setError(err.message || 'An error occurred during registration');
       }
     }
   };

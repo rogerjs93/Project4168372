@@ -43,20 +43,20 @@ const Login = () => {
   const onSubmit = async e => {
     e.preventDefault();
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      };
-      const body = JSON.stringify({ email, password });
-      const res = await axios.post('http://localhost:5000/api/auth', body, config);
-      console.log(res.data);
-      localStorage.setItem('token', res.data.token);
-      setSuccess(true);
-      setError('');
-      setTimeout(() => navigate('/dashboard'), 2000);
+      const res = await axios.get(`http://localhost:3001/users?email=${email}&password=${password}`);
+      
+      if (res.data.length > 0) {
+        console.log(res.data[0]);
+        localStorage.setItem('userId', res.data[0].id);
+        setSuccess(true);
+        setError('');
+        setTimeout(() => navigate('/dashboard'), 2000);
+      } else {
+        setError('Invalid credentials');
+      }
     } catch (err) {
-      setError(err.response.data.msg || 'An error occurred during login');
+      console.error('Login error:', err);
+      setError(err.message || 'An error occurred during login');
     }
   };
 

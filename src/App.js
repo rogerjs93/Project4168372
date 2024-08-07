@@ -3,12 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
 import { Header, Footer, Sidebar, Login, Register } from './components';
 import { Home, About, Services, Contact } from './pages';
+import Dashboard from './components/Dashboard';
 import { GlobalStyles, theme } from './styles';
 
 const AppWrapper = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
 const MainContent = styled.main`
@@ -18,7 +20,7 @@ const MainContent = styled.main`
 
 const ContentArea = styled.div`
   flex: 1;
-  padding: 20px;
+  padding: ${({ theme }) => theme.spacing.large};
 `;
 
 function App() {
@@ -38,6 +40,7 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
               </Routes>
             </ContentArea>
           </MainContent>
