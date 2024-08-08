@@ -3,7 +3,7 @@ import axios from 'axios';
 import styled, { keyframes } from 'styled-components';
 import { Card } from './Card';
 import CreateGame from './CreateGame';
-import { FaUserCircle, FaSpinner, FaGamepad, FaFire, FaPlus, FaHeart, FaComment, FaShare } from 'react-icons/fa';
+import { FaUserCircle, FaSpinner, FaPlus, FaHeart, FaComment, FaShare } from 'react-icons/fa';
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -206,7 +206,7 @@ const Dashboard = () => {
   const [showCreateGame, setShowCreateGame] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [trendingTopics, setTrendingTopics] = useState(['#GameDev', '#Multiplayer', '#Indie', '#PixelArt']);
+  const trendingTopics = ['#GameDev', '#Multiplayer', '#Indie', '#PixelArt'];
 
   useEffect(() => {
     const fetchData = async () => {

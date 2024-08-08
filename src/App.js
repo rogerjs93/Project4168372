@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Header, Footer, Sidebar } from './components';
+import { Header, Sidebar } from './components';
 import { Home, About, Services, Contact, Register, Games, Community, Support } from './pages';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -78,7 +78,6 @@ function App() {
                   </ContentArea>
                 </ContentWrapper>
               </MainWrapper>
-              <Footer />
             </AppWrapper>
           </Router>
         </AuthProvider>

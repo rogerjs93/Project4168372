@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaEnvelope } from 'react-icons/fa';
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaEnvelope, FaSteam, FaPlaystation, FaXbox, FaTwitch } from 'react-icons/fa';
 
 const FooterWrapper = styled.footer`
   background-color: ${({ theme }) => theme.colors.surfaceDark};
@@ -53,6 +53,12 @@ const FooterLink = styled(Link)`
 `;
 
 const SocialLinks = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.medium};
+`;
+
+const IconRow = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.spacing.medium};
 `;
@@ -136,18 +142,34 @@ export const Footer = () => {
         <FooterSection>
           <FooterTitle>Connect With Us</FooterTitle>
           <SocialLinks>
-            <SocialLink href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-              <FaFacebook />
-            </SocialLink>
-            <SocialLink href="https://twitter.com" target="_blank" rel="noopener noreferrer">
-              <FaTwitter />
-            </SocialLink>
-            <SocialLink href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-              <FaInstagram />
-            </SocialLink>
-            <SocialLink href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
-              <FaLinkedin />
-            </SocialLink>
+            <IconRow>
+              <SocialLink href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <FaFacebook />
+              </SocialLink>
+              <SocialLink href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                <FaTwitter />
+              </SocialLink>
+              <SocialLink href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <FaInstagram />
+              </SocialLink>
+              <SocialLink href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <FaLinkedin />
+              </SocialLink>
+            </IconRow>
+            <IconRow>
+              <SocialLink href="https://store.steampowered.com" target="_blank" rel="noopener noreferrer" aria-label="Steam">
+                <FaSteam />
+              </SocialLink>
+              <SocialLink href="https://www.playstation.com" target="_blank" rel="noopener noreferrer" aria-label="PlayStation">
+                <FaPlaystation />
+              </SocialLink>
+              <SocialLink href="https://www.xbox.com" target="_blank" rel="noopener noreferrer" aria-label="Xbox">
+                <FaXbox />
+              </SocialLink>
+              <SocialLink href="https://www.twitch.tv" target="_blank" rel="noopener noreferrer" aria-label="Twitch">
+                <FaTwitch />
+              </SocialLink>
+            </IconRow>
           </SocialLinks>
         </FooterSection>
 
