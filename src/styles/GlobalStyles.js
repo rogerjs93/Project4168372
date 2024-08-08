@@ -1,6 +1,8 @@
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyles = createGlobalStyle`
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
   ${({ theme }) => theme.animations.fadeIn}
   ${({ theme }) => theme.animations.slideIn}
 
@@ -34,6 +36,7 @@ export const GlobalStyles = createGlobalStyle`
 
   main {
     flex: 1 0 auto;
+    padding: ${({ theme }) => theme.spacing.large} 0;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -44,17 +47,17 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   h1 {
-    font-size: ${({ theme }) => theme.fontSizes.xxlarge};
+    font-size: ${({ theme }) => theme.fontSizes.xxxlarge};
     font-weight: ${({ theme }) => theme.fontWeights.bold};
   }
 
   h2 {
-    font-size: ${({ theme }) => theme.fontSizes.xlarge};
+    font-size: ${({ theme }) => theme.fontSizes.xxlarge};
     font-weight: ${({ theme }) => theme.fontWeights.semibold};
   }
 
   h3 {
-    font-size: ${({ theme }) => theme.fontSizes.large};
+    font-size: ${({ theme }) => theme.fontSizes.xlarge};
     font-weight: ${({ theme }) => theme.fontWeights.medium};
   }
 
@@ -68,7 +71,7 @@ export const GlobalStyles = createGlobalStyle`
     transition: ${({ theme }) => theme.transitions.fast};
 
     &:hover {
-      text-decoration: underline;
+      color: ${({ theme }) => theme.colors.linkHover};
     }
   }
 
@@ -127,5 +130,63 @@ export const GlobalStyles = createGlobalStyle`
 
   .slideIn {
     animation: slideIn 0.5s ease-in-out;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 ${({ theme }) => theme.spacing.medium};
+  }
+
+  .card {
+    background-color: ${({ theme }) => theme.colors.surfaceLight};
+    border-radius: ${({ theme }) => theme.borderRadius.large};
+    box-shadow: ${({ theme }) => theme.boxShadow.medium};
+    padding: ${({ theme }) => theme.spacing.large};
+    margin-bottom: ${({ theme }) => theme.spacing.large};
+  }
+
+  .btn {
+    display: inline-block;
+    background-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.surfaceLight};
+    padding: ${({ theme }) => `${theme.spacing.small} ${theme.spacing.medium}`};
+    border-radius: ${({ theme }) => theme.borderRadius.medium};
+    text-decoration: none;
+    font-weight: ${({ theme }) => theme.fontWeights.semibold};
+    transition: ${({ theme }) => theme.transitions.medium};
+
+    &:hover {
+      background-color: ${({ theme }) => theme.colors.secondary};
+      transform: translateY(-2px);
+    }
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .mb-1 {
+    margin-bottom: ${({ theme }) => theme.spacing.small};
+  }
+
+  .mb-2 {
+    margin-bottom: ${({ theme }) => theme.spacing.medium};
+  }
+
+  .mb-3 {
+    margin-bottom: ${({ theme }) => theme.spacing.large};
+  }
+
+  .mt-1 {
+    margin-top: ${({ theme }) => theme.spacing.small};
+  }
+
+  .mt-2 {
+    margin-top: ${({ theme }) => theme.spacing.medium};
+  }
+
+  .mt-3 {
+    margin-top: ${({ theme }) => theme.spacing.large};
   }
 `;

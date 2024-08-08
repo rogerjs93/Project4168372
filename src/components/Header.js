@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaUser, FaSearch, FaBell } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaSearch, FaBell, FaEnvelope } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
-  padding: ${({ theme }) => theme.spacing.medium};
+  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
   box-shadow: ${({ theme }) => theme.boxShadow.medium};
   position: fixed;
   top: 0;
@@ -21,6 +21,12 @@ const Nav = styled.nav`
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
+`;
+
+const LogoLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 `;
 
 const NavSection = styled.div`
@@ -92,6 +98,13 @@ const UserMenu = styled.div`
   cursor: pointer;
 `;
 
+const UserAvatar = styled.img`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: ${({ theme }) => theme.spacing.small};
+`;
+
 const UserMenuDropdown = styled.div`
   position: absolute;
   top: 100%;
@@ -101,6 +114,7 @@ const UserMenuDropdown = styled.div`
   box-shadow: ${({ theme }) => theme.boxShadow.large};
   padding: ${({ theme }) => theme.spacing.medium};
   display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+  min-width: 200px;
 `;
 
 const UserMenuLink = styled(Link)`
@@ -122,6 +136,8 @@ const SearchBar = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   padding: ${({ theme }) => theme.spacing.small};
   margin-left: ${({ theme }) => theme.spacing.medium};
+  flex-grow: 1;
+  max-width: 400px;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     width: 100%;
@@ -135,14 +151,10 @@ const SearchInput = styled.input`
   font-size: ${({ theme }) => theme.fontSizes.medium};
   color: ${({ theme }) => theme.colors.textPrimary};
   padding: ${({ theme }) => theme.spacing.small};
-  width: 200px;
+  width: 100%;
 
   &:focus {
     outline: none;
-  }
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    width: 100%;
   }
 `;
 
@@ -151,23 +163,29 @@ const SearchIcon = styled(FaSearch)`
   margin-right: ${({ theme }) => theme.spacing.small};
 `;
 
-const NotificationIcon = styled(FaBell)`
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  cursor: pointer;
+const IconWrapper = styled.div`
+  position: relative;
   margin-left: ${({ theme }) => theme.spacing.medium};
-  transition: ${({ theme }) => theme.transitions.fast};
+  cursor: pointer;
+`;
 
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-  }
+const NotificationCount = styled.span`
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+  font-size: ${({ theme }) => theme.fontSizes.tiny};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  padding: 2px 5px;
+  border-radius: 10px;
 `;
 
 export const Header = ({ Logo }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -191,17 +209,16 @@ export const Header = ({ Logo }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Implement search functionality
     console.log('Searching for:', searchQuery);
-    // Navigate to search results page or update current page with results
+    // Implement search functionality
   };
 
   return (
     <HeaderWrapper>
       <Nav>
-        <Link to="/">
-          <Logo />
-        </Link>
+        <LogoLink to="/">
+          <Logo size="40" />
+        </LogoLink>
         <SearchBar>
           <SearchIcon />
           <SearchInput
@@ -219,16 +236,22 @@ export const Header = ({ Logo }) => {
           <NavLink to="/games">Games</NavLink>
           <NavLink to="/community">Community</NavLink>
           <NavLink to="/support">Support</NavLink>
-        </NavSection>
-        <NavSection isMobile={!isMobileMenuOpen}>
           {isLoggedIn ? (
             <>
-              <NotificationIcon />
+              <IconWrapper>
+                <FaEnvelope />
+                <NotificationCount>3</NotificationCount>
+              </IconWrapper>
+              <IconWrapper>
+                <FaBell />
+                <NotificationCount>5</NotificationCount>
+              </IconWrapper>
               <UserMenu onClick={toggleUserMenu}>
-                <FaUser />
+                <UserAvatar src={user?.profilePicture || 'https://via.placeholder.com/32'} alt="User Avatar" />
                 <UserMenuDropdown isOpen={isUserMenuOpen}>
                   <UserMenuLink to="/dashboard">Dashboard</UserMenuLink>
                   <UserMenuLink to="/profile">Profile</UserMenuLink>
+                  <UserMenuLink to="/settings">Settings</UserMenuLink>
                   <UserMenuLink as="button" onClick={handleLogout}>Logout</UserMenuLink>
                 </UserMenuDropdown>
               </UserMenu>
