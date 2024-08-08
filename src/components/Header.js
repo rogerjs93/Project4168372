@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaUser, FaSearch, FaBell } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
-import { Logo } from './Logo'; // Import the new Logo component
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -164,7 +163,7 @@ const NotificationIcon = styled(FaBell)`
   }
 `;
 
-export const Header = () => {
+export const Header = ({ Logo }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -201,7 +200,7 @@ export const Header = () => {
     <HeaderWrapper>
       <Nav>
         <Link to="/">
-          <Logo /> {/* Use the new Logo component here */}
+          <Logo />
         </Link>
         <SearchBar>
           <SearchIcon />

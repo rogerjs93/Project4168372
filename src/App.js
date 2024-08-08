@@ -4,6 +4,7 @@ import styled, { ThemeProvider } from 'styled-components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Header, Footer, Sidebar } from './components';
+import { Logo } from './components/Logo'; // Import the Logo component
 import { Home, About, Services, Contact, Register } from './pages';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -53,7 +54,7 @@ function App() {
           <GlobalStyles />
           <Router>
             <AppWrapper>
-              <Header />
+              <Header Logo={Logo} /> {/* Pass Logo as a prop to Header */}
               <MainWrapper>
                 <Sidebar
                   isCollapsed={isSidebarCollapsed}
