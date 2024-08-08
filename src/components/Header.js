@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaUser, FaSearch, FaBell, FaEnvelope } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
+import { Logo } from './Logo';  // Import the Logo component
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -189,7 +190,7 @@ const SearchIcon = styled(FaSearch)`
   margin-right: ${({ theme }) => theme.spacing.small};
 `;
 
-export const Header = ({ Logo }) => {
+export const Header = () => {  // Remove the Logo prop
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
