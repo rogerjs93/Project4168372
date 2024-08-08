@@ -366,11 +366,11 @@ const Profile = () => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <StarIcon
                         key={star}
-                        filled={star <= game.rating}
+                        filled={star <= (game.rating || 0)}
                         onClick={() => handleRateGame(game.id, star)}
                       />
                     ))}
-                    <span>{game.rating.toFixed(1)}</span>
+                    <span>{game.rating !== undefined ? game.rating.toFixed(1) : 'Not rated'}</span>
                   </GameRatingWrapper>
                 </GameInfo>
               </GameCard>

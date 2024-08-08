@@ -1,21 +1,21 @@
 export const theme = {
   colors: {
-    primary: '#4267B2',
-    secondary: '#5B5B5B',
-    accent: '#FF6B6B',
-    background: '#F0F2F5',
-    surfaceLight: '#FFFFFF',
-    surfaceDark: '#2C2F33',
-    textPrimary: '#1C1E21',
-    textSecondary: '#65676B',
-    borderColor: '#DADDE1',
-    link: '#4267B2',
-    success: '#42B72A',
-    warning: '#FFBA00',
-    error: '#FA383E',
-    lightGrey: '#F2F3F5',
-    darkGrey: '#3A3B3C',
-    gradient: 'linear-gradient(45deg, #4267B2, #5B5B5B)',
+    primary: '#6200EA',       // Deep purple
+    secondary: '#03DAC6',     // Teal
+    accent: '#FF6B6B',        // Coral (kept from original)
+    background: '#F4F5FA',    // Light grayish blue
+    surfaceLight: '#FFFFFF',  // White
+    surfaceDark: '#2C2F33',   // Dark gray (kept from original)
+    textPrimary: '#333333',   // Dark gray for primary text
+    textSecondary: '#757575', // Medium gray for secondary text
+    borderColor: '#E0E0E0',   // Light gray for borders
+    link: '#3700B3',          // Darker purple for links
+    success: '#00C853',       // Green
+    warning: '#FFD600',       // Yellow
+    error: '#B00020',         // Red
+    lightGrey: '#F5F5F5',     // Very light gray
+    darkGrey: '#424242',      // Darker gray
+    gradient: 'linear-gradient(45deg, #6200EA, #03DAC6)',
   },
   fonts: {
     main: "'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",

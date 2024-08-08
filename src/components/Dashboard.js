@@ -240,7 +240,9 @@ const Dashboard = () => {
     try {
       const response = await axios.post('http://localhost:3001/games', {
         ...newGame,
-        creatorId: user.id
+        creatorId: user.id,
+        rating: 0,
+        playCount: 0
       });
       setGames([...games, response.data]);
       setShowCreateGame(false);
@@ -321,8 +323,8 @@ const Dashboard = () => {
             <GameCard key={game.id} title={game.title}>
               <p>{game.description}</p>
               <p>Type: {game.gameType}</p>
-              <p>Rating: {game.rating.toFixed(1)}</p>
-              <p>Plays: {game.playCount}</p>
+              <p>Rating: {game.rating !== undefined ? game.rating.toFixed(1) : 'Not rated'}</p>
+              <p>Plays: {game.playCount !== undefined ? game.playCount : 0}</p>
             </GameCard>
           ))}
         </GameGrid>

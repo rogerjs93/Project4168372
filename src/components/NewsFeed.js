@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import { FaHeart, FaComment, FaShare } from 'react-icons/fa';
@@ -45,21 +45,50 @@ const ActionButton = styled.button`
   }
 `;
 
+const LoadingSpinner = styled.div`
+  text-align: center;
+  padding: ${({ theme }) => theme.spacing.medium};
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
 const NewsFeed = () => {
   const [posts, setPosts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const observer = useRef();
+  const postsPerPage = 2; // Adjust this to control how many posts are "loaded" at a time
+
+  const lastPostElementRef = useCallback(node => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage(prevPage => prevPage + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore]);
 
   useEffect(() => {
     const fetchPosts = async () => {
+      setLoading(true);
       try {
+        // In a real server implementation, you would use page and postsPerPage in the API call
+        // For the mock server, we'll fetch all posts and manually paginate
         const response = await axios.get('http://localhost:3001/posts');
-        setPosts(response.data);
+        const allPosts = response.data;
+        const paginatedPosts = allPosts.slice(0, page * postsPerPage);
+        setPosts(paginatedPosts);
+        setHasMore(paginatedPosts.length < allPosts.length);
       } catch (error) {
         console.error('Error fetching posts:', error);
       }
+      setLoading(false);
     };
 
     fetchPosts();
-  }, []);
+  }, [page]);
 
   const handleLike = async (postId) => {
     try {
@@ -74,8 +103,8 @@ const NewsFeed = () => {
 
   return (
     <FeedWrapper>
-      {posts.map(post => (
-        <Post key={post.id}>
+      {posts.map((post, index) => (
+        <Post key={post.id} ref={posts.length === index + 1 ? lastPostElementRef : null}>
           <PostAuthor>{post.userId}</PostAuthor>
           <PostContent>{post.content}</PostContent>
           <PostActions>
@@ -91,6 +120,7 @@ const NewsFeed = () => {
           </PostActions>
         </Post>
       ))}
+      {loading && <LoadingSpinner>Loading...</LoadingSpinner>}
     </FeedWrapper>
   );
 };

@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaUser, FaSearch, FaBell } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
+import { Logo } from './Logo'; // Import the new Logo component
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -54,13 +55,6 @@ const NavLink = styled(Link)`
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     margin: ${({ theme }) => theme.spacing.small} 0;
   }
-`;
-
-const Logo = styled(Link)`
-  font-size: ${({ theme }) => theme.fontSizes.xlarge};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  color: ${({ theme }) => theme.colors.primary};
-  text-decoration: none;
 `;
 
 const Button = styled(NavLink)`
@@ -206,7 +200,9 @@ export const Header = () => {
   return (
     <HeaderWrapper>
       <Nav>
-        <Logo to="/">Naama</Logo>
+        <Link to="/">
+          <Logo /> {/* Use the new Logo component here */}
+        </Link>
         <SearchBar>
           <SearchIcon />
           <SearchInput
