@@ -91,18 +91,43 @@ const MobileMenuButton = styled.button`
   }
 `;
 
-const UserMenu = styled.div`
-  position: relative;
+const IconsWrapper = styled.div`
   display: flex;
   align-items: center;
-  cursor: pointer;
+  margin-left: ${({ theme }) => theme.spacing.medium};
 `;
 
-const UserAvatar = styled.img`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-right: ${({ theme }) => theme.spacing.small};
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  cursor: pointer;
+  padding: ${({ theme }) => theme.spacing.small};
+  position: relative;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const NotificationCount = styled.span`
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: ${({ theme }) => theme.colors.accent};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+  font-size: ${({ theme }) => theme.fontSizes.tiny};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  padding: 2px 5px;
+  border-radius: 10px;
+  transform: translate(50%, -50%);
+`;
+
+const AuthButtons = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.small};
 `;
 
 const UserMenuDropdown = styled.div`
@@ -115,6 +140,7 @@ const UserMenuDropdown = styled.div`
   padding: ${({ theme }) => theme.spacing.medium};
   display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
   min-width: 200px;
+  z-index: 1000;
 `;
 
 const UserMenuLink = styled(Link)`
@@ -163,29 +189,11 @@ const SearchIcon = styled(FaSearch)`
   margin-right: ${({ theme }) => theme.spacing.small};
 `;
 
-const IconWrapper = styled.div`
-  position: relative;
-  margin-left: ${({ theme }) => theme.spacing.medium};
-  cursor: pointer;
-`;
-
-const NotificationCount = styled.span`
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background-color: ${({ theme }) => theme.colors.accent};
-  color: ${({ theme }) => theme.colors.surfaceLight};
-  font-size: ${({ theme }) => theme.fontSizes.tiny};
-  font-weight: ${({ theme }) => theme.fontWeights.bold};
-  padding: 2px 5px;
-  border-radius: 10px;
-`;
-
 export const Header = ({ Logo }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { isLoggedIn, logout, user } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -237,30 +245,29 @@ export const Header = ({ Logo }) => {
           <NavLink to="/community">Community</NavLink>
           <NavLink to="/support">Support</NavLink>
           {isLoggedIn ? (
-            <>
-              <IconWrapper>
+            <IconsWrapper>
+              <IconButton>
                 <FaEnvelope />
                 <NotificationCount>3</NotificationCount>
-              </IconWrapper>
-              <IconWrapper>
+              </IconButton>
+              <IconButton>
                 <FaBell />
                 <NotificationCount>5</NotificationCount>
-              </IconWrapper>
-              <UserMenu onClick={toggleUserMenu}>
-                <UserAvatar src={user?.profilePicture || 'https://via.placeholder.com/32'} alt="User Avatar" />
+              </IconButton>
+              <IconButton onClick={toggleUserMenu}>
+                <FaUser />
                 <UserMenuDropdown isOpen={isUserMenuOpen}>
-                  <UserMenuLink to="/dashboard">Dashboard</UserMenuLink>
                   <UserMenuLink to="/profile">Profile</UserMenuLink>
                   <UserMenuLink to="/settings">Settings</UserMenuLink>
                   <UserMenuLink as="button" onClick={handleLogout}>Logout</UserMenuLink>
                 </UserMenuDropdown>
-              </UserMenu>
-            </>
+              </IconButton>
+            </IconsWrapper>
           ) : (
-            <>
+            <AuthButtons>
               <Button to="/login">Log In</Button>
               <Button to="/register" primary>Sign Up</Button>
-            </>
+            </AuthButtons>
           )}
         </NavSection>
       </Nav>

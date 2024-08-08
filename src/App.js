@@ -4,8 +4,7 @@ import styled, { ThemeProvider } from 'styled-components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Header, Footer, Sidebar } from './components';
-import { Logo } from './components/Logo'; // Import the Logo component
-import { Home, About, Services, Contact, Register } from './pages';
+import { Home, About, Services, Contact, Register, Games, Community, Support } from './pages';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
@@ -54,7 +53,7 @@ function App() {
           <GlobalStyles />
           <Router>
             <AppWrapper>
-              <Header Logo={Logo} /> {/* Pass Logo as a prop to Header */}
+              <Header />
               <MainWrapper>
                 <Sidebar
                   isCollapsed={isSidebarCollapsed}
@@ -72,6 +71,9 @@ function App() {
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/feed" element={<NewsFeed />} />
+                      <Route path="/games" element={<Games />} />
+                      <Route path="/community" element={<Community />} />
+                      <Route path="/support" element={<Support />} />
                     </Routes>
                   </ContentArea>
                 </ContentWrapper>
