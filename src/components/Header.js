@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
-import { useAuth } from '../AuthContext'; // Updated import
+import { FaBars, FaTimes, FaUser, FaSearch, FaBell } from 'react-icons/fa';
+import { useAuth } from '../AuthContext';
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   padding: ${({ theme }) => theme.spacing.medium};
   box-shadow: ${({ theme }) => theme.boxShadow.medium};
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
 `;
 
@@ -120,9 +122,58 @@ const UserMenuLink = styled(Link)`
   }
 `;
 
+const SearchBar = styled.div`
+  display: flex;
+  align-items: center;
+  background-color: ${({ theme }) => theme.colors.background};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  padding: ${({ theme }) => theme.spacing.small};
+  margin-left: ${({ theme }) => theme.spacing.medium};
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    width: 100%;
+    margin: ${({ theme }) => theme.spacing.small} 0;
+  }
+`;
+
+const SearchInput = styled.input`
+  border: none;
+  background: none;
+  font-size: ${({ theme }) => theme.fontSizes.medium};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  padding: ${({ theme }) => theme.spacing.small};
+  width: 200px;
+
+  &:focus {
+    outline: none;
+  }
+
+  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    width: 100%;
+  }
+`;
+
+const SearchIcon = styled(FaSearch)`
+  color: ${({ theme }) => theme.colors.textSecondary};
+  margin-right: ${({ theme }) => theme.spacing.small};
+`;
+
+const NotificationIcon = styled(FaBell)`
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  color: ${({ theme }) => theme.colors.textPrimary};
+  cursor: pointer;
+  margin-left: ${({ theme }) => theme.spacing.medium};
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -145,28 +196,48 @@ export const Header = () => {
     navigate('/');
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // Implement search functionality
+    console.log('Searching for:', searchQuery);
+    // Navigate to search results page or update current page with results
+  };
+
   return (
     <HeaderWrapper>
       <Nav>
         <Logo to="/">Naama</Logo>
+        <SearchBar>
+          <SearchIcon />
+          <SearchInput
+            type="text"
+            placeholder="Search games, users, posts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+          />
+        </SearchBar>
         <MobileMenuButton onClick={toggleMobileMenu}>
           {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
         </MobileMenuButton>
         <NavSection isMobile={!isMobileMenuOpen}>
-          <NavLink to="/about">About</NavLink>
-          <NavLink to="/services">Services</NavLink>
-          <NavLink to="/contact">Contact</NavLink>
+          <NavLink to="/games">Games</NavLink>
+          <NavLink to="/community">Community</NavLink>
+          <NavLink to="/support">Support</NavLink>
         </NavSection>
         <NavSection isMobile={!isMobileMenuOpen}>
           {isLoggedIn ? (
-            <UserMenu onClick={toggleUserMenu}>
-              <FaUser />
-              <UserMenuDropdown isOpen={isUserMenuOpen}>
-                <UserMenuLink to="/dashboard">Dashboard</UserMenuLink>
-                <UserMenuLink to="/profile">Profile</UserMenuLink>
-                <UserMenuLink as="button" onClick={handleLogout}>Logout</UserMenuLink>
-              </UserMenuDropdown>
-            </UserMenu>
+            <>
+              <NotificationIcon />
+              <UserMenu onClick={toggleUserMenu}>
+                <FaUser />
+                <UserMenuDropdown isOpen={isUserMenuOpen}>
+                  <UserMenuLink to="/dashboard">Dashboard</UserMenuLink>
+                  <UserMenuLink to="/profile">Profile</UserMenuLink>
+                  <UserMenuLink as="button" onClick={handleLogout}>Logout</UserMenuLink>
+                </UserMenuDropdown>
+              </UserMenu>
+            </>
           ) : (
             <>
               <Button to="/login">Log In</Button>

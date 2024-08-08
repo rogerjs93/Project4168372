@@ -1,30 +1,22 @@
 {
-  "posts": [
-    {
-      "id": "1",
-      "title": "json-server",
-      "author": "typicode"
-    },
-    {
-      "id": "2",
-      "userId": "aa09",
-      "title": "My first post",
-      "content": "Hello, world!"
-    }
-  ],
-  "comments": [
-    {
-      "id": "1",
-      "body": "some comment",
-      "postId": 1
-    }
-  ],
   "users": [
     {
       "id": "aa09",
       "username": "test",
       "email": "test@mail.com",
       "password": "test123"
+    },
+    {
+      "id": "bb10",
+      "username": "johndoe",
+      "email": "john@example.com",
+      "password": "password123"
+    },
+    {
+      "id": "cc11",
+      "username": "janedoe",
+      "email": "jane@example.com",
+      "password": "password456"
     }
   ],
   "profiles": [
@@ -36,68 +28,294 @@
       "location": "Internet City",
       "occupation": "Quality Assurance Tester",
       "joinDate": "2023-01-01",
-      "coverPhoto": "https://source.unsplash.com/random/1000x300",
-      "profilePicture": "https://source.unsplash.com/random/150x150"
+      "coverPhoto": "https://source.unsplash.com/random/1000x300?landscape",
+      "profilePicture": "https://source.unsplash.com/random/150x150?face"
+    },
+    {
+      "id": "bb10",
+      "userId": "bb10",
+      "name": "John Doe",
+      "bio": "Game developer and designer",
+      "location": "New York, USA",
+      "occupation": "Senior Game Developer",
+      "joinDate": "2023-02-15",
+      "coverPhoto": "https://source.unsplash.com/random/1000x300?city",
+      "profilePicture": "https://source.unsplash.com/random/150x150?man"
+    },
+    {
+      "id": "cc11",
+      "userId": "cc11",
+      "name": "Jane Doe",
+      "bio": "Passionate about creating immersive gaming experiences",
+      "location": "London, UK",
+      "occupation": "UI/UX Designer",
+      "joinDate": "2023-03-20",
+      "coverPhoto": "https://source.unsplash.com/random/1000x300?abstract",
+      "profilePicture": "https://source.unsplash.com/random/150x150?woman"
     }
   ],
   "games": [
     {
       "id": "1",
       "creatorId": "aa09",
-      "title": "Quiz Game",
-      "description": "A simple quiz game",
-      "gameType": "quiz"
+      "title": "Quiz Master",
+      "description": "Test your knowledge with this exciting quiz game!",
+      "gameType": "quiz",
+      "thumbnail": "https://source.unsplash.com/random/300x200?quiz",
+      "rating": 4.5,
+      "playCount": 1000
     },
     {
       "id": "2",
       "creatorId": "aa09",
       "title": "Entity Mover",
-      "description": "A game with movable entities",
+      "description": "A game with movable entities and physics simulation",
       "gameType": "custom",
+      "thumbnail": "https://source.unsplash.com/random/300x200?game",
+      "rating": 4.2,
+      "playCount": 750,
       "entities": {
         "entity1": {
-          "position": { "x": 100, "y": 100 },
-          "properties": { "size": 20, "color": "red", "type": "circle" }
+          "position": {
+            "x": 100,
+            "y": 100
+          },
+          "properties": {
+            "size": 20,
+            "color": "red",
+            "type": "circle"
+          }
         },
         "entity2": {
-          "position": { "x": 200, "y": 200 },
-          "properties": { "size": 30, "color": "blue", "type": "rectangle" }
+          "position": {
+            "x": 200,
+            "y": 200
+          },
+          "properties": {
+            "size": 30,
+            "color": "blue",
+            "type": "rectangle"
+          }
         }
       }
     },
     {
       "id": "3",
-      "creatorId": "aa09",
-      "title": "Platform Game",
-      "description": "A simple platform game",
-      "gameType": "custom",
+      "creatorId": "bb10",
+      "title": "Pixel Adventure",
+      "description": "Embark on a nostalgic journey in this pixelated platformer",
+      "gameType": "platform",
+      "thumbnail": "https://source.unsplash.com/random/300x200?pixel",
+      "rating": 4.8,
+      "playCount": 2000
+    },
+    {
+      "id": "4",
+      "creatorId": "cc11",
+      "title": "Space Explorer",
+      "description": "Explore the vast universe in this immersive space simulation",
+      "gameType": "simulation",
+      "thumbnail": "https://source.unsplash.com/random/300x200?space",
+      "rating": 4.6,
+      "playCount": 1500
+    },
+    {
+      "id": "7587",
+      "title": "tacos",
       "layers": [
         {
           "id": 1,
           "name": "Layer 1",
           "entities": [
             {
-              "id": "player",
-              "position": { "x": 100, "y": 100 },
-              "properties": { "size": 40, "color": "red", "type": "circle" }
+              "id": "entity2",
+              "position": {
+                "x": 85.8125,
+                "y": 37126.55708511291
+              },
+              "properties": {
+                "size": 40,
+                "color": "red",
+                "type": "circle"
+              }
             },
             {
-              "id": "platform1",
-              "position": { "x": 150, "y": 300 },
-              "properties": { "size": 200, "color": "gray", "type": "platform" }
+              "id": "entity3",
+              "position": {
+                "x": 192,
+                "y": 58
+              },
+              "properties": {
+                "size": 40,
+                "color": "gray",
+                "type": "platform"
+              }
             },
             {
-              "id": "star1",
-              "position": { "x": 300, "y": 200 },
-              "properties": { "size": 30, "color": "yellow", "type": "star" }
+              "id": "entity4",
+              "position": {
+                "x": 173,
+                "y": 33658.33870571829
+              },
+              "properties": {
+                "size": 40,
+                "color": "blue",
+                "type": "rectangle"
+              }
+            },
+            {
+              "id": "entity5",
+              "position": {
+                "x": 114,
+                "y": 31867.56577705765
+              },
+              "properties": {
+                "size": 40,
+                "color": "green",
+                "type": "triangle"
+              }
+            },
+            {
+              "id": "entity6",
+              "position": {
+                "x": 149,
+                "y": 30363.795543343676
+              },
+              "properties": {
+                "size": 40,
+                "color": "yellow",
+                "type": "star"
+              }
+            },
+            {
+              "id": "entity7",
+              "position": {
+                "x": 210,
+                "y": 14768.43598841371
+              },
+              "properties": {
+                "size": 40,
+                "color": "red",
+                "type": "circle"
+              }
+            },
+            {
+              "id": "entity8",
+              "position": {
+                "x": 167,
+                "y": 74
+              },
+              "properties": {
+                "size": 40,
+                "color": "gray",
+                "type": "platform"
+              }
+            },
+            {
+              "id": "entity9",
+              "position": {
+                "x": 61,
+                "y": 11536.622157690523
+              },
+              "properties": {
+                "size": 40,
+                "color": "blue",
+                "type": "rectangle"
+              }
+            },
+            {
+              "id": "entity10",
+              "position": {
+                "x": 315,
+                "y": 9763.44638766996
+              },
+              "properties": {
+                "size": 40,
+                "color": "green",
+                "type": "triangle"
+              }
+            },
+            {
+              "id": "entity11",
+              "position": {
+                "x": 124,
+                "y": 8418.62864150817
+              },
+              "properties": {
+                "size": 40,
+                "color": "yellow",
+                "type": "star"
+              }
             }
           ]
+        },
+        {
+          "id": 2,
+          "name": "Layer 2",
+          "entities": []
+        },
+        {
+          "id": 3,
+          "name": "Layer 3",
+          "entities": []
         }
       ],
+      "gameType": "custom",
       "properties": {
-        "gravity": { "x": 0, "y": 1 },
-        "backgroundImage": "1"
-      }
+        "gravity": {
+          "x": 0,
+          "y": 1
+        },
+        "backgroundImage": ""
+      },
+      "creatorId": "aa09"
+    }
+  ],
+  "posts": [
+    {
+      "id": "1",
+      "userId": "aa09",
+      "content": "Just launched my new game 'Quiz Master'! Check it out and let me know what you think!",
+      "timestamp": "2023-08-01T12:00:00Z",
+      "likes": 17,
+      "comments": [
+        {
+          "id": "1",
+          "userId": "bb10",
+          "content": "Congratulations on the launch! The game looks amazing!",
+          "timestamp": "2023-08-01T12:15:00Z"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "userId": "bb10",
+      "content": "Working on a new feature for 'Pixel Adventure'. Can't wait to share it with you all!",
+      "timestamp": "2023-08-02T14:30:00Z",
+      "likes": 25,
+      "comments": [
+        {
+          "id": "2",
+          "userId": "cc11",
+          "content": "Can't wait to see what you're working on!",
+          "timestamp": "2023-08-02T15:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "userId": "cc11",
+      "content": "Looking for beta testers for 'Space Explorer'. DM me if you're interested!",
+      "timestamp": "2023-08-03T09:45:00Z",
+      "likes": 32,
+      "comments": [
+        {
+          "id": "3",
+          "userId": "aa09",
+          "content": "I'd love to be a beta tester! Sending you a DM now.",
+          "timestamp": "2023-08-03T10:00:00Z"
+        }
+      ]
     }
   ]
 }

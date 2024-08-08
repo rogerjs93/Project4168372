@@ -1,6 +1,9 @@
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyles = createGlobalStyle`
+  ${({ theme }) => theme.animations.fadeIn}
+  ${({ theme }) => theme.animations.slideIn}
+
   * {
     box-sizing: border-box;
     margin: 0;
@@ -9,6 +12,7 @@ export const GlobalStyles = createGlobalStyle`
 
   html, body {
     height: 100%;
+    overflow-x: hidden;
   }
 
   body {
@@ -19,7 +23,17 @@ export const GlobalStyles = createGlobalStyle`
     background-color: ${({ theme }) => theme.colors.background};
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    padding-bottom: 60px; // Adjust this value to match your footer height
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding-top: 60px;
+  }
+
+  main {
+    flex: 1 0 auto;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -90,7 +104,6 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
 
-  /* Custom scrollbar for webkit browsers */
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -106,5 +119,13 @@ export const GlobalStyles = createGlobalStyle`
 
   ::-webkit-scrollbar-thumb:hover {
     background: ${({ theme }) => theme.colors.textPrimary};
+  }
+
+  .fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .slideIn {
+    animation: slideIn 0.5s ease-in-out;
   }
 `;

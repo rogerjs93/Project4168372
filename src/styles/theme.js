@@ -13,9 +13,9 @@ export const theme = {
     success: '#42B72A',
     warning: '#FFBA00',
     error: '#FA383E',
-    // Adding a few more utility colors
     lightGrey: '#F2F3F5',
     darkGrey: '#3A3B3C',
+    gradient: 'linear-gradient(45deg, #4267B2, #5B5B5B)',
   },
   fonts: {
     main: "'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
@@ -28,7 +28,6 @@ export const theme = {
     large: '1.25rem',
     xlarge: '1.5rem',
     xxlarge: '2rem',
-    // Adding an additional size for extra large headings
     xxxlarge: '2.5rem',
   },
   fontWeights: {
@@ -65,12 +64,15 @@ export const theme = {
     small: '0 1px 2px rgba(0, 0, 0, 0.1)',
     medium: '0 2px 4px rgba(0, 0, 0, 0.1)',
     large: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    // Adding an extra large shadow for more prominent elements
     xlarge: '0 12px 24px rgba(0, 0, 0, 0.15)',
   },
   transitions: {
     fast: 'all 0.1s ease-in-out',
     medium: 'all 0.2s ease-in-out',
     slow: 'all 0.3s ease-in-out',
+  },
+  animations: {
+    fadeIn: '@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }',
+    slideIn: '@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }',
   },
 };

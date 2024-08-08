@@ -5,30 +5,29 @@ import { FaChartBar, FaUser, FaEnvelope, FaCog, FaBars, FaTimes } from 'react-ic
 
 const SidebarWrapper = styled.aside`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
-  width: ${({ isCollapsed }) => (isCollapsed ? '50px' : '250px')};
-  height: 100vh;
-  position: ${({ isCollapsed }) => (isCollapsed ? 'relative' : 'absolute')};
-  left: 0;
-  top: 0;
+  width: ${({ isCollapsed }) => (isCollapsed ? '80px' : '240px')};
+  position: fixed;
+  left: 5px;
+  top: 317px; // Adjust this value to position it below your header
   transition: all 0.3s ease;
-  overflow-x: hidden;
   z-index: 1000;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  padding: ${({ theme }) => theme.spacing.medium};
 `;
 
 const SidebarContent = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: ${({ theme }) => theme.spacing.small};
 `;
 
 const SidebarHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: ${({ isCollapsed }) => (isCollapsed ? 'center' : 'space-between')};
-  padding: ${({ theme }) => theme.spacing.medium};
+  padding-bottom: ${({ theme }) => theme.spacing.medium};
   border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
 `;
 
 const SidebarTitle = styled.h3`
@@ -46,33 +45,37 @@ const CollapseButton = styled.button`
   color: ${({ theme }) => theme.colors.textSecondary};
   font-size: ${({ theme }) => theme.fontSizes.medium};
   cursor: pointer;
-  padding: ${({ theme }) => theme.spacing.small};
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: ${({ theme }) => theme.spacing.small};
+  border-radius: 50%;
+  transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover {
     color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.background};
   }
 `;
 
 const SidebarList = styled.ul`
   list-style-type: none;
   padding: 0;
-  margin: ${({ theme }) => theme.spacing.medium} 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.medium};
 `;
 
-const SidebarItem = styled.li`
-  margin-bottom: ${({ theme }) => theme.spacing.small};
-`;
+const SidebarItem = styled.li``;
 
 const SidebarLink = styled(Link)`
   color: ${({ theme }) => theme.colors.textSecondary};
   text-decoration: none;
   display: flex;
   align-items: center;
-  padding: ${({ theme }) => theme.spacing.small};
-  border-radius: ${({ theme }) => theme.borderRadius.small};
+  padding: ${({ theme }) => theme.spacing.medium};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
   transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover {
@@ -82,18 +85,29 @@ const SidebarLink = styled(Link)`
 `;
 
 const LinkIcon = styled.div`
-  width: 20px;
+  width: 32px;
+  height: 32px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  margin-right: ${({ theme }) => theme.spacing.small};
+  font-size: 1.2rem;
+  color: ${({ theme }) => theme.colors.primary};
+  margin-right: ${({ theme }) => theme.spacing.medium};
+  background-color: ${({ theme }) => theme.colors.background};
+  border-radius: 50%;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  ${SidebarLink}:hover & {
+    background-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.surfaceLight};
+  }
 `;
 
 const LinkText = styled.span`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
 `;
 
 export const Sidebar = ({ isCollapsed, onCollapse }) => {
@@ -105,7 +119,7 @@ export const Sidebar = ({ isCollapsed, onCollapse }) => {
     <SidebarWrapper isCollapsed={isCollapsed}>
       <SidebarContent>
         <SidebarHeader isCollapsed={isCollapsed}>
-          {!isCollapsed && <SidebarTitle>Quick Links</SidebarTitle>}
+          {!isCollapsed && <SidebarTitle>Menu</SidebarTitle>}
           <CollapseButton onClick={toggleSidebar}>
             {isCollapsed ? <FaBars /> : <FaTimes />}
           </CollapseButton>

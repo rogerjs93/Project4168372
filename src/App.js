@@ -7,7 +7,8 @@ import { Header, Footer, Sidebar } from './components';
 import { Home, About, Services, Contact, Register } from './pages';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import Profile from './components/Profile'; // Import the new Profile component
+import Profile from './components/Profile';
+import NewsFeed from './components/NewsFeed';
 import { GlobalStyles, theme } from './styles';
 import { AuthProvider } from './AuthContext';
 
@@ -15,6 +16,8 @@ const AppWrapper = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 `;
 
 const MainWrapper = styled.div`
@@ -29,14 +32,15 @@ const ContentWrapper = styled.main`
   transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px); // Adjust this value based on your header height
-  overflow: hidden;
+  min-height: calc(100vh - 60px); // Adjust this value based on your header height
+  overflow-y: auto;
+  overflow-x: hidden;
 `;
 
 const ContentArea = styled.div`
   flex: 1;
   padding: ${({ theme }) => theme.spacing.large};
-  overflow-y: auto;
+  max-width: 100%;
 `;
 
 function App() {
@@ -65,7 +69,8 @@ function App() {
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/profile" element={<Profile />} /> {/* Add this line */}
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/feed" element={<NewsFeed />} />
                     </Routes>
                   </ContentArea>
                 </ContentWrapper>
