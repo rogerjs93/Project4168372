@@ -427,7 +427,7 @@
       "userId": "aa09",
       "content": "Just launched my new game 'Quiz Master'! Check it out and let me know what you think!",
       "timestamp": "2023-08-01T12:00:00Z",
-      "likes": 17,
+      "likes": 30,
       "comments": [
         {
           "id": "1",
@@ -442,7 +442,7 @@
       "userId": "bb10",
       "content": "Working on a new feature for 'Pixel Adventure'. Can't wait to share it with you all!",
       "timestamp": "2023-08-02T14:30:00Z",
-      "likes": 27,
+      "likes": 28,
       "comments": [
         {
           "id": "2",
@@ -467,5 +467,31 @@
         }
       ]
     }
+  ],
+  "statistics": {
+    "activeUsers": 1000000,
+    "gamesCreated": 50000,
+    "gamesPlayed": 100000000,
+    "countriesReached": 200
+  },
+  "messages": [
+    {
+      "id": 1,
+      "text": "Welcome to Naama Online!",
+      "isUser": false,
+      "timestamp": "2023-08-10T10:00:00Z"
+    }
+  ],
+  "chats": [
+    { "id": 1, "name": "General Community" },
+    { "id": 2, "name": "Game Developers" },
+    { "id": 3, "name": "John Doe" },
+    { "id": 4, "name": "Jane Smith" },
+    { "id": 5, "name": "Pixel Artists" },
+    { "id": 6, "name": "Sound Designers" },
+    { "id": 7, "name": "Indie Game Showcase" },
+    { "id": 8, "name": "Game Testing Group" },
+    { "id": 9, "name": "Unity Developers" },
+    { "id": 10, "name": "Unreal Engine Enthusiasts" }
   ]
 }

@@ -3,12 +3,15 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import styled, { ThemeProvider } from 'styled-components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { Header, Sidebar } from './components';
+import { Header } from './components';
+import { LeftSidebar } from './components/LeftSidebar';
+import { RightSidebar } from './components/RightSidebar';
 import { Home, About, Services, Contact, Register, Games, Community, Support } from './pages';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import NewsFeed from './components/NewsFeed';
+import AISummarizer from './components/AISummarizer'; // Import the new AISummarizer component
 import { GlobalStyles, theme } from './styles';
 import { AuthProvider } from './AuthContext';
 
@@ -28,8 +31,9 @@ const MainWrapper = styled.div`
 
 const ContentWrapper = styled.main`
   flex: 1;
-  margin-left: ${({ isSidebarCollapsed }) => isSidebarCollapsed ? '50px' : '250px'};
-  transition: margin-left 0.3s ease;
+  margin-left: ${({ isLeftSidebarCollapsed }) => isLeftSidebarCollapsed ? '85px' : '250px'};
+  margin-right: ${({ isRightSidebarCollapsed }) => isRightSidebarCollapsed ? '85px' : '250px'};
+  transition: margin 0.3s ease;
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 60px); // Adjust this value based on your header height
@@ -44,7 +48,8 @@ const ContentArea = styled.div`
 `;
 
 function App() {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
+  const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
 
   return (
     <ThemeProvider theme={theme}>
@@ -55,11 +60,14 @@ function App() {
             <AppWrapper>
               <Header />
               <MainWrapper>
-                <Sidebar
-                  isCollapsed={isSidebarCollapsed}
-                  onCollapse={setIsSidebarCollapsed}
+                <LeftSidebar
+                  isCollapsed={isLeftSidebarCollapsed}
+                  onCollapse={setIsLeftSidebarCollapsed}
                 />
-                <ContentWrapper isSidebarCollapsed={isSidebarCollapsed}>
+                <ContentWrapper
+                  isLeftSidebarCollapsed={isLeftSidebarCollapsed}
+                  isRightSidebarCollapsed={isRightSidebarCollapsed}
+                >
                   <ContentArea>
                     <Routes>
                       <Route path="/" element={<Home />} />
@@ -74,9 +82,32 @@ function App() {
                       <Route path="/games" element={<Games />} />
                       <Route path="/community" element={<Community />} />
                       <Route path="/support" element={<Support />} />
+                      
+                      {/* Left Sidebar Routes */}
+                      <Route path="/friends" element={<div>Friends Page</div>} />
+                      <Route path="/groups" element={<div>Groups Page</div>} />
+                      <Route path="/events" element={<div>Events Page</div>} />
+                      <Route path="/memories" element={<div>Memories Page</div>} />
+                      <Route path="/saved" element={<div>Saved Page</div>} />
+                      <Route path="/ai-summarizer" element={<AISummarizer />} />
+                      <Route path="/watch" element={<div>Watch Page</div>} />
+                      
+                      {/* Right Sidebar Routes */}
+                      <Route path="/my-games" element={<div>My Games Page</div>} />
+                      <Route path="/discover-games" element={<div>Discover Games Page</div>} />
+                      <Route path="/game-challenges" element={<div>Game Challenges Page</div>} />
+                      <Route path="/leaderboards" element={<div>Leaderboards Page</div>} />
+                      <Route path="/game-tournaments" element={<div>Game Tournaments Page</div>} />
+                      <Route path="/game-communities" element={<div>Game Communities Page</div>} />
+                      <Route path="/global-chat" element={<div>Global Chat Page</div>} />
+                      <Route path="/game-collectibles" element={<div>Game Collectibles Page</div>} />
                     </Routes>
                   </ContentArea>
                 </ContentWrapper>
+                <RightSidebar
+                  isCollapsed={isRightSidebarCollapsed}
+                  onCollapse={setIsRightSidebarCollapsed}
+                />
               </MainWrapper>
             </AppWrapper>
           </Router>

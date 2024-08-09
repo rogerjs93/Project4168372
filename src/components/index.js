@@ -1,5 +1,6 @@
 export { Header } from './Header';
-export { Sidebar } from './Sidebar';
+export { LeftSidebar } from './LeftSidebar';
+export { RightSidebar } from './RightSidebar';
 export { Logo } from './Logo';
 export { default as Login } from './Login';
 export { default as Register } from './Register';
