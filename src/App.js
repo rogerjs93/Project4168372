@@ -11,7 +11,13 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
 import NewsFeed from './components/NewsFeed';
-import AISummarizer from './components/AISummarizer'; // Import the new AISummarizer component
+import AISummarizer from './components/AISummarizer';
+import Friends from './pages/Friends';
+import Groups from './pages/Groups';
+import Events from './pages/Events';
+import Memories from './pages/Memories';
+import Saved from './pages/Saved';
+import Watch from './pages/Watch';
 import { GlobalStyles, theme } from './styles';
 import { AuthProvider } from './AuthContext';
 import NotificationCenter from './components/NotificationCenter';
@@ -86,13 +92,13 @@ function App() {
                       <Route path="/notifications" element={<NotificationCenter />} />
                       
                       {/* Left Sidebar Routes */}
-                      <Route path="/friends" element={<div>Friends Page</div>} />
-                      <Route path="/groups" element={<div>Groups Page</div>} />
-                      <Route path="/events" element={<div>Events Page</div>} />
-                      <Route path="/memories" element={<div>Memories Page</div>} />
-                      <Route path="/saved" element={<div>Saved Page</div>} />
+                      <Route path="/friends" element={<Friends />} />
+                      <Route path="/groups" element={<Groups />} />
+                      <Route path="/events" element={<Events />} />
+                      <Route path="/memories" element={<Memories />} />
+                      <Route path="/saved" element={<Saved />} />
                       <Route path="/ai-summarizer" element={<AISummarizer />} />
-                      <Route path="/watch" element={<div>Watch Page</div>} />
+                      <Route path="/watch" element={<Watch />} />
                       
                       {/* Right Sidebar Routes */}
                       <Route path="/my-games" element={<div>My Games Page</div>} />

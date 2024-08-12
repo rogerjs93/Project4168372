@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments } from 'react-icons/fa';
+import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
 import { Logo } from './Logo';
 import Chat from './Chat';
 import axios from 'axios';
+import NotificationCenter from './NotificationCenter';
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -15,7 +16,7 @@ const HeaderWrapper = styled.header`
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000; // Keep this lower than both Chat and RightSidebar
+  z-index: 1000;
 `;
 
 const Nav = styled.nav`
@@ -43,6 +44,7 @@ const RightSection = styled.div`
   align-items: center;
   justify-content: flex-end;
   width: 240px;
+  position: relative;
 `;
 
 const LogoLink = styled(Link)`
@@ -110,6 +112,10 @@ const IconButton = styled.button`
   }
 `;
 
+const NotificationButton = styled(IconButton)`
+  position: relative;
+`;
+
 const NotificationCount = styled.span`
   position: absolute;
   top: 0;
@@ -133,7 +139,7 @@ const UserMenuDropdown = styled.div`
   padding: ${({ theme }) => theme.spacing.medium};
   display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
   min-width: 200px;
-  z-index: 1000;
+  z-index: 1100;
 `;
 
 const UserMenuLink = styled(Link)`
@@ -152,42 +158,34 @@ const ChatIcon = styled(IconButton)`
   position: relative;
 `;
 
-const NotificationDropdown = styled.div`
-  position: absolute;
-  top: 100%;
-  right: 0;
+const NotificationCenterModal = styled.div`
+  position: fixed;
+  top: 60px;
+  right: 270px; // Adjust this value to move the notification center more to the left
+  z-index: 1200;
   background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.boxShadow.large};
-  width: 300px;
-  max-height: 400px;
+  max-width: 400px;
+  width: 100%;
+  max-height: calc(100vh - 80px);
   overflow-y: auto;
-  z-index: 1000;
-  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+
+  // You can further customize the position here if needed
+  // For example, you can use media queries to adjust the position for different screen sizes
+  @media (max-width: ${({ theme }) => theme.breakpoints.large}) {
+    right: 20px; // Adjust for smaller screens
+  }
 `;
 
-const NotificationItem = styled.div`
-  padding: ${({ theme }) => theme.spacing.medium};
-  border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.fast};
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.background};
-  }
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const NotificationContent = styled.p`
-  margin: 0;
-  font-size: ${({ theme }) => theme.fontSizes.small};
-`;
-
-const NotificationTimestamp = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.tiny};
   color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
@@ -196,42 +194,36 @@ export const Header = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState([]);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const fetchNotifications = useCallback(async () => {
+    if (isLoggedIn && user) {
+      try {
+        const response = await axios.get(`http://localhost:3001/notifications?userId=${user.id}&_sort=timestamp&_order=desc`);
+        setNotifications(response.data);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    }
+  }, [isLoggedIn, user]);
 
   useEffect(() => {
     setIsUserMenuOpen(false);
   }, [location]);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      fetchNotifications();
-    }
-  }, [isLoggedIn]);
+    fetchNotifications();
+  }, [fetchNotifications]);
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const response = await axios.get(`http://localhost:3001/notifications?userId=${user.id}&_sort=timestamp&_order=desc`);
-      setNotifications(response.data);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  }, [user.id]);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchNotifications();
-    }
-  }, [isLoggedIn, fetchNotifications]);
-  
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
 
-  const toggleNotifications = () => {
-    setIsNotificationOpen(!isNotificationOpen);
+  const toggleNotificationCenter = () => {
+    setIsNotificationCenterOpen(!isNotificationCenterOpen);
   };
 
   const handleLogout = () => {
@@ -247,23 +239,6 @@ export const Header = () => {
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
-  };
-
-  const markNotificationAsRead = async (notificationId) => {
-    try {
-      await axios.patch(`http://localhost:3001/notifications/${notificationId}`, { isRead: true });
-      setNotifications(notifications.map(notification => 
-        notification.id === notificationId ? { ...notification, isRead: true } : notification
-      ));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const handleNotificationClick = (notification) => {
-    markNotificationAsRead(notification.id);
-    // Here you can add logic to navigate to the relevant page based on the notification type
-    setIsNotificationOpen(false);
   };
 
   return (
@@ -301,18 +276,10 @@ export const Header = () => {
         <RightSection>
           {isLoggedIn ? (
             <>
-              <IconButton onClick={toggleNotifications}>
+              <NotificationButton onClick={toggleNotificationCenter}>
                 <FaBell />
                 <NotificationCount>{notifications.filter(n => !n.isRead).length}</NotificationCount>
-              </IconButton>
-              <NotificationDropdown isOpen={isNotificationOpen}>
-                {notifications.map(notification => (
-                  <NotificationItem key={notification.id} onClick={() => handleNotificationClick(notification)}>
-                    <NotificationContent>{notification.content}</NotificationContent>
-                    <NotificationTimestamp>{new Date(notification.timestamp).toLocaleString()}</NotificationTimestamp>
-                  </NotificationItem>
-                ))}
-              </NotificationDropdown>
+              </NotificationButton>
               <ChatIcon onClick={toggleChat}>
                 <FaComments />
               </ChatIcon>
@@ -336,6 +303,14 @@ export const Header = () => {
         </RightSection>
       </Nav>
       {isChatOpen && <Chat onClose={() => setIsChatOpen(false)} />}
+      {isNotificationCenterOpen && (
+        <NotificationCenterModal>
+          <CloseButton onClick={toggleNotificationCenter}>
+            <FaTimes />
+          </CloseButton>
+          <NotificationCenter />
+        </NotificationCenterModal>
+      )}
     </HeaderWrapper>
   );
 };

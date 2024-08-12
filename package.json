@@ -10,6 +10,7 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "eslint-plugin-react-hooks": "^5.1.0-rc-2d2cc042-20240809",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "matter-js": "^0.20.0",

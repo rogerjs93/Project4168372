@@ -476,23 +476,53 @@
   },
   "messages": [
     {
-      "id": 1,
+      "id": "1",
       "text": "Welcome to Naama Online!",
       "isUser": false,
       "timestamp": "2023-08-10T10:00:00Z"
     }
   ],
   "chats": [
-    { "id": 1, "name": "General Community" },
-    { "id": 2, "name": "Game Developers" },
-    { "id": 3, "name": "John Doe" },
-    { "id": 4, "name": "Jane Smith" },
-    { "id": 5, "name": "Pixel Artists" },
-    { "id": 6, "name": "Sound Designers" },
-    { "id": 7, "name": "Indie Game Showcase" },
-    { "id": 8, "name": "Game Testing Group" },
-    { "id": 9, "name": "Unity Developers" },
-    { "id": 10, "name": "Unreal Engine Enthusiasts" }
+    {
+      "id": "1",
+      "name": "General Community"
+    },
+    {
+      "id": "2",
+      "name": "Game Developers"
+    },
+    {
+      "id": "3",
+      "name": "John Doe"
+    },
+    {
+      "id": "4",
+      "name": "Jane Smith"
+    },
+    {
+      "id": "5",
+      "name": "Pixel Artists"
+    },
+    {
+      "id": "6",
+      "name": "Sound Designers"
+    },
+    {
+      "id": "7",
+      "name": "Indie Game Showcase"
+    },
+    {
+      "id": "8",
+      "name": "Game Testing Group"
+    },
+    {
+      "id": "9",
+      "name": "Unity Developers"
+    },
+    {
+      "id": "10",
+      "name": "Unreal Engine Enthusiasts"
+    }
   ],
   "notifications": [
     {
@@ -500,7 +530,7 @@
       "userId": "aa09",
       "content": "Your friend John Doe liked your game.",
       "type": "like",
-      "isRead": false,
+      "isRead": true,
       "timestamp": "2023-08-15T10:30:00Z"
     },
     {
@@ -508,7 +538,7 @@
       "userId": "aa09",
       "content": "You have a new follower: Jane Smith",
       "type": "follow",
-      "isRead": false,
+      "isRead": true,
       "timestamp": "2023-08-15T11:45:00Z"
     },
     {
@@ -516,7 +546,7 @@
       "userId": "aa09",
       "content": "Your game 'Space Explorer' reached 1000 plays!",
       "type": "milestone",
-      "isRead": false,
+      "isRead": true,
       "timestamp": "2023-08-16T09:15:00Z"
     }
   ]
