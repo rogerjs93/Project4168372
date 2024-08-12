@@ -6,7 +6,11 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Header } from './components';
 import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
-import { Home, About, Services, Contact, Register, Games, Community, Support } from './pages';
+import {
+  Home, About, Services, Contact, Register, Games, Community, Support,
+  Watch, MyGames, DiscoverGames, GameChallenges, Leaderboards,
+  GameTournaments, GameCommunities, GlobalChat, GameCollectibles
+} from './pages';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Profile from './components/Profile';
@@ -17,7 +21,6 @@ import Groups from './pages/Groups';
 import Events from './pages/Events';
 import Memories from './pages/Memories';
 import Saved from './pages/Saved';
-import Watch from './pages/Watch';
 import { GlobalStyles, theme } from './styles';
 import { AuthProvider } from './AuthContext';
 import NotificationCenter from './components/NotificationCenter';
@@ -101,14 +104,14 @@ function App() {
                       <Route path="/watch" element={<Watch />} />
                       
                       {/* Right Sidebar Routes */}
-                      <Route path="/my-games" element={<div>My Games Page</div>} />
-                      <Route path="/discover-games" element={<div>Discover Games Page</div>} />
-                      <Route path="/game-challenges" element={<div>Game Challenges Page</div>} />
-                      <Route path="/leaderboards" element={<div>Leaderboards Page</div>} />
-                      <Route path="/game-tournaments" element={<div>Game Tournaments Page</div>} />
-                      <Route path="/game-communities" element={<div>Game Communities Page</div>} />
-                      <Route path="/global-chat" element={<div>Global Chat Page</div>} />
-                      <Route path="/game-collectibles" element={<div>Game Collectibles Page</div>} />
+                      <Route path="/my-games" element={<MyGames />} />
+                      <Route path="/discover-games" element={<DiscoverGames />} />
+                      <Route path="/game-challenges" element={<GameChallenges />} />
+                      <Route path="/leaderboards" element={<Leaderboards />} />
+                      <Route path="/game-tournaments" element={<GameTournaments />} />
+                      <Route path="/game-communities" element={<GameCommunities />} />
+                      <Route path="/global-chat" element={<GlobalChat />} />
+                      <Route path="/game-collectibles" element={<GameCollectibles />} />
                     </Routes>
                   </ContentArea>
                 </ContentWrapper>

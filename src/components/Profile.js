@@ -176,14 +176,6 @@ const GameTitle = styled.h3`
   color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
-const GameRating = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: ${({ theme }) => theme.colors.accent};
-  margin-top: 5px;
-`;
-
 const SkillsSection = styled.div`
   display: flex;
   flex-wrap: wrap;
