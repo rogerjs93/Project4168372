@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FaGamepad, FaUsers, FaShare, FaArrowRight, FaPlay, FaStar, FaQuoteLeft, FaUser, FaChevronLeft, FaChevronRight, FaPuzzlePiece, FaChess, FaRocket, FaGlobe } from 'react-icons/fa';
@@ -483,7 +483,7 @@ export const Home = () => {
     }
   };
 
-  const gameCategories = ['Action', 'Puzzle', 'Strategy', 'Adventure'];
+  const gameCategories = useMemo(() => ['Action', 'Puzzle', 'Strategy', 'Adventure'], []);
 
   const testimonials = [
     {

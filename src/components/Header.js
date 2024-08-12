@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaEnvelope, FaCaretDown, FaChartBar, FaComments } from 'react-icons/fa';
+import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
 import { Logo } from './Logo';
 import Chat from './Chat';
+import axios from 'axios';
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -151,11 +152,52 @@ const ChatIcon = styled(IconButton)`
   position: relative;
 `;
 
+const NotificationDropdown = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  box-shadow: ${({ theme }) => theme.boxShadow.large};
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
+`;
+
+const NotificationItem = styled.div`
+  padding: ${({ theme }) => theme.spacing.medium};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.background};
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const NotificationContent = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.small};
+`;
+
+const NotificationTimestamp = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.tiny};
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
 export const Header = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { isLoggedIn, logout } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -163,8 +205,33 @@ export const Header = () => {
     setIsUserMenuOpen(false);
   }, [location]);
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchNotifications();
+    }
+  }, [isLoggedIn]);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await axios.get(`http://localhost:3001/notifications?userId=${user.id}&_sort=timestamp&_order=desc`);
+      setNotifications(response.data);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  }, [user.id]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchNotifications();
+    }
+  }, [isLoggedIn, fetchNotifications]);
+  
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  const toggleNotifications = () => {
+    setIsNotificationOpen(!isNotificationOpen);
   };
 
   const handleLogout = () => {
@@ -180,6 +247,23 @@ export const Header = () => {
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    try {
+      await axios.patch(`http://localhost:3001/notifications/${notificationId}`, { isRead: true });
+      setNotifications(notifications.map(notification => 
+        notification.id === notificationId ? { ...notification, isRead: true } : notification
+      ));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const handleNotificationClick = (notification) => {
+    markNotificationAsRead(notification.id);
+    // Here you can add logic to navigate to the relevant page based on the notification type
+    setIsNotificationOpen(false);
   };
 
   return (
@@ -217,10 +301,18 @@ export const Header = () => {
         <RightSection>
           {isLoggedIn ? (
             <>
-              <IconButton>
+              <IconButton onClick={toggleNotifications}>
                 <FaBell />
-                <NotificationCount>5</NotificationCount>
+                <NotificationCount>{notifications.filter(n => !n.isRead).length}</NotificationCount>
               </IconButton>
+              <NotificationDropdown isOpen={isNotificationOpen}>
+                {notifications.map(notification => (
+                  <NotificationItem key={notification.id} onClick={() => handleNotificationClick(notification)}>
+                    <NotificationContent>{notification.content}</NotificationContent>
+                    <NotificationTimestamp>{new Date(notification.timestamp).toLocaleString()}</NotificationTimestamp>
+                  </NotificationItem>
+                ))}
+              </NotificationDropdown>
               <ChatIcon onClick={toggleChat}>
                 <FaComments />
               </ChatIcon>

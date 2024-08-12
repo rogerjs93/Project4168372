@@ -14,6 +14,7 @@ import NewsFeed from './components/NewsFeed';
 import AISummarizer from './components/AISummarizer'; // Import the new AISummarizer component
 import { GlobalStyles, theme } from './styles';
 import { AuthProvider } from './AuthContext';
+import NotificationCenter from './components/NotificationCenter';
 
 const AppWrapper = styled.div`
   display: flex;
@@ -82,6 +83,7 @@ function App() {
                       <Route path="/games" element={<Games />} />
                       <Route path="/community" element={<Community />} />
                       <Route path="/support" element={<Support />} />
+                      <Route path="/notifications" element={<NotificationCenter />} />
                       
                       {/* Left Sidebar Routes */}
                       <Route path="/friends" element={<div>Friends Page</div>} />
