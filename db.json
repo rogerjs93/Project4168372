@@ -480,6 +480,14 @@
       "text": "Welcome to Naama Online!",
       "isUser": false,
       "timestamp": "2023-08-10T10:00:00Z"
+    },
+    {
+      "id": 1723472199715,
+      "chatId": "1",
+      "text": "hi",
+      "isUser": true,
+      "timestamp": "2024-08-12T14:16:39.715Z",
+      "status": "sent"
     }
   ],
   "chats": [

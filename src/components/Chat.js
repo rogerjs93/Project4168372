@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import styled, { keyframes } from 'styled-components';
-import { FaPaperPlane, FaTimes, FaArrowLeft, FaUser, FaCheck, FaCheckDouble } from 'react-icons/fa';
+import { FaPaperPlane, FaTimes, FaArrowLeft, FaUser, FaCheck, FaCheckDouble, FaExclamationCircle } from 'react-icons/fa';
 import axios from 'axios';
 
 const fadeIn = keyframes`
@@ -221,32 +222,54 @@ const TypingIndicator = styled.div`
   font-style: italic;
 `;
 
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.error};
+  padding: ${({ theme }) => theme.spacing.medium};
+  text-align: center;
+`;
+
 const Chat = ({ onClose }) => {
   const [chats, setChats] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [error, setError] = useState('');
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetchChats();
   }, []);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const fetchChats = async () => {
     try {
+      // TODO: Replace with live server endpoint
+      // const response = await axios.get('https://your-live-server.com/api/chats');
       const response = await axios.get('http://localhost:3001/chats');
       setChats(response.data);
     } catch (error) {
       console.error('Error fetching chats:', error);
+      setError('Failed to load chats. Please try again.');
     }
   };
 
   const fetchMessages = async (chatId) => {
     try {
+      // TODO: Replace with live server endpoint
+      // const response = await axios.get(`https://your-live-server.com/api/messages?chatId=${chatId}`);
       const response = await axios.get(`http://localhost:3001/messages?chatId=${chatId}`);
       setMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setError('Failed to load messages. Please try again.');
     }
   };
 
@@ -263,12 +286,15 @@ const Chat = ({ onClose }) => {
     };
 
     try {
+      // TODO: Replace with live server endpoint
+      // await axios.post('https://your-live-server.com/api/messages', newMessage);
       await axios.post('http://localhost:3001/messages', newMessage);
       setMessages([...messages, newMessage]);
       setInputMessage('');
       simulateMessageStatus(newMessage.id);
     } catch (error) {
       console.error('Error sending message:', error);
+      setError('Failed to send message. Please try again.');
     }
   };
 
@@ -332,10 +358,11 @@ const Chat = ({ onClose }) => {
         )}
         <HeaderButton onClick={onClose}><FaTimes /></HeaderButton>
       </ChatHeader>
+      {error && <ErrorMessage><FaExclamationCircle /> {error}</ErrorMessage>}
       {activeChat ? (
         <>
           <ChatMessages>
-            {messages.map((message, index) => (
+            {messages.map((message) => (
               <MessageGroup key={message.id} isUser={message.isUser}>
                 <MessageContent>
                   {!message.isUser && (
@@ -354,6 +381,7 @@ const Chat = ({ onClose }) => {
               </MessageGroup>
             ))}
             {isTyping && <TypingIndicator>User is typing...</TypingIndicator>}
+            <div ref={messagesEndRef} />
           </ChatMessages>
           <ChatInput>
             <Input
@@ -383,6 +411,10 @@ const Chat = ({ onClose }) => {
       )}
     </ChatWrapper>
   );
+};
+
+Chat.propTypes = {
+  onClose: PropTypes.func.isRequired,
 };
 
 export default Chat;

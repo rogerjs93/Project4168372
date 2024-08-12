@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { GameEngine } from 'react-game-engine';
 import Matter from 'matter-js';
 import { useDrag, useDrop } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const GameEditorWrapper = styled.div`
@@ -128,6 +129,11 @@ const DraggableEntity = ({ type, color }) => {
   );
 };
 
+DraggableEntity.propTypes = {
+  type: PropTypes.string.isRequired,
+  color: PropTypes.string.isRequired,
+};
+
 const CreateGame = ({ onGameCreated }) => {
   const [gameTitle, setGameTitle] = useState('');
   const [selectedEntity, setSelectedEntity] = useState(null);
@@ -141,9 +147,7 @@ const CreateGame = ({ onGameCreated }) => {
   const renderRef = useRef(null);
   const entitiesRef = useRef({});
 
-  useEffect(() => {
-    if (engineRef.current) return;
-
+  const initializeEngine = useCallback(() => {
     const engine = Matter.Engine.create({
       gravity: gameProperties.gravity
     });
@@ -189,14 +193,22 @@ const CreateGame = ({ onGameCreated }) => {
       Matter.World.clear(world);
       Matter.Engine.clear(engine);
       Matter.Runner.stop(runner);
-      renderRef.current.canvas.remove();
-      renderRef.current.canvas = null;
-      renderRef.current.context = null;
+      if (renderRef.current && renderRef.current.canvas) {
+        renderRef.current.canvas.remove();
+        renderRef.current.canvas = null;
+        renderRef.current.context = null;
+      }
       renderRef.current = null;
       engineRef.current = null;
       entitiesRef.current = {};
     };
-  }, []);
+  }, [gameProperties.gravity]);
+
+  useEffect(() => {
+    if (!engineRef.current) {
+      return initializeEngine();
+    }
+  }, [initializeEngine]);
 
   useEffect(() => {
     if (engineRef.current) {
@@ -204,7 +216,7 @@ const CreateGame = ({ onGameCreated }) => {
     }
   }, [gameProperties.gravity]);
 
-  const addEntity = (type, x, y, color) => {
+  const addEntity = useCallback((type, x, y, color) => {
     const size = 40;
     const body = entityTypes[type](x, y, size);
     body.render.fillStyle = color;
@@ -230,7 +242,7 @@ const CreateGame = ({ onGameCreated }) => {
     );
 
     setSelectedEntity(newEntity);
-  };
+  }, [activeLayer]);
 
   const [, drop] = useDrop(() => ({
     accept: 'entity',
@@ -241,7 +253,7 @@ const CreateGame = ({ onGameCreated }) => {
       const y = offset.y - canvasBounds.top;
       addEntity(item.type, x, y, item.color);
     },
-  }));
+  }), [addEntity]);
 
   const updateSelectedEntity = (property, value) => {
     if (selectedEntity) {
@@ -264,13 +276,6 @@ const CreateGame = ({ onGameCreated }) => {
         }))
       );
     }
-  };
-
-  const updateEntities = () => {
-    Matter.Engine.update(engineRef.current);
-    return Object.fromEntries(
-      Object.entries(entitiesRef.current).map(([id, entity]) => [id, { ...entity }])
-    );
   };
 
   const handleSave = () => {
@@ -306,26 +311,27 @@ const CreateGame = ({ onGameCreated }) => {
   };
 
   return (
-    <GameEditorWrapper>
-      <h2>Create New Game</h2>
-      <Input
-        type="text"
-        value={gameTitle}
-        onChange={(e) => setGameTitle(e.target.value)}
-        placeholder="Enter game title"
-      />
-      <EditorLayout>
-        <Sidebar>
-          <Panel>
-            <h3>Entity Library</h3>
-            <EntityLibrary>
-              <DraggableEntity type="circle" color="red" />
-              <DraggableEntity type="rectangle" color="blue" />
-              <DraggableEntity type="triangle" color="green" />
-              <DraggableEntity type="platform" color="gray" />
-              <DraggableEntity type="star" color="yellow" />
-            </EntityLibrary>
-          </Panel>
+    <DndProvider backend={HTML5Backend}>
+      <GameEditorWrapper>
+        <h2>Create New Game</h2>
+        <Input
+          type="text"
+          value={gameTitle}
+          onChange={(e) => setGameTitle(e.target.value)}
+          placeholder="Enter game title"
+        />
+        <EditorLayout>
+          <Sidebar>
+            <Panel>
+              <h3>Entity Library</h3>
+              <EntityLibrary>
+                <DraggableEntity type="circle" color="red" />
+                <DraggableEntity type="rectangle" color="blue" />
+                <DraggableEntity type="triangle" color="green" />
+                <DraggableEntity type="platform" color="gray" />
+                <DraggableEntity type="star" color="yellow" />
+              </EntityLibrary>
+            </Panel>
             <Panel>
               <h3>Layers</h3>
               {layers.map(layer => (
@@ -360,12 +366,12 @@ const CreateGame = ({ onGameCreated }) => {
                 placeholder="Background Image URL"
               />
             </Panel>
-            </Sidebar>
-        <CanvasWrapper>
-          <Canvas id="game-canvas" ref={drop} />
-        </CanvasWrapper>
-        <Panel>
-          <h3>Properties</h3>
+          </Sidebar>
+          <CanvasWrapper>
+            <Canvas id="game-canvas" ref={drop} />
+          </CanvasWrapper>
+          <Panel>
+            <h3>Properties</h3>
             {selectedEntity && (
               <>
                 <Input
@@ -381,11 +387,16 @@ const CreateGame = ({ onGameCreated }) => {
                 />
               </>
             )}
-        </Panel>
-      </EditorLayout>
-      <Button onClick={handleSave}>Save Game</Button>
-    </GameEditorWrapper>
+          </Panel>
+        </EditorLayout>
+        <Button onClick={handleSave}>Save Game</Button>
+      </GameEditorWrapper>
+    </DndProvider>
   );
+};
+
+CreateGame.propTypes = {
+  onGameCreated: PropTypes.func.isRequired,
 };
 
 export default CreateGame;
