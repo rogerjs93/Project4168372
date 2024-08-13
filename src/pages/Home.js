@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { FaGamepad, FaUsers, FaShare, FaArrowRight, FaPlay, FaStar, FaQuoteLeft, FaUser, FaChevronLeft, FaChevronRight, FaPuzzlePiece, FaChess, FaRocket, FaGlobe } from 'react-icons/fa';
 import { useInView } from 'react-intersection-observer';
 import axios from 'axios';
-import backgroundImage from '../assets/people-playing-games.png';
+import backgroundImage from '../assets/people-playing-games.gif';
 
 const fadeIn = keyframes`
   from { opacity: 0; }
