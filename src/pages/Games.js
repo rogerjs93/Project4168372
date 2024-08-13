@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import { FaGamepad, FaPlug, FaSpinner } from 'react-icons/fa';
+import { FaGamepad, FaPlug } from 'react-icons/fa';
+import ErrorBoundary from '../components/ErrorBoundary';
+import GameCard from '../components/GameCard';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const GamesWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
@@ -14,6 +17,8 @@ const GamesHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: ${({ theme }) => theme.spacing.large};
+  flex-wrap: wrap;
+  gap: ${({ theme }) => theme.spacing.medium};
 `;
 
 const GamesTitle = styled.h1`
@@ -50,52 +55,19 @@ const ConnectExternalButton = styled.button`
   }
 `;
 
+const SearchInput = styled.input`
+  padding: ${({ theme }) => theme.spacing.medium};
+  border: 1px solid ${({ theme }) => theme.colors.borderColor};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  font-size: ${({ theme }) => theme.fontSizes.medium};
+  width: 100%;
+  max-width: 300px;
+`;
+
 const GamesList = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: ${({ theme }) => theme.spacing.large};
-`;
-
-const GameItem = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
-  overflow: hidden;
-  transition: ${({ theme }) => theme.transitions.fast};
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
-  }
-`;
-
-const GameImage = styled.img`
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-`;
-
-const GameContent = styled.div`
-  padding: ${({ theme }) => theme.spacing.medium};
-`;
-
-const GameTitle = styled.h3`
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
-`;
-
-const GameDescription = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.small};
-`;
-
-const LoadingWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
 const ErrorMessage = styled.div`
@@ -104,69 +76,81 @@ const ErrorMessage = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
 `;
 
-export const Games = () => {
-  const [games, setGames] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+const Games = () => {
+  const [allGames, setAllGames] = useState([]);
+  const [filteredGames, setFilteredGames] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchGames();
-  }, []);
-
-  const fetchGames = async () => {
+  const fetchGames = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get('http://localhost:3001/games');
-      setGames(response.data);
+      const response = await axios.get(`http://localhost:3001/games`);
+      setAllGames(response.data);
+      setFilteredGames(response.data);
     } catch (err) {
       console.error('Error fetching games:', err);
       setError('Failed to load games. Please try again later.');
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchGames();
+  }, [fetchGames]);
+
+  useEffect(() => {
+    const lowercasedSearch = searchTerm.toLowerCase();
+    const filtered = allGames.filter(game => 
+      game.title.toLowerCase().includes(lowercasedSearch) ||
+      (game.description && game.description.toLowerCase().includes(lowercasedSearch))
+    );
+    setFilteredGames(filtered);
+  }, [searchTerm, allGames]);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const handleConnectExternal = () => {
-    // TODO: Implement connection to external program
     console.log('Connecting to external program...');
     alert('This feature will be implemented in the future to connect with an external game creation program.');
   };
 
-  if (isLoading) {
-    return (
-      <LoadingWrapper>
-        <FaSpinner /> Loading games...
-      </LoadingWrapper>
-    );
-  }
-
-  if (error) {
-    return <ErrorMessage>{error}</ErrorMessage>;
-  }
-
   return (
-    <GamesWrapper>
-      <GamesHeader>
-        <GamesTitle>
-          <FaGamepad /> Games
-        </GamesTitle>
-        <ConnectExternalButton onClick={handleConnectExternal}>
-          <FaPlug /> Connect External Program
-        </ConnectExternalButton>
-      </GamesHeader>
-      <GamesList>
-        {games.map(game => (
-          <GameItem key={game.id}>
-            <GameImage src={game.thumbnail || `https://picsum.photos/seed/${game.id}/300/200`} alt={game.title} />
-            <GameContent>
-              <GameTitle>{game.title}</GameTitle>
-              <GameDescription>{game.description}</GameDescription>
-            </GameContent>
-          </GameItem>
-        ))}
-      </GamesList>
-    </GamesWrapper>
+    <ErrorBoundary>
+      <GamesWrapper>
+        <GamesHeader>
+          <GamesTitle>
+            <FaGamepad /> Games
+          </GamesTitle>
+          <SearchInput
+            type="text"
+            placeholder="Search games..."
+            value={searchTerm}
+            onChange={handleSearch}
+            aria-label="Search games"
+          />
+          <ConnectExternalButton onClick={handleConnectExternal}>
+            <FaPlug /> Connect External Program
+          </ConnectExternalButton>
+        </GamesHeader>
+        {isLoading ? (
+          <LoadingSpinner />
+        ) : error ? (
+          <ErrorMessage>{error}</ErrorMessage>
+        ) : (
+          <GamesList>
+            {filteredGames.map(game => (
+              <GameCard key={game.id} game={game} />
+            ))}
+          </GamesList>
+        )}
+      </GamesWrapper>
+    </ErrorBoundary>
   );
 };
 

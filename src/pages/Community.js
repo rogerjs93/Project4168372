@@ -22,7 +22,7 @@ const ForumItem = styled.li`
   box-shadow: ${({ theme }) => theme.boxShadow.small};
 `;
 
-export const Community = () => {
+const Community = () => {
   const mockForums = [
     { id: 1, name: "Game Development", description: "Discuss game development techniques and share your projects" },
     { id: 2, name: "Player Lounge", description: "Chat about your favorite games and connect with other players" },
@@ -43,3 +43,5 @@ export const Community = () => {
     </CommunityWrapper>
   );
 };
+
+export default Community;
