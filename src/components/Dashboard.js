@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styled, { keyframes } from 'styled-components';
-import { Card } from './Card';
+import styled from 'styled-components';
+import { FaPlus, FaSpinner } from 'react-icons/fa';
+import UserProfileCard from './UserProfileCard';
+import TrendingTopicsCard from './TrendingTopicsCard';
+import SocialFeed from './SocialFeed';
+import GameList from './GameList';
 import CreateGame from './CreateGame';
-import { FaUserCircle, FaSpinner, FaPlus, FaHeart, FaComment, FaShare } from 'react-icons/fa';
-
-const fadeIn = keyframes`
-  from { opacity: 0; }
-  to { opacity: 1; }
-`;
-
-const slideIn = keyframes`
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-`;
 
 const DashboardContainer = styled.div`
   display: grid;
@@ -22,7 +15,6 @@ const DashboardContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
   max-width: 1200px;
   margin: 0 auto;
-  animation: ${fadeIn} 0.5s ease-out;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
@@ -85,38 +77,6 @@ const ModalContent = styled.div`
   box-shadow: ${({ theme }) => theme.boxShadow.large};
 `;
 
-const UserProfile = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.medium};
-`;
-
-const Avatar = styled(FaUserCircle)`
-  font-size: 4rem;
-  color: ${({ theme }) => theme.colors.primary};
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Username = styled.h3`
-  margin: 0;
-  color: ${({ theme }) => theme.colors.textPrimary};
-`;
-
-const Email = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.colors.textSecondary};
-`;
-
-const GameGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: ${({ theme }) => theme.spacing.medium};
-`;
-
 const LoadingSpinner = styled(FaSpinner)`
   font-size: 2rem;
   color: ${({ theme }) => theme.colors.primary};
@@ -133,70 +93,12 @@ const ErrorMessage = styled.p`
   text-align: center;
 `;
 
-const SocialFeedItem = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.small};
-  animation: ${slideIn} 0.5s ease-out;
-`;
-
-const SocialFeedAuthor = styled.p`
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
-`;
-
-const SocialFeedContent = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-`;
-
-const SocialFeedActions = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-top: ${({ theme }) => theme.spacing.medium};
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: ${({ theme }) => theme.transitions.fast};
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const TrendingTopics = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.small};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-`;
-
-const TopicTag = styled.span`
-  background-color: ${({ theme }) => theme.colors.accent};
-  color: ${({ theme }) => theme.colors.surfaceLight};
-  padding: ${({ theme }) => theme.spacing.tiny} ${({ theme }) => theme.spacing.small};
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  font-size: ${({ theme }) => theme.fontSizes.small};
-`;
-
 const QuickGameCreation = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   padding: ${({ theme }) => theme.spacing.medium};
   margin-bottom: ${({ theme }) => theme.spacing.medium};
   box-shadow: ${({ theme }) => theme.boxShadow.small};
-`;
-
-const GameCard = styled(Card)`
-  animation: ${slideIn} 0.5s ease-out;
 `;
 
 const Dashboard = () => {
@@ -206,7 +108,6 @@ const Dashboard = () => {
   const [showCreateGame, setShowCreateGame] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const trendingTopics = ['#GameDev', '#Multiplayer', '#Indie', '#PixelArt'];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -269,24 +170,8 @@ const Dashboard = () => {
   return (
     <DashboardContainer>
       <Section>
-        <Card title="User Profile">
-          {user && (
-            <UserProfile>
-              <Avatar />
-              <UserInfo>
-                <Username>{user.username}</Username>
-                <Email>{user.email}</Email>
-              </UserInfo>
-            </UserProfile>
-          )}
-        </Card>
-        <Card title="Trending Topics">
-          <TrendingTopics>
-            {trendingTopics.map((topic, index) => (
-              <TopicTag key={index}>{topic}</TopicTag>
-            ))}
-          </TrendingTopics>
-        </Card>
+        <UserProfileCard user={user} />
+        <TrendingTopicsCard />
         <QuickGameCreation>
           <SectionTitle>Quick Game Creation</SectionTitle>
           <Button onClick={handleCreateGame}>
@@ -297,37 +182,12 @@ const Dashboard = () => {
 
       <Section>
         <SectionTitle>Social Feed</SectionTitle>
-        {posts.map(post => (
-          <SocialFeedItem key={post.id}>
-            <SocialFeedAuthor>{post.userId}</SocialFeedAuthor>
-            <SocialFeedContent>{post.content}</SocialFeedContent>
-            <SocialFeedActions>
-              <ActionButton onClick={() => handleLikePost(post.id)}>
-                <FaHeart /> {post.likes} Likes
-              </ActionButton>
-              <ActionButton>
-                <FaComment /> {post.comments.length} Comments
-              </ActionButton>
-              <ActionButton>
-                <FaShare /> Share
-              </ActionButton>
-            </SocialFeedActions>
-          </SocialFeedItem>
-        ))}
+        <SocialFeed posts={posts} onLike={handleLikePost} />
       </Section>
 
       <Section>
         <SectionTitle>My Games</SectionTitle>
-        <GameGrid>
-          {games.map(game => (
-            <GameCard key={game.id} title={game.title}>
-              <p>{game.description}</p>
-              <p>Type: {game.gameType}</p>
-              <p>Rating: {game.rating !== undefined ? game.rating.toFixed(1) : 'Not rated'}</p>
-              <p>Plays: {game.playCount !== undefined ? game.playCount : 0}</p>
-            </GameCard>
-          ))}
-        </GameGrid>
+        <GameList games={games} />
       </Section>
 
       {showCreateGame && (

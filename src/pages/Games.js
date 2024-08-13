@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import { FaPlus, FaGamepad } from 'react-icons/fa';
-import CreateGame from '../components/CreateGame';
+import { FaGamepad, FaPlug, FaSpinner } from 'react-icons/fa';
 
 const GamesWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
@@ -24,21 +23,30 @@ const GamesTitle = styled.h1`
   gap: ${({ theme }) => theme.spacing.small};
 `;
 
-const CreateGameButton = styled.button`
+const ConnectExternalButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
   color: ${({ theme }) => theme.colors.surfaceLight};
   border: none;
-  padding: ${({ theme }) => theme.spacing.medium};
+  padding: ${({ theme }) => theme.spacing.medium} ${({ theme }) => theme.spacing.large};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   font-size: ${({ theme }) => theme.fontSizes.medium};
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.small};
+  box-shadow: ${({ theme }) => theme.boxShadow.medium};
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondary};
+    transform: translateY(-2px);
+    box-shadow: ${({ theme }) => theme.boxShadow.large};
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: ${({ theme }) => theme.boxShadow.small};
   }
 `;
 
@@ -81,33 +89,23 @@ const GameDescription = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
-const Modal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+const LoadingWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  height: 200px;
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  color: ${({ theme }) => theme.colors.textSecondary};
 `;
 
-const ModalContent = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
+const ErrorMessage = styled.div`
+  color: ${({ theme }) => theme.colors.error};
+  text-align: center;
   padding: ${({ theme }) => theme.spacing.large};
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  width: 90%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: ${({ theme }) => theme.boxShadow.large};
 `;
 
-const Games = () => {
+export const Games = () => {
   const [games, setGames] = useState([]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -129,19 +127,23 @@ const Games = () => {
     }
   };
 
-  const handleCreateGame = async (newGame) => {
-    try {
-      const response = await axios.post('http://localhost:3001/games', newGame);
-      setGames([...games, response.data]);
-      setIsCreateModalOpen(false);
-    } catch (err) {
-      console.error('Error creating game:', err);
-      setError('Failed to create game. Please try again.');
-    }
+  const handleConnectExternal = () => {
+    // TODO: Implement connection to external program
+    console.log('Connecting to external program...');
+    alert('This feature will be implemented in the future to connect with an external game creation program.');
   };
 
-  if (isLoading) return <div>Loading games...</div>;
-  if (error) return <div>{error}</div>;
+  if (isLoading) {
+    return (
+      <LoadingWrapper>
+        <FaSpinner /> Loading games...
+      </LoadingWrapper>
+    );
+  }
+
+  if (error) {
+    return <ErrorMessage>{error}</ErrorMessage>;
+  }
 
   return (
     <GamesWrapper>
@@ -149,9 +151,9 @@ const Games = () => {
         <GamesTitle>
           <FaGamepad /> Games
         </GamesTitle>
-        <CreateGameButton onClick={() => setIsCreateModalOpen(true)}>
-          <FaPlus /> Create New Game
-        </CreateGameButton>
+        <ConnectExternalButton onClick={handleConnectExternal}>
+          <FaPlug /> Connect External Program
+        </ConnectExternalButton>
       </GamesHeader>
       <GamesList>
         {games.map(game => (
@@ -164,14 +166,6 @@ const Games = () => {
           </GameItem>
         ))}
       </GamesList>
-      {isCreateModalOpen && (
-        <Modal>
-          <ModalContent>
-            <CreateGame onGameCreated={handleCreateGame} />
-            <CreateGameButton onClick={() => setIsCreateModalOpen(false)}>Cancel</CreateGameButton>
-          </ModalContent>
-        </Modal>
-      )}
     </GamesWrapper>
   );
 };

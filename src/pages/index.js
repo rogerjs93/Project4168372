@@ -1,9 +1,10 @@
-export { Home } from './Home';
+// src/pages/index.js
+export { default as Home } from './Home';
+export { Games } from './Games';
 export { About } from './About';
 export { Services } from './Services';
 export { Contact } from './Contact';
 export { default as Register } from '../components/Register';
-export { Games } from './Games';
 export { Community } from './Community';
 export { Support } from './Support';
 export { default as Watch } from './Watch';
