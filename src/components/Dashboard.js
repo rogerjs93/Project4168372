@@ -8,7 +8,7 @@ import SocialFeed from './SocialFeed';
 import GameList from './GameList';
 import CreateGame from './CreateGame';
 import ErrorBoundary from './ErrorBoundary';
-import useAuth from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 
 const DashboardContainer = styled.div`
   display: grid;

@@ -8,7 +8,7 @@ import { GlobalStyles, theme } from './styles';
 import { AuthProvider } from './AuthContext';
 import Loading from './components/Loading';
 import ErrorBoundary from './components/ErrorBoundary';
-import useAuth from './hooks/useAuth';
+import { useAuth } from './hooks/useAuth';
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));

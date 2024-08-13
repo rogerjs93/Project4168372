@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes } from 'react-icons/fa';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { Logo } from './Logo';
 import Chat from './Chat';
 import axios from 'axios';
 import NotificationCenter from './NotificationCenter';
+import useDebounce from '../hooks/useDebounce';
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -137,7 +138,6 @@ const UserMenuDropdown = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   box-shadow: ${({ theme }) => theme.boxShadow.large};
   padding: ${({ theme }) => theme.spacing.medium};
-  display: ${({ isOpen }) => (isOpen ? 'block' : 'none')};
   min-width: 200px;
   z-index: 1100;
 `;
@@ -161,7 +161,7 @@ const ChatIcon = styled(IconButton)`
 const NotificationCenterModal = styled.div`
   position: fixed;
   top: 60px;
-  right: 270px; // Adjust this value to move the notification center more to the left
+  right: 270px;
   z-index: 1200;
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.large};
@@ -171,10 +171,8 @@ const NotificationCenterModal = styled.div`
   max-height: calc(100vh - 80px);
   overflow-y: auto;
 
-  // You can further customize the position here if needed
-  // For example, you can use media queries to adjust the position for different screen sizes
   @media (max-width: ${({ theme }) => theme.breakpoints.large}) {
-    right: 20px; // Adjust for smaller screens
+    right: 20px;
   }
 `;
 
@@ -190,14 +188,15 @@ const CloseButton = styled.button`
 `;
 
 export const Header = () => {
+  const { isLoggedIn, user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [notifications, setNotifications] = useState([]);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
-  const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   const fetchNotifications = useCallback(async () => {
     if (isLoggedIn && user) {
@@ -218,12 +217,24 @@ export const Header = () => {
     fetchNotifications();
   }, [fetchNotifications]);
 
+  const handleSearch = useCallback(() => {
+    if (debouncedSearchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(debouncedSearchQuery.trim())}`);
+    }
+  }, [debouncedSearchQuery, navigate]);
+
+  useEffect(() => {
+    if (debouncedSearchQuery) {
+      handleSearch();
+    }
+  }, [debouncedSearchQuery, handleSearch]);
+
   const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
+    setIsUserMenuOpen((prev) => !prev);
   };
 
   const toggleNotificationCenter = () => {
-    setIsNotificationCenterOpen(!isNotificationCenterOpen);
+    setIsNotificationCenterOpen((prev) => !prev);
   };
 
   const handleLogout = () => {
@@ -231,15 +242,20 @@ export const Header = () => {
     navigate('/');
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
-    // Implement search functionality
+  const toggleChat = () => {
+    setIsChatOpen((prev) => !prev);
   };
 
-  const toggleChat = () => {
-    setIsChatOpen(!isChatOpen);
-  };
+  const unreadNotificationsCount = useMemo(() => {
+    return notifications.filter(n => !n.isRead).length;
+  }, [notifications]);
+
+  const navItems = useMemo(() => [
+    { path: '/', icon: <FaHome />, ariaLabel: 'Home' },
+    { path: '/games', icon: <FaGamepad />, ariaLabel: 'Games' },
+    { path: '/community', icon: <FaUsers />, ariaLabel: 'Community' },
+    { path: '/dashboard', icon: <FaChartBar />, ariaLabel: 'Dashboard' },
+  ], []);
 
   return (
     <HeaderWrapper>
@@ -255,57 +271,51 @@ export const Header = () => {
               placeholder="Search Naama"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              aria-label="Search Naama"
             />
           </SearchBar>
         </LeftSection>
         <CenterSection>
-          <NavIcon to="/" active={location.pathname === '/'}>
-            <FaHome />
-          </NavIcon>
-          <NavIcon to="/games" active={location.pathname === '/games'}>
-            <FaGamepad />
-          </NavIcon>
-          <NavIcon to="/community" active={location.pathname === '/community'}>
-            <FaUsers />
-          </NavIcon>
-          <NavIcon to="/dashboard" active={location.pathname === '/dashboard'}>
-            <FaChartBar />
-          </NavIcon>
+          {navItems.map(({ path, icon, ariaLabel }) => (
+            <NavIcon key={path} to={path} active={location.pathname === path} aria-label={ariaLabel}>
+              {icon}
+            </NavIcon>
+          ))}
         </CenterSection>
         <RightSection>
           {isLoggedIn ? (
             <>
-              <NotificationButton onClick={toggleNotificationCenter}>
+              <NotificationButton onClick={toggleNotificationCenter} aria-label="Notifications">
                 <FaBell />
-                <NotificationCount>{notifications.filter(n => !n.isRead).length}</NotificationCount>
+                {unreadNotificationsCount > 0 && <NotificationCount>{unreadNotificationsCount}</NotificationCount>}
               </NotificationButton>
-              <ChatIcon onClick={toggleChat}>
+              <ChatIcon onClick={toggleChat} aria-label="Chat">
                 <FaComments />
               </ChatIcon>
-              <IconButton onClick={toggleUserMenu}>
+              <IconButton onClick={toggleUserMenu} aria-label="User menu" aria-expanded={isUserMenuOpen}>
                 <FaUser />
                 <FaCaretDown />
-                <UserMenuDropdown isOpen={isUserMenuOpen}>
+              </IconButton>
+              {isUserMenuOpen && (
+                <UserMenuDropdown>
                   <UserMenuLink to="/profile">Profile</UserMenuLink>
                   <UserMenuLink to="/settings">Settings</UserMenuLink>
                   <UserMenuLink as="button" onClick={handleLogout}>Logout</UserMenuLink>
                 </UserMenuDropdown>
-              </IconButton>
+              )}
             </>
           ) : (
-            <>
-              <IconButton as={Link} to="/login">
-                <FaUser />
-              </IconButton>
-            </>
+            <IconButton as={Link} to="/login" aria-label="Login">
+              <FaUser />
+            </IconButton>
           )}
         </RightSection>
       </Nav>
       {isChatOpen && <Chat onClose={() => setIsChatOpen(false)} />}
       {isNotificationCenterOpen && (
         <NotificationCenterModal>
-          <CloseButton onClick={toggleNotificationCenter}>
+          <CloseButton onClick={toggleNotificationCenter} aria-label="Close notifications">
             <FaTimes />
           </CloseButton>
           <NotificationCenter />

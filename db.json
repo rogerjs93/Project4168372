@@ -652,6 +652,33 @@
       "isUser": true,
       "timestamp": "2024-08-12T14:16:39.715Z",
       "status": "sent"
+    },
+    {
+      "id": 1723551860417,
+      "chatId": "1",
+      "text": "hello",
+      "isUser": true,
+      "timestamp": "2024-08-13T12:24:20.417Z",
+      "status": "sent",
+      "senderId": "aa09"
+    },
+    {
+      "id": "da8c",
+      "sender": "test",
+      "content": "hi",
+      "timestamp": "2024-08-13T12:39:43.776Z"
+    },
+    {
+      "id": "ac04",
+      "sender": "test",
+      "content": "/channels",
+      "timestamp": "2024-08-13T12:40:08.021Z"
+    },
+    {
+      "id": "8b85",
+      "sender": "test",
+      "content": "hi",
+      "timestamp": "2024-08-13T12:42:14.497Z"
     }
   ],
   "chats": [

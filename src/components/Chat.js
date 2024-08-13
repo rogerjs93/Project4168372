@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import styled, { keyframes } from 'styled-components';
 import { FaPaperPlane, FaTimes, FaArrowLeft, FaUser, FaCheck, FaCheckDouble, FaExclamationCircle } from 'react-icons/fa';
 import axios from 'axios';
+import { useAuth } from '../hooks/useAuth';
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -236,69 +237,33 @@ const Chat = ({ onClose }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState('');
   const messagesEndRef = useRef(null);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    fetchChats();
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const fetchChats = async () => {
+  const fetchChats = useCallback(async () => {
     try {
-      // TODO: Replace with live server endpoint
-      // const response = await axios.get('https://your-live-server.com/api/chats');
       const response = await axios.get('http://localhost:3001/chats');
       setChats(response.data);
     } catch (error) {
       console.error('Error fetching chats:', error);
       setError('Failed to load chats. Please try again.');
     }
-  };
+  }, []);
 
-  const fetchMessages = async (chatId) => {
+  const fetchMessages = useCallback(async (chatId) => {
     try {
-      // TODO: Replace with live server endpoint
-      // const response = await axios.get(`https://your-live-server.com/api/messages?chatId=${chatId}`);
       const response = await axios.get(`http://localhost:3001/messages?chatId=${chatId}`);
       setMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
       setError('Failed to load messages. Please try again.');
     }
-  };
+  }, []);
 
-  const sendMessage = async () => {
-    if (inputMessage.trim() === '' || !activeChat) return;
-
-    const newMessage = {
-      id: Date.now(),
-      chatId: activeChat.id,
-      text: inputMessage,
-      isUser: true,
-      timestamp: new Date().toISOString(),
-      status: 'sent'
-    };
-
-    try {
-      // TODO: Replace with live server endpoint
-      // await axios.post('https://your-live-server.com/api/messages', newMessage);
-      await axios.post('http://localhost:3001/messages', newMessage);
-      setMessages([...messages, newMessage]);
-      setInputMessage('');
-      simulateMessageStatus(newMessage.id);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send message. Please try again.');
-    }
-  };
-
-  const simulateMessageStatus = (messageId) => {
+  const simulateMessageStatus = useCallback((messageId) => {
     setTimeout(() => {
       setMessages(prevMessages => 
         prevMessages.map(msg => 
@@ -314,66 +279,116 @@ const Chat = ({ onClose }) => {
         )
       );
     }, 2000);
-  };
+  }, []);
 
-  const openChat = (chat) => {
+  const sendMessage = useCallback(async () => {
+    if (inputMessage.trim() === '' || !activeChat) return;
+
+    const newMessage = {
+      id: Date.now(),
+      chatId: activeChat.id,
+      text: inputMessage,
+      isUser: true,
+      timestamp: new Date().toISOString(),
+      status: 'sent',
+      senderId: user.id
+    };
+
+    try {
+      await axios.post('http://localhost:3001/messages', newMessage);
+      setMessages(prevMessages => [...prevMessages, newMessage]);
+      setInputMessage('');
+      simulateMessageStatus(newMessage.id);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setError('Failed to send message. Please try again.');
+    }
+  }, [inputMessage, activeChat, user.id, simulateMessageStatus]);
+
+  const openChat = useCallback((chat) => {
     setActiveChat(chat);
     fetchMessages(chat.id);
-  };
+  }, [fetchMessages]);
 
-  const formatTime = (timestamp) => {
+  const formatTime = useMemo(() => (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     setInputMessage(e.target.value);
     setIsTyping(true);
     setTimeout(() => setIsTyping(false), 1000);
-  };
+  }, []);
 
-  const renderMessageStatus = (status) => {
+  const renderMessageStatus = useMemo(() => (status) => {
     switch (status) {
       case 'sent':
-        return <FaCheck />;
+        return <FaCheck aria-label="Message sent" />;
       case 'delivered':
-        return <FaCheckDouble />;
+        return <FaCheckDouble aria-label="Message delivered" />;
       case 'read':
-        return <FaCheckDouble color="#4CAF50" />;
+        return <FaCheckDouble color="#4CAF50" aria-label="Message read" />;
       default:
         return null;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchChats();
+  }, [fetchChats]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (activeChat) {
+        fetchMessages(activeChat.id);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [activeChat, fetchMessages]);
 
   return (
     <ChatWrapper>
       <ChatHeader>
         {activeChat ? (
           <>
-            <HeaderButton onClick={() => setActiveChat(null)}><FaArrowLeft /></HeaderButton>
+            <HeaderButton onClick={() => setActiveChat(null)} aria-label="Back to chat list">
+              <FaArrowLeft />
+            </HeaderButton>
             <ChatTitle>{activeChat.name}</ChatTitle>
           </>
         ) : (
           <ChatTitle>Chats</ChatTitle>
         )}
-        <HeaderButton onClick={onClose}><FaTimes /></HeaderButton>
+        <HeaderButton onClick={onClose} aria-label="Close chat">
+          <FaTimes />
+        </HeaderButton>
       </ChatHeader>
-      {error && <ErrorMessage><FaExclamationCircle /> {error}</ErrorMessage>}
+      {error && (
+        <ErrorMessage>
+          <FaExclamationCircle /> {error}
+        </ErrorMessage>
+      )}
       {activeChat ? (
         <>
           <ChatMessages>
             {messages.map((message) => (
-              <MessageGroup key={message.id} isUser={message.isUser}>
+              <MessageGroup key={message.id} isUser={message.senderId === user.id}>
                 <MessageContent>
-                  {!message.isUser && (
+                  {message.senderId !== user.id && (
                     <Avatar>
                       <FaUser />
                     </Avatar>
                   )}
-                  <MessageBubble isUser={message.isUser}>
+                  <MessageBubble isUser={message.senderId === user.id}>
                     {message.text}
                   </MessageBubble>
-                  {message.isUser && (
+                  {message.senderId === user.id && (
                     <MessageStatus>{renderMessageStatus(message.status)}</MessageStatus>
                   )}
                 </MessageContent>
@@ -390,8 +405,9 @@ const Chat = ({ onClose }) => {
               onChange={handleInputChange}
               placeholder="Type a message..."
               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              aria-label="Type a message"
             />
-            <SendButton onClick={sendMessage}>
+            <SendButton onClick={sendMessage} aria-label="Send message">
               <FaPaperPlane />
             </SendButton>
           </ChatInput>
