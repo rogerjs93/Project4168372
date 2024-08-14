@@ -1,10 +1,21 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FaGamepad, FaUsers, FaShare, FaArrowRight, FaPlay, FaStar, FaQuoteLeft, FaUser, FaChevronLeft, FaChevronRight, FaPuzzlePiece, FaChess, FaRocket, FaGlobe } from 'react-icons/fa';
 import { useInView } from 'react-intersection-observer';
 import axios from 'axios';
 import backgroundImage from '../assets/people-playing-games.gif';
+
+const GlobalStyle = createGlobalStyle`
+  body {
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+`;
 
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -275,95 +286,28 @@ const PlayButton = styled(Link)`
   }
 `;
 
-const StatisticsSection = styled(Section)`
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
+const TestimonialsSection = styled(Section)`
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
-const StatisticsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: ${({ theme }) => theme.spacing.xlarge};
+const TestimonialWrapper = styled.div`
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 ${({ theme }) => theme.spacing.large};
-`;
-
-const StatisticItem = styled.div`
-  text-align: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  padding: ${({ theme }) => theme.spacing.large};
-  transition: ${({ theme }) => theme.transitions.medium};
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
-  }
-`;
-
-const StatisticValue = styled.h3`
-  font-size: ${({ theme }) => theme.fontSizes.xxxlarge};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
-`;
-
-const StatisticLabel = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  opacity: 0.8;
-`;
-
-const CarouselWrapper = styled.div`
   position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const CarouselButton = styled.button`
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: rgba(255, 255, 255, 0.8);
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.fast};
-  z-index: 1;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme }) => theme.colors.surfaceLight};
-  }
-
-  ${({ left }) => left && `left: -20px;`}
-  ${({ right }) => right && `right: -20px;`}
-`;
-
-const CarouselContent = styled.div`
-  display: flex;
-  transition: transform 0.3s ease-in-out;
-`;
-
-const CarouselItem = styled.div`
-  flex: 0 0 100%;
 `;
 
 const TestimonialCard = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   padding: ${({ theme }) => theme.spacing.xlarge};
   border-radius: ${({ theme }) => theme.borderRadius.large};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
+  box-shadow: ${({ theme }) => theme.boxShadow.large};
   position: relative;
-  animation: ${slideIn} 0.5s ease-out;
   transition: ${({ theme }) => theme.transitions.medium};
+  margin: 0 ${({ theme }) => theme.spacing.large};
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    box-shadow: ${({ theme }) => theme.boxShadow.xlarge};
   }
 `;
 
@@ -380,7 +324,7 @@ const TestimonialText = styled.p`
   font-style: italic;
   margin-bottom: ${({ theme }) => theme.spacing.large};
   color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   line-height: 1.6;
 `;
 
@@ -391,8 +335,8 @@ const TestimonialAuthor = styled.div`
 `;
 
 const AuthorAvatar = styled.div`
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background-color: ${({ theme }) => theme.colors.primary};
   display: flex;
@@ -409,14 +353,79 @@ const AuthorInfo = styled.div`
 const AuthorName = styled.p`
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   margin: 0;
 `;
 
 const AuthorRole = styled.p`
   color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  font-size: ${({ theme }) => theme.fontSizes.medium};
   margin: 0;
+`;
+
+const TestimonialButton = styled.button`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+  z-index: 1;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondary};
+  }
+
+  ${({ left }) => left && `left: -25px;`}
+  ${({ right }) => right && `right: -25px;`}
+`;
+
+const MetricsSection = styled(Section)`
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+`;
+
+const MetricsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: ${({ theme }) => theme.spacing.xlarge};
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 ${({ theme }) => theme.spacing.large};
+`;
+
+const MetricItem = styled.div`
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: ${({ theme }) => theme.borderRadius.large};
+  padding: ${({ theme }) => theme.spacing.large};
+  transition: ${({ theme }) => theme.transitions.medium};
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: ${({ theme }) => theme.boxShadow.large};
+  }
+`;
+
+const MetricValue = styled.h3`
+  font-size: ${({ theme }) => theme.fontSizes.xxxxlarge};
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+  background: linear-gradient(45deg, ${({ theme }) => theme.colors.accent}, ${({ theme }) => theme.colors.secondary});
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+`;
+
+const MetricLabel = styled.p`
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  opacity: 0.9;
 `;
 
 const FadeInSection = ({ children }) => {
@@ -555,6 +564,7 @@ export const Home = () => {
 
   return (
     <HomeWrapper>
+      <GlobalStyle />
       <Hero ref={heroRef}>
         <HeroContent style={{ opacity: animateHero ? 1 : 0, transition: 'opacity 1s ease-out' }}>
           <HeroTitle>Welcome to Naama Online</HeroTitle>
@@ -606,67 +616,61 @@ export const Home = () => {
       </FadeInSection>
 
       <FadeInSection>
-        <Section>
+        <TestimonialsSection>
           <SectionTitle>What Our Users Say</SectionTitle>
-          <CarouselWrapper>
-            <CarouselButton left onClick={prevTestimonial}>
+          <TestimonialWrapper>
+            <TestimonialButton left onClick={prevTestimonial}>
               <FaChevronLeft aria-hidden="true" />
-            </CarouselButton>
-            <CarouselContent style={{ transform: `translateX(-${currentTestimonial * 100}%)` }}>
-              {testimonials.map((testimonial, index) => (
-                <CarouselItem key={index}>
-                  <TestimonialCard>
-                    <QuoteIcon aria-hidden="true" />
-                    <TestimonialText>{testimonial.text}</TestimonialText>
-                    <TestimonialAuthor>
-                      <AuthorAvatar>
-                        <FaUser aria-hidden="true" />
-                      </AuthorAvatar>
-                      <AuthorInfo>
-                        <AuthorName>{testimonial.author}</AuthorName>
-                        <AuthorRole>{testimonial.role}</AuthorRole>
-                      </AuthorInfo>
-                    </TestimonialAuthor>
-                  </TestimonialCard>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselButton right onClick={nextTestimonial}>
+            </TestimonialButton>
+            <TestimonialCard>
+              <QuoteIcon aria-hidden="true" />
+              <TestimonialText>{testimonials[currentTestimonial].text}</TestimonialText>
+              <TestimonialAuthor>
+                <AuthorAvatar>
+                  <FaUser aria-hidden="true" />
+                </AuthorAvatar>
+                <AuthorInfo>
+                  <AuthorName>{testimonials[currentTestimonial].author}</AuthorName>
+                  <AuthorRole>{testimonials[currentTestimonial].role}</AuthorRole>
+                </AuthorInfo>
+              </TestimonialAuthor>
+            </TestimonialCard>
+            <TestimonialButton right onClick={nextTestimonial}>
               <FaChevronRight aria-hidden="true" />
-            </CarouselButton>
-          </CarouselWrapper>
-        </Section>
+            </TestimonialButton>
+          </TestimonialWrapper>
+        </TestimonialsSection>
       </FadeInSection>
 
       <FadeInSection>
-        <StatisticsSection>
-          <StatisticsGrid>
-            <StatisticItem>
-              <StatisticValue>
+        <MetricsSection>
+          <MetricsGrid>
+            <MetricItem>
+              <MetricValue>
                 <AnimatedNumber value={statistics.activeUsers} />+
-              </StatisticValue>
-              <StatisticLabel>Active Users</StatisticLabel>
-            </StatisticItem>
-            <StatisticItem>
-              <StatisticValue>
+              </MetricValue>
+              <MetricLabel>Active Users</MetricLabel>
+            </MetricItem>
+            <MetricItem>
+              <MetricValue>
                 <AnimatedNumber value={statistics.gamesCreated} />+
-              </StatisticValue>
-              <StatisticLabel>Games Created</StatisticLabel>
-            </StatisticItem>
-            <StatisticItem>
-              <StatisticValue>
+              </MetricValue>
+              <MetricLabel>Games Created</MetricLabel>
+            </MetricItem>
+            <MetricItem>
+              <MetricValue>
                 <AnimatedNumber value={statistics.gamesPlayed} />+
-              </StatisticValue>
-              <StatisticLabel>Games Played</StatisticLabel>
-            </StatisticItem>
-            <StatisticItem>
-              <StatisticValue>
+              </MetricValue>
+              <MetricLabel>Games Played</MetricLabel>
+            </MetricItem>
+            <MetricItem>
+              <MetricValue>
                 <AnimatedNumber value={statistics.countriesReached} />+
-              </StatisticValue>
-              <StatisticLabel>Countries Reached</StatisticLabel>
-            </StatisticItem>
-          </StatisticsGrid>
-        </StatisticsSection>
+              </MetricValue>
+              <MetricLabel>Countries Reached</MetricLabel>
+            </MetricItem>
+          </MetricsGrid>
+        </MetricsSection>
       </FadeInSection>
     </HomeWrapper>
   );

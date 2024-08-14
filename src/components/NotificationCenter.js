@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import axios from 'axios';
 import { useAuth } from '../AuthContext';
 import { FaBell, FaCheckCircle, FaUserPlus, FaTrophy, FaCheck, FaRegBell, FaSync, FaExclamationCircle } from 'react-icons/fa';
+import { FixedSizeList as List } from 'react-window';
+import InfiniteLoader from 'react-window-infinite-loader';
+import AutoSizer from 'react-virtualized-auto-sizer';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(10px); }
@@ -63,15 +66,26 @@ const IconButton = styled.button`
   `}
 `;
 
-const NotificationList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.small};
-  max-height: 400px;
-  overflow-y: auto;
+const NotificationListWrapper = styled.div`
+  height: 400px;
+  overflow: hidden;
+
+  .scrollable-container {
+    overflow: hidden !important;
+  }
+
+  .scrollable-content {
+    overflow-y: scroll !important;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+  }
 `;
 
-const NotificationItem = styled.div`
+const StyledNotificationItem = styled.div`
   background-color: ${({ theme, isRead }) => isRead ? theme.colors.background : theme.colors.surfaceLight};
   padding: ${({ theme }) => theme.spacing.medium};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
@@ -155,23 +169,42 @@ const ErrorMessage = styled.div`
 
 const NotificationCenter = () => {
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [page, setPage] = useState(1);
+
+  const ITEMS_PER_PAGE = 20;
 
   const fetchNotifications = useCallback(async () => {
+    if (!hasNextPage) return;
+
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`http://localhost:3001/notifications?userId=${user.id}&_sort=timestamp&_order=desc`);
-      setNotifications(response.data);
+      // NOTE: This is using mock data. Replace with actual API call when connecting to a real server
+      const response = await axios.get(`http://localhost:3001/notifications`, {
+        params: {
+          userId: user.id,
+          _sort: 'timestamp',
+          _order: 'desc',
+          _page: page,
+          _limit: ITEMS_PER_PAGE
+        }
+      });
+      
+      const newNotifications = response.data;
+      setNotifications(prevNotifications => [...prevNotifications, ...newNotifications]);
+      setHasNextPage(newNotifications.length === ITEMS_PER_PAGE);
+      setPage(prevPage => prevPage + 1);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setError('Failed to load notifications. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [user.id, page, hasNextPage]);
 
   useEffect(() => {
     fetchNotifications();
@@ -179,6 +212,7 @@ const NotificationCenter = () => {
 
   const markAsRead = async (notificationId) => {
     try {
+      // NOTE: This is using mock data. Replace with actual API call when connecting to a real server
       await axios.patch(`http://localhost:3001/notifications/${notificationId}`, { isRead: true });
       setNotifications(notifications.map(notification => 
         notification.id === notificationId ? { ...notification, isRead: true } : notification
@@ -190,6 +224,7 @@ const NotificationCenter = () => {
 
   const markAllAsRead = async () => {
     try {
+      // NOTE: This is using mock data. Replace with actual API call when connecting to a real server
       await Promise.all(
         notifications
           .filter(n => !n.isRead)
@@ -210,6 +245,33 @@ const NotificationCenter = () => {
     }
   };
 
+  const NotificationItem = useMemo(() => React.memo(({ index, style }) => {
+    const notification = notifications[index];
+    if (!notification) return null;
+
+    return (
+      <StyledNotificationItem
+        style={style}
+        isRead={notification.isRead}
+        onClick={() => !notification.isRead && markAsRead(notification.id)}
+      >
+        <IconWrapper type={notification.type}>
+          {getNotificationIcon(notification.type)}
+        </IconWrapper>
+        <NotificationContent>
+          <NotificationText isRead={notification.isRead}>{notification.content}</NotificationText>
+          <NotificationTimestamp>{new Date(notification.timestamp).toLocaleString()}</NotificationTimestamp>
+        </NotificationContent>
+      </StyledNotificationItem>
+    );
+  }), [notifications, markAsRead]);
+
+  const itemCount = hasNextPage ? notifications.length + 1 : notifications.length;
+
+  const loadMoreItems = loading ? () => {} : fetchNotifications;
+
+  const isItemLoaded = (index) => !hasNextPage || index < notifications.length;
+
   return (
     <NotificationCenterWrapper>
       <Header>
@@ -220,7 +282,7 @@ const NotificationCenter = () => {
               <FaCheck />
             </IconButton>
           )}
-          <IconButton onClick={fetchNotifications} title="Refresh" loading={loading}>
+          <IconButton onClick={() => { setNotifications([]); setPage(1); fetchNotifications(); }} title="Refresh" loading={loading}>
             <FaSync />
           </IconButton>
         </div>
@@ -230,31 +292,37 @@ const NotificationCenter = () => {
           <FaExclamationCircle /> {error}
         </ErrorMessage>
       )}
-      {!loading && notifications.length > 0 ? (
-        <NotificationList>
-          {notifications.map(notification => (
-            <NotificationItem 
-              key={notification.id} 
-              isRead={notification.isRead}
-              onClick={() => !notification.isRead && markAsRead(notification.id)}
-            >
-              <IconWrapper type={notification.type}>
-                {getNotificationIcon(notification.type)}
-              </IconWrapper>
-              <NotificationContent>
-                <NotificationText isRead={notification.isRead}>{notification.content}</NotificationText>
-                <NotificationTimestamp>{new Date(notification.timestamp).toLocaleString()}</NotificationTimestamp>
-              </NotificationContent>
-            </NotificationItem>
-          ))}
-        </NotificationList>
-      ) : (
+      {!loading && notifications.length === 0 ? (
         <EmptyState>
           <EmptyStateIcon />
-          <EmptyStateText>
-            {loading ? 'Loading notifications...' : 'No notifications yet'}
-          </EmptyStateText>
+          <EmptyStateText>No notifications yet</EmptyStateText>
         </EmptyState>
+      ) : (
+        <NotificationListWrapper>
+          <AutoSizer>
+            {({ height, width }) => (
+              <InfiniteLoader
+                isItemLoaded={isItemLoaded}
+                itemCount={itemCount}
+                loadMoreItems={loadMoreItems}
+              >
+                {({ onItemsRendered, ref }) => (
+                  <List
+                    className="scrollable-content"
+                    height={height}
+                    itemCount={itemCount}
+                    itemSize={100} // Adjust this value based on your notification item height
+                    onItemsRendered={onItemsRendered}
+                    ref={ref}
+                    width={width}
+                  >
+                    {NotificationItem}
+                  </List>
+                )}
+              </InfiniteLoader>
+            )}
+          </AutoSizer>
+        </NotificationListWrapper>
       )}
     </NotificationCenterWrapper>
   );

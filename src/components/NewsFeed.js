@@ -5,11 +5,15 @@ import { FaHeart, FaComment, FaShare, FaSpinner, FaExclamationCircle } from 'rea
 import { useAuth } from '../hooks/useAuth';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
+import InfiniteLoader from 'react-window-infinite-loader';
 
 const FeedWrapper = styled.div`
   max-width: 600px;
   margin: 0 auto;
   padding: ${({ theme }) => theme.spacing.medium};
+  height: calc(100vh - 100px); // Adjust based on your layout
+  display: flex;
+  flex-direction: column;
 `;
 
 const Post = styled.div`
@@ -138,6 +142,27 @@ const CommentAuthor = styled.span`
   color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
+const FeedListWrapper = styled.div`
+  flex-grow: 1;
+  position: relative;
+
+  /* Hide scrollbars */
+  .scrollable-container {
+    overflow: hidden !important;
+  }
+
+  /* Custom scrollbar style */
+  .scrollable-content {
+    overflow-y: scroll !important;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    &::-webkit-scrollbar { /* WebKit */
+      width: 0;
+      height: 0;
+    }
+  }
+`;
+
 const NewsFeed = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -145,32 +170,41 @@ const NewsFeed = () => {
   const [newPostContent, setNewPostContent] = useState('');
   const { user } = useAuth();
 
-  // NOTE: For future server integration, uncomment the following lines
-  // const [page, setPage] = useState(1);
-  // const [hasMore, setHasMore] = useState(true);
-  // const ITEMS_PER_PAGE = 10;
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const ITEMS_PER_PAGE = 10;
 
   const fetchPosts = useCallback(async () => {
+    if (!hasNextPage) return;
+
     setLoading(true);
     setError('');
     try {
-      // NOTE: For future server integration, replace this with a paginated API call
-      const response = await axios.get(`http://localhost:3001/posts?_sort=timestamp&_order=desc`);
-      setPosts(response.data);
+      // NOTE: This is using mock data. Replace with actual API call when connecting to a real server
+      const response = await axios.get(`http://localhost:3001/posts`, {
+        params: {
+          _page: page,
+          _limit: ITEMS_PER_PAGE,
+          _sort: 'timestamp',
+          _order: 'desc'
+        }
+      });
       
-      // NOTE: For future server integration, uncomment the following lines
-      // setPosts(prevPosts => [...prevPosts, ...response.data]);
-      // setHasMore(response.data.length === ITEMS_PER_PAGE);
+      const newPosts = response.data;
+      setPosts(prevPosts => [...prevPosts, ...newPosts]);
+      setHasNextPage(newPosts.length === ITEMS_PER_PAGE);
+      setPage(prevPage => prevPage + 1);
     } catch (error) {
       console.error('Error fetching posts:', error);
       setError('Failed to load posts. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  }, []);
+  }, [page, hasNextPage]);
 
   useEffect(() => {
     fetchPosts();
-  }, [fetchPosts]);
+  }, []);
 
   const handleLike = useCallback(async (postId) => {
     try {
@@ -205,44 +239,50 @@ const NewsFeed = () => {
     }
   };
 
-  const MemoizedPost = useMemo(() => React.memo(({ post }) => (
-    <Post>
-      <PostAuthor>{post.userId}</PostAuthor>
-      <PostContent>{post.content}</PostContent>
-      <PostActions>
-        <ActionButton onClick={() => handleLike(post.id)} aria-label="Like post">
-          <FaHeart /> {post.likes} Likes
-        </ActionButton>
-        <ActionButton aria-label="Comment on post">
-          <FaComment /> {post.comments.length} Comments
-        </ActionButton>
-        <ActionButton aria-label="Share post">
-          <FaShare /> Share
-        </ActionButton>
-      </PostActions>
-      <CommentsSection>
-        {post.comments.map((comment, index) => (
-          <Comment key={index}>
-            <CommentAuthor>{comment.userId}: </CommentAuthor>
-            {comment.content}
-          </Comment>
-        ))}
-      </CommentsSection>
-    </Post>
-  )), [handleLike]);
+  const MemoizedPost = useMemo(() => React.memo(({ post }) => {
+    if (!post) return null; // Return null if post is undefined
+  
+    return (
+      <Post>
+        <PostAuthor>{post.userId}</PostAuthor>
+        <PostContent>{post.content}</PostContent>
+        <PostActions>
+          <ActionButton onClick={() => handleLike(post.id)} aria-label="Like post">
+            <FaHeart /> {post.likes} Likes
+          </ActionButton>
+          <ActionButton aria-label="Comment on post">
+            <FaComment /> {post.comments.length} Comments
+          </ActionButton>
+          <ActionButton aria-label="Share post">
+            <FaShare /> Share
+          </ActionButton>
+        </PostActions>
+        <CommentsSection>
+          {post.comments.map((comment, index) => (
+            <Comment key={index}>
+              <CommentAuthor>{comment.userId}: </CommentAuthor>
+              {comment.content}
+            </Comment>
+          ))}
+        </CommentsSection>
+      </Post>
+    );
+  }), [handleLike]);
+  
+  const Row = ({ index, style }) => {
+    const post = posts[index];
+    return (
+      <div style={style}>
+        {post && <MemoizedPost post={post} />}
+      </div>
+    );
+  };
 
-  const Row = ({ index, style }) => (
-    <div style={style}>
-      <MemoizedPost post={posts[index]} />
-    </div>
-  );
+  const itemCount = hasNextPage ? posts.length + 1 : posts.length;
 
-  // NOTE: For future server integration, implement this function
-  // const loadMorePosts = () => {
-  //   if (!loading && hasMore) {
-  //     setPage(prevPage => prevPage + 1);
-  //   }
-  // };
+  const loadMoreItems = loading ? () => {} : fetchPosts;
+
+  const isItemLoaded = (index) => !hasNextPage || index < posts.length;
 
   return (
     <FeedWrapper>
@@ -261,29 +301,33 @@ const NewsFeed = () => {
           Post
         </SubmitButton>
       </NewPostForm>
-      {loading && posts.length === 0 ? (
-        <LoadingSpinner />
-      ) : (
+      <FeedListWrapper>
         <AutoSizer>
           {({ height, width }) => (
-            <List
-              height={height}
-              itemCount={posts.length}
-              itemSize={250} // Adjust this value based on your average post height
-              width={width}
-              // NOTE: For future server integration, add this prop
-              // onItemsRendered={({ visibleStopIndex }) => {
-              //   if (visibleStopIndex === posts.length - 1) {
-              //     loadMorePosts();
-              //   }
-              // }}
+            <InfiniteLoader
+              isItemLoaded={isItemLoaded}
+              itemCount={itemCount}
+              loadMoreItems={loadMoreItems}
             >
-              {Row}
-            </List>
+              {({ onItemsRendered, ref }) => (
+                <List
+                  ref={ref}
+                  height={height}
+                  itemCount={itemCount}
+                  itemSize={300} // Adjust this value based on your average post height
+                  width={width}
+                  onItemsRendered={onItemsRendered}
+                  className="scrollable-content"
+                  style={{ overflowX: 'hidden' }}
+                >
+                  {Row}
+                </List>
+              )}
+            </InfiniteLoader>
           )}
         </AutoSizer>
-      )}
-      {loading && posts.length > 0 && <LoadingSpinner />}
+      </FeedListWrapper>
+      {loading && <LoadingSpinner />}
     </FeedWrapper>
   );
 };
