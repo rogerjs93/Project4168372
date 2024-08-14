@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { FaSearch, FaUserFriends, FaUserPlus, FaUserMinus, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
+import { FixedSizeGrid as Grid } from 'react-window';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 const FriendsWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
@@ -38,10 +40,9 @@ const SearchInput = styled.input`
   }
 `;
 
-const FriendsList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
+const GridWrapper = styled.div`
+  width: 100%;
+  height: calc(100vh - 200px); // Adjust based on your layout
 `;
 
 const FriendCard = styled.div`
@@ -51,6 +52,10 @@ const FriendCard = styled.div`
   text-align: center;
   box-shadow: ${({ theme }) => theme.boxShadow.medium};
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   &:hover {
     transform: translateY(-5px);
@@ -59,10 +64,10 @@ const FriendCard = styled.div`
 `;
 
 const FriendAvatar = styled.img`
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  margin-bottom: ${({ theme }) => theme.spacing.small};
+  margin: 0 auto ${({ theme }) => theme.spacing.small};
   object-fit: cover;
 `;
 
@@ -129,41 +134,53 @@ const Friends = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const { user } = useAuth();
 
-  // Mock friends data
-  const mockFriends = [
-    { id: 1, name: 'John Doe', avatar: 'https://picsum.photos/id/27/100/100', status: 'Online', isFriend: true },
-    { id: 2, name: 'Jane Smith', avatar: 'https://picsum.photos/id/64/100/100', status: 'Offline', isFriend: true },
-    { id: 3, name: 'Bob Johnson', avatar: 'https://picsum.photos/id/91/100/100', status: 'Away', isFriend: false },
-    { id: 4, name: 'Alice Brown', avatar: 'https://picsum.photos/id/45/100/100', status: 'Online', isFriend: false },
-    { id: 5, name: 'Charlie Davis', avatar: 'https://picsum.photos/id/53/100/100', status: 'Busy', isFriend: true },
-  ];
+  const itemsPerPage = 20; // Number of items to load per page
+
+  // Mock friends data generator
+  const generateMockFriends = (start, end) => {
+    return Array.from({ length: end - start }, (_, index) => ({
+      id: start + index,
+      name: `Friend ${start + index}`,
+      avatar: `https://picsum.photos/id/${(start + index) % 100}/100/100`,
+      status: ['Online', 'Offline', 'Away', 'Busy'][Math.floor(Math.random() * 4)],
+      isFriend: Math.random() > 0.5,
+    }));
+  };
 
   const fetchFriends = useCallback(async () => {
+    if (!hasMore) return;
     setLoading(true);
     setError('');
     try {
       // Simulating API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Use mock data instead of API call
-      setFriends(mockFriends);
+      // Use mock data generator instead of static mock data
+      const newFriends = generateMockFriends((page - 1) * itemsPerPage, page * itemsPerPage);
+      setFriends(prevFriends => [...prevFriends, ...newFriends]);
+      setHasMore(newFriends.length === itemsPerPage);
+      setPage(prevPage => prevPage + 1);
 
-      // Uncomment the following lines when connecting to a real server
-      // const response = await axios.get(`http://localhost:3001/users/${user.id}/friends`);
-      // setFriends(response.data);
+      // TODO: Remove mock data and uncomment the following lines when connecting to a real server
+      // const response = await axios.get(`http://localhost:3001/users/${user.id}/friends?_page=${page}&_limit=${itemsPerPage}`);
+      // setFriends(prevFriends => [...prevFriends, ...response.data]);
+      // setHasMore(response.data.length === itemsPerPage);
+      // setPage(prevPage => prevPage + 1);
     } catch (err) {
       console.error('Error fetching friends:', err);
       setError('Failed to load friends. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, []);  // Remove user.id from dependencies for mock data
+  }, [page, hasMore]);
 
   useEffect(() => {
     fetchFriends();
-  }, [fetchFriends]);
+  }, []);
 
   const handleFriendAction = useCallback(async (friendId, action) => {
     try {
@@ -179,7 +196,7 @@ const Friends = () => {
         )
       );
 
-      // Uncomment the following lines when connecting to a real server
+      // TODO: Remove mock data and uncomment the following lines when connecting to a real server
       // if (action === 'add') {
       //   await axios.post(`http://localhost:3001/users/${user.id}/friends`, { friendId });
       // } else if (action === 'remove') {
@@ -190,7 +207,7 @@ const Friends = () => {
       console.error(`Error ${action === 'add' ? 'adding' : 'removing'} friend:`, err);
       setError(`Failed to ${action === 'add' ? 'add' : 'remove'} friend. Please try again.`);
     }
-  }, []);  // Remove user.id and fetchFriends from dependencies for mock data
+  }, []);
 
   const filteredFriends = useMemo(() => 
     friends.filter(friend =>
@@ -198,6 +215,37 @@ const Friends = () => {
     ),
     [friends, searchTerm]
   );
+
+  const Cell = ({ columnIndex, rowIndex, style }) => {
+    const index = rowIndex * 4 + columnIndex;
+    if (index >= filteredFriends.length) return null;
+    const friend = filteredFriends[index];
+
+    return (
+      <div style={style}>
+        <FriendCard>
+          <FriendAvatar src={friend.avatar} alt={friend.name} />
+          <FriendName>{friend.name}</FriendName>
+          <FriendStatus>{friend.status}</FriendStatus>
+          <FriendAction
+            onClick={() => handleFriendAction(friend.id, friend.isFriend ? 'remove' : 'add')}
+            isFriend={friend.isFriend}
+            aria-label={friend.isFriend ? 'Remove friend' : 'Add friend'}
+          >
+            {friend.isFriend ? (
+              <>
+                <FaUserMinus /> Remove Friend
+              </>
+            ) : (
+              <>
+                <FaUserPlus /> Add Friend
+              </>
+            )}
+          </FriendAction>
+        </FriendCard>
+      </div>
+    );
+  };
 
   return (
     <FriendsWrapper>
@@ -220,34 +268,26 @@ const Friends = () => {
           aria-label="Search friends"
         />
       </SearchBar>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <FriendsList>
-          {filteredFriends.map(friend => (
-            <FriendCard key={friend.id}>
-              <FriendAvatar src={friend.avatar} alt={friend.name} />
-              <FriendName>{friend.name}</FriendName>
-              <FriendStatus>{friend.status}</FriendStatus>
-              <FriendAction
-                onClick={() => handleFriendAction(friend.id, friend.isFriend ? 'remove' : 'add')}
-                isFriend={friend.isFriend}
-                aria-label={friend.isFriend ? 'Remove friend' : 'Add friend'}
-              >
-                {friend.isFriend ? (
-                  <>
-                    <FaUserMinus /> Remove Friend
-                  </>
-                ) : (
-                  <>
-                    <FaUserPlus /> Add Friend
-                  </>
-                )}
-              </FriendAction>
-            </FriendCard>
-          ))}
-        </FriendsList>
-      )}
+      <InfiniteScroll
+        dataLength={filteredFriends.length}
+        next={fetchFriends}
+        hasMore={hasMore}
+        loader={<LoadingSpinner />}
+        scrollableTarget="friendsGrid"
+      >
+        <GridWrapper id="friendsGrid">
+          <Grid
+            columnCount={4}
+            columnWidth={250}
+            height={window.innerHeight - 200} // Adjust based on your layout
+            rowCount={Math.ceil(filteredFriends.length / 4)}
+            rowHeight={350} // Adjust based on your card height
+            width={1000} // Adjust based on your layout
+          >
+            {Cell}
+          </Grid>
+        </GridWrapper>
+      </InfiniteScroll>
     </FriendsWrapper>
   );
 };
