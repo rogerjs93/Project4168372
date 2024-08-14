@@ -1,225 +1,195 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import styled from 'styled-components';
-import { FaUsers, FaPlus, FaSearch, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth';
+import styled, { createGlobalStyle } from 'styled-components';
+import { FaSearch, FaUsers, FaPlus, FaUserPlus, FaUserMinus } from 'react-icons/fa';
+
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+  }
+`;
 
 const GroupsWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.large};
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
 `;
 
 const Header = styled.h1`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  gap: 10px;
+  color: #1877f2;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 `;
 
 const ActionsBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  margin-bottom: 20px;
 `;
 
 const CreateGroupButton = styled.button`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
+  gap: 10px;
+  background-color: #1877f2;
+  color: #ffffff;
   border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryDark};
+    background-color: #166fe5;
   }
 `;
 
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  background-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.small};
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
 const SearchInput = styled.input`
   border: none;
   background: none;
   flex-grow: 1;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 15px;
+  color: #1c1e21;
+  margin-left: 10px;
   &:focus {
     outline: none;
   }
 `;
 
-const GroupsList = styled.div`
+const GroupsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 `;
 
 const GroupCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 `;
 
 const GroupImage = styled.img`
   width: 100%;
-  height: 180px;
+  height: 150px;
   object-fit: cover;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
+  border-radius: 8px;
+  margin-bottom: 12px;
 `;
 
 const GroupName = styled.h3`
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
+  color: #1c1e21;
+  margin: 0 0 4px 0;
+  font-size: 17px;
+  font-weight: 600;
 `;
 
 const GroupDescription = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.small};
-  margin: 0 0 ${({ theme }) => theme.spacing.medium} 0;
+  color: #65676b;
+  margin: 0 0 12px 0;
+  font-size: 13px;
 `;
 
 const GroupMemberCount = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.small};
-  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: 13px;
+  color: #65676b;
+  display: block;
+  margin-bottom: 12px;
 `;
 
 const JoinGroupButton = styled.button`
-  width: 100%;
-  background-color: ${({ theme, isMember }) => isMember ? theme.colors.secondary : theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
+  background-color: ${({ isMember }) => isMember ? '#e4e6eb' : '#1877f2'};
+  color: ${({ isMember }) => isMember ? '#050505' : '#ffffff'};
   border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  padding: ${({ theme }) => theme.spacing.small};
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: ${({ theme }) => theme.spacing.small};
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
 
   &:hover {
-    background-color: ${({ theme, isMember }) => isMember ? theme.colors.secondaryDark : theme.colors.primaryDark};
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: ${({ theme }) => theme.colors.error};
-  background-color: ${({ theme }) => theme.colors.errorLight};
-  padding: ${({ theme }) => theme.spacing.medium};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-`;
-
-const LoadingSpinner = styled(FaSpinner)`
-  animation: spin 1s linear infinite;
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  color: ${({ theme }) => theme.colors.primary};
-  margin: ${({ theme }) => theme.spacing.medium} auto;
-  display: block;
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    background-color: ${({ isMember }) => isMember ? '#d8dadf' : '#166fe5'};
   }
 `;
 
 const Groups = () => {
   const [groups, setGroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const { user } = useAuth();
 
-  // Mock groups data
-  const mockGroups = [
-    { id: 1, name: 'The Strategists', image: 'https://picsum.photos/id/201/300/150', description: 'A group for gamers to discuss their favorite strategy games.', memberCount: 150, isMember: false },
-    { id: 2, name: 'Book Club', image: 'https://picsum.photos/id/403/300/150', description: 'Monthly book discussions and recommendations.', memberCount: 75, isMember: true },
-    { id: 3, name: 'Fitness Motivation', image: 'https://picsum.photos/id/390/300/150', description: 'Share your fitness journey and motivate others.', memberCount: 200, isMember: false },
-    { id: 4, name: 'Tech Innovators', image: 'https://picsum.photos/id/180/300/150', description: 'Discussing the latest in technology and innovation.', memberCount: 120, isMember: true },
-    { id: 5, name: 'Cooking Enthusiasts', image: 'https://picsum.photos/id/292/300/150', description: 'Share recipes and cooking tips with fellow food lovers.', memberCount: 180, isMember: false },
-  ];
-
-  const fetchGroups = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      // Simulating API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Use mock data instead of API call
-      setGroups(mockGroups);
-
-      // Uncomment the following lines when connecting to a real server
-      // const response = await axios.get('http://localhost:3001/groups');
-      // setGroups(response.data);
-    } catch (err) {
-      console.error('Error fetching groups:', err);
-      setError('Failed to load groups. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const generateMockGroups = useCallback(() => {
+    return [
+      { id: 1, name: 'The Strategists', image: 'https://picsum.photos/id/201/300/150', description: 'A group for gamers to discuss their favorite strategy games.', memberCount: 150, isMember: false },
+      { id: 2, name: 'Book Club', image: 'https://picsum.photos/id/403/300/150', description: 'Monthly book discussions and recommendations.', memberCount: 75, isMember: true },
+      { id: 3, name: 'Fitness Motivation', image: 'https://picsum.photos/id/390/300/150', description: 'Share your fitness journey and motivate others.', memberCount: 200, isMember: false },
+      { id: 4, name: 'Tech Innovators', image: 'https://picsum.photos/id/180/300/150', description: 'Discussing the latest in technology and innovation.', memberCount: 120, isMember: true },
+      { id: 5, name: 'Cooking Enthusiasts', image: 'https://picsum.photos/id/292/300/150', description: 'Share recipes and cooking tips with fellow food lovers.', memberCount: 180, isMember: false },
+      { id: 6, name: 'Travel Adventures', image: 'https://picsum.photos/id/450/300/150', description: 'Share travel stories and get tips for your next adventure.', memberCount: 250, isMember: false },
+      { id: 7, name: 'Photography Club', image: 'https://picsum.photos/id/250/300/150', description: 'For photography enthusiasts to share their work and techniques.', memberCount: 95, isMember: true },
+      { id: 8, name: 'Movie Buffs', image: 'https://picsum.photos/id/310/300/150', description: 'Discuss and review the latest films and classics.', memberCount: 130, isMember: false },
+      { id: 9, name: 'Gardening Gurus', image: 'https://picsum.photos/id/320/300/150', description: 'Tips and tricks for growing beautiful gardens.', memberCount: 80, isMember: true },
+      { id: 10, name: 'Pet Lovers', image: 'https://picsum.photos/id/330/300/150', description: 'A community for pet owners to share advice and cute pictures.', memberCount: 220, isMember: false },
+      { id: 11, name: 'Startup Founders', image: 'https://picsum.photos/id/340/300/150', description: 'Network and share experiences with fellow entrepreneurs.', memberCount: 65, isMember: true },
+      { id: 12, name: 'Yoga and Meditation', image: 'https://picsum.photos/id/350/300/150', description: 'Find inner peace and improve flexibility together.', memberCount: 110, isMember: false },
+      { id: 13, name: 'DIY Crafters', image: 'https://picsum.photos/id/360/300/150', description: 'Share your DIY projects and get inspired by others.', memberCount: 140, isMember: true },
+      { id: 14, name: 'Language Exchange', image: 'https://picsum.photos/id/370/300/150', description: 'Practice speaking new languages with native speakers.', memberCount: 85, isMember: false },
+      { id: 15, name: 'Science Enthusiasts', image: 'https://picsum.photos/id/380/300/150', description: 'Discuss the latest scientific discoveries and theories.', memberCount: 70, isMember: true },
+      { id: 16, name: 'Art Appreciation', image: 'https://picsum.photos/id/390/300/150', description: 'Explore and discuss various forms of art.', memberCount: 100, isMember: false },
+      { id: 17, name: 'Sustainable Living', image: 'https://picsum.photos/id/400/300/150', description: 'Tips for living an eco-friendly lifestyle.', memberCount: 90, isMember: true },
+      { id: 18, name: 'Music Makers', image: 'https://picsum.photos/id/410/300/150', description: 'Connect with fellow musicians and share your creations.', memberCount: 160, isMember: false },
+      { id: 19, name: 'Home Brewers', image: 'https://picsum.photos/id/420/300/150', description: 'Share recipes and tips for brewing your own beer.', memberCount: 55, isMember: true },
+      { id: 20, name: 'Mindfulness Practice', image: 'https://picsum.photos/id/430/300/150', description: 'Learn and share techniques for living mindfully.', memberCount: 75, isMember: false },
+    ];
   }, []);
 
   useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
+    setGroups(generateMockGroups());
+  }, [generateMockGroups]);
+
+  const handleJoinGroup = useCallback((groupId) => {
+    setGroups(prevGroups => 
+      prevGroups.map(group => 
+        group.id === groupId 
+          ? { 
+              ...group, 
+              isMember: !group.isMember,
+              memberCount: group.isMember ? group.memberCount - 1 : group.memberCount + 1
+            }
+          : group
+      )
+    );
+  }, []);
 
   const handleCreateGroup = useCallback(() => {
     // Implement group creation logic here
     console.log('Create new group');
-  }, []);
-
-  const handleJoinGroup = useCallback(async (groupId, isMember) => {
-    try {
-      // Simulating API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Update local state to reflect the change
-      setGroups(prevGroups => 
-        prevGroups.map(group => 
-          group.id === groupId
-            ? { 
-                ...group, 
-                isMember: !isMember, 
-                memberCount: isMember ? group.memberCount - 1 : group.memberCount + 1 
-              }
-            : group
-        )
-      );
-
-      // Uncomment the following lines when connecting to a real server
-      // if (isMember) {
-      //   await axios.delete(`http://localhost:3001/groups/${groupId}/members/${user.id}`);
-      // } else {
-      //   await axios.post(`http://localhost:3001/groups/${groupId}/members`, { userId: user.id });
-      // }
-      // fetchGroups();
-    } catch (err) {
-      console.error('Error updating group membership:', err);
-      setError(`Failed to ${isMember ? 'leave' : 'join'} group. Please try again.`);
-    }
   }, []);
 
   const filteredGroups = useMemo(() => 
@@ -231,35 +201,28 @@ const Groups = () => {
   );
 
   return (
-    <GroupsWrapper>
-      <Header>
-        <FaUsers />
-        Groups
-      </Header>
-      {error && (
-        <ErrorMessage>
-          <FaExclamationCircle /> {error}
-        </ErrorMessage>
-      )}
-      <ActionsBar>
-        <CreateGroupButton onClick={handleCreateGroup}>
-          <FaPlus /> Create New Group
-        </CreateGroupButton>
-        <SearchBar>
-          <FaSearch />
-          <SearchInput
-            type="text"
-            placeholder="Search groups..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Search groups"
-          />
-        </SearchBar>
-      </ActionsBar>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <GroupsList>
+    <>
+      <GlobalStyle />
+      <GroupsWrapper>
+        <Header>
+          <FaUsers />
+          Groups
+        </Header>
+        <ActionsBar>
+          <CreateGroupButton onClick={handleCreateGroup}>
+            <FaPlus /> Create New Group
+          </CreateGroupButton>
+          <SearchBar>
+            <FaSearch color="#65676b" />
+            <SearchInput
+              type="text"
+              placeholder="Search groups..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </SearchBar>
+        </ActionsBar>
+        <GroupsGrid>
           {filteredGroups.map(group => (
             <GroupCard key={group.id}>
               <GroupImage src={group.image} alt={group.name} />
@@ -267,16 +230,24 @@ const Groups = () => {
               <GroupDescription>{group.description}</GroupDescription>
               <GroupMemberCount>{group.memberCount} members</GroupMemberCount>
               <JoinGroupButton
-                onClick={() => handleJoinGroup(group.id, group.isMember)}
+                onClick={() => handleJoinGroup(group.id)}
                 isMember={group.isMember}
               >
-                {group.isMember ? 'Leave Group' : 'Join Group'}
+                {group.isMember ? (
+                  <>
+                    <FaUserMinus /> Leave Group
+                  </>
+                ) : (
+                  <>
+                    <FaUserPlus /> Join Group
+                  </>
+                )}
               </JoinGroupButton>
             </GroupCard>
           ))}
-        </GroupsList>
-      )}
-    </GroupsWrapper>
+        </GroupsGrid>
+      </GroupsWrapper>
+    </>
   );
 };
 

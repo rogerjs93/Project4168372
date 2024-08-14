@@ -1,204 +1,188 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import styled from 'styled-components';
-import { FaCalendarAlt, FaPlus, FaClock, FaMapMarkerAlt, FaSearch, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
-import axios from 'axios';
-import { useAuth } from '../hooks/useAuth';
+import styled, { createGlobalStyle } from 'styled-components';
+import { FaSearch, FaCalendarAlt, FaPlus, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
+
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+  }
+`;
 
 const EventsWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.large};
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
 `;
 
 const Header = styled.h1`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  gap: 10px;
+  color: #1877f2;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 `;
 
 const ActionsBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  margin-bottom: 20px;
 `;
 
 const CreateEventButton = styled.button`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
+  gap: 10px;
+  background-color: #1877f2;
+  color: #ffffff;
   border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryDark};
+    background-color: #166fe5;
   }
 `;
 
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  background-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.small};
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
 const SearchInput = styled.input`
   border: none;
   background: none;
   flex-grow: 1;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 15px;
+  color: #1c1e21;
+  margin-left: 10px;
   &:focus {
     outline: none;
   }
 `;
 
-const EventsList = styled.div`
+const EventsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
 `;
 
 const EventCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 `;
 
 const EventImage = styled.img`
   width: 100%;
-  height: 180px;
+  height: 150px;
   object-fit: cover;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
+  border-radius: 8px;
+  margin-bottom: 12px;
 `;
 
 const EventName = styled.h3`
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
+  color: #1c1e21;
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
 `;
 
 const EventInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.small};
-  margin-bottom: ${({ theme }) => theme.spacing.tiny};
+  gap: 8px;
+  color: #65676b;
+  font-size: 14px;
+  margin-bottom: 4px;
 `;
 
 const AttendButton = styled.button`
-  width: 100%;
-  background-color: ${({ theme, isAttending }) => isAttending ? theme.colors.secondary : theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
+  background-color: ${({ isAttending }) => isAttending ? '#e4e6eb' : '#1877f2'};
+  color: ${({ isAttending }) => isAttending ? '#050505' : '#ffffff'};
   border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  padding: ${({ theme }) => theme.spacing.small};
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  margin-top: ${({ theme }) => theme.spacing.small};
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  margin-top: 12px;
 
   &:hover {
-    background-color: ${({ theme, isAttending }) => isAttending ? theme.colors.secondaryDark : theme.colors.primaryDark};
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: ${({ theme }) => theme.colors.error};
-  background-color: ${({ theme }) => theme.colors.errorLight};
-  padding: ${({ theme }) => theme.spacing.medium};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-`;
-
-const LoadingSpinner = styled(FaSpinner)`
-  animation: spin 1s linear infinite;
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  color: ${({ theme }) => theme.colors.primary};
-  margin: ${({ theme }) => theme.spacing.medium} auto;
-  display: block;
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    background-color: ${({ isAttending }) => isAttending ? '#d8dadf' : '#166fe5'};
   }
 `;
 
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const { user } = useAuth();
 
-  // Mock events data (commented out for future reference)
-  const mockEvents = [
-    { id: 1, name: 'Summer Music Festival', image: 'https://picsum.photos/id/158/300/100', date: '2023-07-15', time: '14:00', location: 'Central Park' },
-    { id: 2, name: 'Tech Conference 2023', image: 'https://picsum.photos/id/180/300/100', date: '2023-08-22', time: '09:00', location: 'Convention Center' },
-    { id: 3, name: 'Charity Run', image: 'https://picsum.photos/id/195/300/100', date: '2023-09-10', time: '07:30', location: 'City Stadium' },
-  ];
-
-  const fetchEvents = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      // Uncomment the following line when connecting to a real server
-      // const response = await axios.get('http://localhost:3001/events');
-      // setEvents(response.data);
-      
-      // For now, use mock data
-      setEvents(mockEvents);
-    } catch (err) {
-      console.error('Error fetching events:', err);
-      setError('Failed to load events. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const generateMockEvents = useCallback(() => {
+    return [
+      { id: 1, name: 'Summer Music Festival', image: 'https://picsum.photos/id/158/300/150', date: '2023-07-15', time: '14:00', location: 'Central Park', isAttending: false },
+      { id: 2, name: 'Tech Conference 2023', image: 'https://picsum.photos/id/180/300/150', date: '2023-08-22', time: '09:00', location: 'Convention Center', isAttending: true },
+      { id: 3, name: 'Charity Run', image: 'https://picsum.photos/id/195/300/150', date: '2023-09-10', time: '07:30', location: 'City Stadium', isAttending: false },
+      { id: 4, name: 'Art Exhibition Opening', image: 'https://picsum.photos/id/200/300/150', date: '2023-07-20', time: '18:00', location: 'Modern Art Museum', isAttending: false },
+      { id: 5, name: 'Food Truck Festival', image: 'https://picsum.photos/id/225/300/150', date: '2023-08-05', time: '11:00', location: 'Downtown Square', isAttending: true },
+      { id: 6, name: 'Yoga in the Park', image: 'https://picsum.photos/id/240/300/150', date: '2023-07-22', time: '08:00', location: 'Sunset Park', isAttending: false },
+      { id: 7, name: 'Film Festival', image: 'https://picsum.photos/id/250/300/150', date: '2023-09-15', time: '19:00', location: 'City Cinema', isAttending: false },
+      { id: 8, name: 'Business Networking Event', image: 'https://picsum.photos/id/260/300/150', date: '2023-08-17', time: '18:30', location: 'Grand Hotel', isAttending: true },
+      { id: 9, name: 'Craft Beer Tasting', image: 'https://picsum.photos/id/270/300/150', date: '2023-07-29', time: '16:00', location: 'Local Brewery', isAttending: false },
+      { id: 10, name: 'Farmers Market', image: 'https://picsum.photos/id/280/300/150', date: '2023-08-12', time: '09:00', location: 'Community Center', isAttending: false },
+      { id: 11, name: 'Book Club Meeting', image: 'https://picsum.photos/id/290/300/150', date: '2023-07-25', time: '19:00', location: 'Public Library', isAttending: true },
+      { id: 12, name: 'Jazz Night', image: 'https://picsum.photos/id/300/300/150', date: '2023-08-19', time: '20:00', location: 'Blue Note Club', isAttending: false },
+      { id: 13, name: 'Science Fair', image: 'https://picsum.photos/id/310/300/150', date: '2023-09-05', time: '10:00', location: 'Science Museum', isAttending: false },
+      { id: 14, name: 'Stand-up Comedy Show', image: 'https://picsum.photos/id/320/300/150', date: '2023-08-26', time: '21:00', location: 'Laugh Factory', isAttending: true },
+      { id: 15, name: 'Pet Adoption Day', image: 'https://picsum.photos/id/330/300/150', date: '2023-07-30', time: '11:00', location: 'City Park', isAttending: false },
+      { id: 16, name: 'Antique Car Show', image: 'https://picsum.photos/id/340/300/150', date: '2023-08-13', time: '10:00', location: 'Fairgrounds', isAttending: false },
+      { id: 17, name: 'Photography Workshop', image: 'https://picsum.photos/id/350/300/150', date: '2023-09-02', time: '14:00', location: 'Art Studio', isAttending: true },
+      { id: 18, name: 'Wine Tasting Event', image: 'https://picsum.photos/id/360/300/150', date: '2023-08-11', time: '18:00', location: 'Vineyard', isAttending: false },
+      { id: 19, name: 'Salsa Dancing Night', image: 'https://picsum.photos/id/370/300/150', date: '2023-07-28', time: '20:00', location: 'Dance Studio', isAttending: false },
+      { id: 20, name: 'Gardening Workshop', image: 'https://picsum.photos/id/380/300/150', date: '2023-08-20', time: '09:00', location: 'Botanical Garden', isAttending: true },
+    ];
   }, []);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+    setEvents(generateMockEvents());
+  }, [generateMockEvents]);
+
+  const handleAttendEvent = useCallback((eventId) => {
+    setEvents(prevEvents => 
+      prevEvents.map(event => 
+        event.id === eventId 
+          ? { ...event, isAttending: !event.isAttending }
+          : event
+      )
+    );
+  }, []);
 
   const handleCreateEvent = useCallback(() => {
     // Implement event creation logic here
     console.log('Create new event');
   }, []);
-
-  const handleAttendEvent = useCallback(async (eventId, isAttending) => {
-    try {
-      if (isAttending) {
-        // Uncomment the following line when connecting to a real server
-        // await axios.delete(`http://localhost:3001/events/${eventId}/attendees/${user.id}`);
-      } else {
-        // Uncomment the following line when connecting to a real server
-        // await axios.post(`http://localhost:3001/events/${eventId}/attendees`, { userId: user.id });
-      }
-      fetchEvents();
-    } catch (err) {
-      console.error('Error updating event attendance:', err);
-      setError(`Failed to ${isAttending ? 'leave' : 'join'} event. Please try again.`);
-    }
-  }, [user.id, fetchEvents]);
 
   const filteredEvents = useMemo(() => 
     events.filter(event =>
@@ -209,35 +193,28 @@ const Events = () => {
   );
 
   return (
-    <EventsWrapper>
-      <Header>
-        <FaCalendarAlt />
-        Events
-      </Header>
-      {error && (
-        <ErrorMessage>
-          <FaExclamationCircle /> {error}
-        </ErrorMessage>
-      )}
-      <ActionsBar>
-        <CreateEventButton onClick={handleCreateEvent}>
-          <FaPlus /> Create New Event
-        </CreateEventButton>
-        <SearchBar>
-          <FaSearch />
-          <SearchInput
-            type="text"
-            placeholder="Search events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Search events"
-          />
-        </SearchBar>
-      </ActionsBar>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <EventsList>
+    <>
+      <GlobalStyle />
+      <EventsWrapper>
+        <Header>
+          <FaCalendarAlt />
+          Events
+        </Header>
+        <ActionsBar>
+          <CreateEventButton onClick={handleCreateEvent}>
+            <FaPlus /> Create New Event
+          </CreateEventButton>
+          <SearchBar>
+            <FaSearch color="#65676b" />
+            <SearchInput
+              type="text"
+              placeholder="Search events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </SearchBar>
+        </ActionsBar>
+        <EventsGrid>
           {filteredEvents.map(event => (
             <EventCard key={event.id}>
               <EventImage src={event.image} alt={event.name} />
@@ -252,16 +229,16 @@ const Events = () => {
                 <FaMapMarkerAlt /> {event.location}
               </EventInfo>
               <AttendButton
-                onClick={() => handleAttendEvent(event.id, event.isAttending)}
+                onClick={() => handleAttendEvent(event.id)}
                 isAttending={event.isAttending}
               >
                 {event.isAttending ? 'Cancel Attendance' : 'Attend Event'}
               </AttendButton>
             </EventCard>
           ))}
-        </EventsList>
-      )}
-    </EventsWrapper>
+        </EventsGrid>
+      </EventsWrapper>
+    </>
   );
 };
 
