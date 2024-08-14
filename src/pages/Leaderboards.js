@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { FaTrophy, FaCalendarAlt, FaUsers, FaCoins, FaSpinner, FaExclamationCircle, FaFilter } from 'react-icons/fa';
-import axios from 'axios';
+import { FaMedal, FaUser, FaSpinner, FaExclamationCircle } from 'react-icons/fa';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const TournamentsWrapper = styled.div`
+const LeaderboardsWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
   max-width: 1000px;
   margin: 0 auto;
@@ -38,72 +37,50 @@ const FilterSelect = styled.select`
   font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
-const TournamentList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
+const LeaderboardTable = styled.table`
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 ${({ theme }) => theme.spacing.small};
 `;
 
-const TournamentCard = styled.div`
+const TableHeader = styled.th`
+  text-align: left;
+  padding: ${({ theme }) => theme.spacing.small};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  text-transform: uppercase;
+`;
+
+const TableRow = styled.tr`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
-  transition: ${({ theme }) => theme.transitions.medium};
+  transition: ${({ theme }) => theme.transitions.fast};
   animation: ${fadeIn} 0.3s ease-out;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    transform: translateY(-2px);
+    box-shadow: ${({ theme }) => theme.boxShadow.medium};
   }
 `;
 
-const TournamentTitle = styled.h3`
-  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.large};
+const TableCell = styled.td`
+  padding: ${({ theme }) => theme.spacing.medium};
 `;
 
-const GameTitle = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-`;
-
-const TournamentInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.small};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-`;
-
-const InfoItem = styled.div`
+const RankCell = styled(TableCell)`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.small};
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.small};
 `;
 
-const RegisterButton = styled.button`
-  width: 100%;
-  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.textOnPrimary};
-  border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
+const PlayerName = styled.span`
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.textPrimary};
+`;
 
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryDark};
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.textSecondary};
-    cursor: not-allowed;
-  }
+const Score = styled.span`
+  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  color: ${({ theme }) => theme.colors.secondary};
 `;
 
 const LoadingSpinner = styled(FaSpinner)`
@@ -154,146 +131,93 @@ const LoadMoreButton = styled.button`
   }
 `;
 
-const GameTournaments = () => {
-  const [tournaments, setTournaments] = useState([]);
+const Leaderboards = () => {
+  const [leaderboardData, setLeaderboardData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('overall');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  // Mock tournaments data
-  const mockTournaments = [
-    {
-      id: 1,
-      title: 'Summer Showdown',
-      game: 'Battle Royale',
-      date: '2023-07-15',
-      participants: 64,
-      prizePool: 10000,
-    },
-    {
-      id: 2,
-      title: 'Strategy Masters Cup',
-      game: 'Chess Championship',
-      date: '2023-08-01',
-      participants: 32,
-      prizePool: 5000,
-    },
-    {
-      id: 3,
-      title: 'Speed Racers Grand Prix',
-      game: 'Turbo Racing Simulator',
-      date: '2023-08-20',
-      participants: 100,
-      prizePool: 15000,
-    },
-    {
-      id: 4,
-      title: 'Puzzle Masters Challenge',
-      game: 'Brain Teasers Deluxe',
-      date: '2023-09-05',
-      participants: 50,
-      prizePool: 7500,
-    },
-    {
-      id: 5,
-      title: 'MOBA Mayhem',
-      game: 'League of Legends',
-      date: '2023-09-15',
-      participants: 128,
-      prizePool: 20000,
-    },
-    {
-      id: 6,
-      title: 'FPS Frenzy',
-      game: 'Counter-Strike: Global Offensive',
-      date: '2023-10-01',
-      participants: 64,
-      prizePool: 12000,
-    },
-  ];
+  const fetchLeaderboardData = useCallback(async () => {
+    // Move mockLeaderboardData inside the callback
+    const mockLeaderboardData = [
+      { id: 1, rank: 1, name: 'Player1', score: 10000 },
+      { id: 2, rank: 2, name: 'Player2', score: 9500 },
+      { id: 3, rank: 3, name: 'Player3', score: 9000 },
+      { id: 4, rank: 4, name: 'Player4', score: 8500 },
+      { id: 5, rank: 5, name: 'Player5', score: 8000 },
+      { id: 6, rank: 6, name: 'Player6', score: 7500 },
+      { id: 7, rank: 7, name: 'Player7', score: 7000 },
+      { id: 8, rank: 8, name: 'Player8', score: 6500 },
+      { id: 9, rank: 9, name: 'Player9', score: 6000 },
+      { id: 10, rank: 10, name: 'Player10', score: 5500 },
+    ];
 
-  const fetchTournaments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       // Simulated API call using mock data
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-      const filteredTournaments = filter === 'all' 
-        ? mockTournaments 
-        : mockTournaments.filter(tournament => tournament.game === filter);
-      const paginatedTournaments = filteredTournaments.slice((page - 1) * 3, page * 3);
-      setTournaments(prevTournaments => page === 1 ? paginatedTournaments : [...prevTournaments, ...paginatedTournaments]);
-      setHasMore(paginatedTournaments.length === 3);
+      const filteredData = filter === 'overall' 
+        ? mockLeaderboardData 
+        : mockLeaderboardData.filter(player => player.game === filter);
+      const paginatedData = filteredData.slice((page - 1) * 5, page * 5);
+      setLeaderboardData(prevData => page === 1 ? paginatedData : [...prevData, ...paginatedData]);
+      setHasMore(paginatedData.length === 5);
 
       // Uncomment the following block when connecting to a real server
       /*
-      const response = await axios.get(`http://localhost:3001/tournaments?_page=${page}&_limit=3${filter !== 'all' ? `&game=${filter}` : ''}`);
-      const newTournaments = response.data;
-      setTournaments(prevTournaments => page === 1 ? newTournaments : [...prevTournaments, ...newTournaments]);
-      setHasMore(newTournaments.length === 3);
+      const response = await axios.get(`http://localhost:3001/leaderboard?_page=${page}&_limit=5${filter !== 'overall' ? `&game=${filter}` : ''}`);
+      const newData = response.data;
+      setLeaderboardData(prevData => page === 1 ? newData : [...prevData, ...newData]);
+      setHasMore(newData.length === 5);
       */
 
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching tournaments:', err);
-      setError('Failed to load tournaments. Please try again later.');
+      console.error('Error fetching leaderboard data:', err);
+      setError('Failed to load leaderboard data. Please try again later.');
       setLoading(false);
     }
   }, [filter, page]);
 
   useEffect(() => {
-    fetchTournaments();
-  }, [fetchTournaments]);
+    fetchLeaderboardData();
+  }, [fetchLeaderboardData]);
 
   const handleFilterChange = (e) => {
     setFilter(e.target.value);
     setPage(1);
-    setTournaments([]);
+    setLeaderboardData([]);
   };
 
   const handleLoadMore = () => {
     setPage(prevPage => prevPage + 1);
   };
 
-  const handleRegister = async (tournamentId) => {
-    try {
-      // Simulated API call for registering to a tournament
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      console.log(`Registered for tournament ${tournamentId}`);
-      // You would typically update the tournament status in the state here
-      // For now, we'll just log the action
-
-      // Uncomment the following block when connecting to a real server
-      /*
-      await axios.post(`http://localhost:3001/tournaments/${tournamentId}/register`);
-      // Update the tournament status in the state
-      setTournaments(prevTournaments => 
-        prevTournaments.map(tournament => 
-          tournament.id === tournamentId ? { ...tournament, registered: true } : tournament
-        )
-      );
-      */
-    } catch (err) {
-      console.error('Error registering for tournament:', err);
-      setError('Failed to register for tournament. Please try again.');
+  const getRankIcon = (rank) => {
+    switch (rank) {
+      case 1: return <FaMedal color="gold" />;
+      case 2: return <FaMedal color="silver" />;
+      case 3: return <FaMedal color="#CD7F32" />;
+      default: return <FaUser />;
     }
   };
 
   return (
-    <TournamentsWrapper>
+    <LeaderboardsWrapper>
       <Header>
-        <FaTrophy />
-        Game Tournaments
+        <FaMedal />
+        Leaderboards
       </Header>
       <FiltersBar>
         <FilterSelect value={filter} onChange={handleFilterChange}>
-          <option value="all">All Games</option>
-          <option value="Battle Royale">Battle Royale</option>
-          <option value="Chess Championship">Chess Championship</option>
-          <option value="Turbo Racing Simulator">Turbo Racing Simulator</option>
+          <option value="overall">Overall</option>
+          <option value="puzzle">Puzzle Games</option>
+          <option value="action">Action Games</option>
+          <option value="strategy">Strategy Games</option>
         </FilterSelect>
       </FiltersBar>
       {error && (
@@ -301,36 +225,39 @@ const GameTournaments = () => {
           <FaExclamationCircle /> {error}
         </ErrorMessage>
       )}
-      <TournamentList>
-        {tournaments.map((tournament) => (
-          <TournamentCard key={tournament.id}>
-            <TournamentTitle>{tournament.title}</TournamentTitle>
-            <GameTitle>Game: {tournament.game}</GameTitle>
-            <TournamentInfo>
-              <InfoItem>
-                <FaCalendarAlt /> {tournament.date}
-              </InfoItem>
-              <InfoItem>
-                <FaUsers /> {tournament.participants} participants
-              </InfoItem>
-              <InfoItem>
-                <FaCoins /> Prize Pool: ${tournament.prizePool.toLocaleString()}
-              </InfoItem>
-            </TournamentInfo>
-            <RegisterButton onClick={() => handleRegister(tournament.id)}>
-              Register Now
-            </RegisterButton>
-          </TournamentCard>
-        ))}
-      </TournamentList>
+      <LeaderboardTable>
+        <thead>
+          <tr>
+            <TableHeader>Rank</TableHeader>
+            <TableHeader>Player</TableHeader>
+            <TableHeader>Score</TableHeader>
+          </tr>
+        </thead>
+        <tbody>
+          {leaderboardData.map((player) => (
+            <TableRow key={player.id}>
+              <RankCell>
+                {getRankIcon(player.rank)}
+                {player.rank}
+              </RankCell>
+              <TableCell>
+                <PlayerName>{player.name}</PlayerName>
+              </TableCell>
+              <TableCell>
+                <Score>{player.score.toLocaleString()}</Score>
+              </TableCell>
+            </TableRow>
+          ))}
+        </tbody>
+      </LeaderboardTable>
       {loading && <LoadingSpinner />}
       {!loading && hasMore && (
         <LoadMoreButton onClick={handleLoadMore} disabled={loading}>
-          Load More Tournaments
+          Load More
         </LoadMoreButton>
       )}
-    </TournamentsWrapper>
+    </LeaderboardsWrapper>
   );
 };
 
-export default GameTournaments;
+export default Leaderboards;

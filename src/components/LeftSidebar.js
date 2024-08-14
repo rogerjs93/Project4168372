@@ -1,7 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaNewspaper, FaUserFriends, FaUsers, FaCalendarAlt, FaHistory, FaBookmark, FaRobot, FaPlayCircle } from 'react-icons/fa';
+import { FaNewspaper, FaUserFriends, FaUsers, FaCalendarAlt, FaHistory, FaBookmark, FaRobot, FaPlayCircle, FaUserCircle } from 'react-icons/fa';
+
 
 const SidebarWrapper = styled.aside`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -124,7 +125,7 @@ export const LeftSidebar = ({ isCollapsed, onCollapse }) => {
     { icon: <FaCalendarAlt />, text: 'Events', path: '/events' },
     { icon: <FaHistory />, text: 'Memories', path: '/memories' },
     { icon: <FaBookmark />, text: 'Saved', path: '/saved' },
-    { icon: <FaRobot />, text: 'AI Summarizer', path: '/ai-summarizer' }, // New AI Summarizer item
+    { icon: <FaRobot />, text: 'AI Summarizer', path: '/ai-summarizer' },
     { icon: <FaPlayCircle />, text: 'Watch', path: '/watch' },
   ];
 
@@ -134,7 +135,7 @@ export const LeftSidebar = ({ isCollapsed, onCollapse }) => {
         <SidebarHeader isCollapsed={isCollapsed}>
           {!isCollapsed && <SidebarTitle>Social</SidebarTitle>}
           <CollapseButton onClick={toggleSidebar}>
-            {isCollapsed ? <FaNewspaper /> : <FaNewspaper />}
+            {isCollapsed ? <FaUserCircle /> : <FaUserCircle />} {/* Updated icon here */}
           </CollapseButton>
         </SidebarHeader>
         <SidebarList>

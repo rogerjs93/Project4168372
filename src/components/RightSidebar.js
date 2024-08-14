@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { FaGamepad, FaSearch, FaTrophy, FaChartBar, FaMedal, FaUsers, FaComments, FaGem } from 'react-icons/fa';
+import { FaGamepad, FaSearch, FaFlagCheckered, FaMedal, FaTrophy, FaUsers, FaGlobe, FaGem, FaDice } from 'react-icons/fa';
 
 const SidebarWrapper = styled.aside`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -120,11 +120,11 @@ export const RightSidebar = ({ isCollapsed, onCollapse }) => {
   const menuItems = [
     { icon: <FaGamepad />, text: 'My Games', path: '/my-games' },
     { icon: <FaSearch />, text: 'Discover Games', path: '/discover-games' },
-    { icon: <FaTrophy />, text: 'Game Challenges', path: '/game-challenges' },
-    { icon: <FaChartBar />, text: 'Leaderboards', path: '/leaderboards' },
-    { icon: <FaMedal />, text: 'Game Tournaments', path: '/game-tournaments' },
+    { icon: <FaFlagCheckered />, text: 'Game Challenges', path: '/game-challenges' },
+    { icon: <FaMedal />, text: 'Leaderboards', path: '/leaderboards' },
+    { icon: <FaTrophy />, text: 'Game Tournaments', path: '/game-tournaments' },
     { icon: <FaUsers />, text: 'Game Communities', path: '/game-communities' },
-    { icon: <FaComments />, text: 'Global Chat', path: '/global-chat' },
+    { icon: <FaGlobe />, text: 'Global Chat', path: '/global-chat' }, // Updated icon here
     { icon: <FaGem />, text: 'Game Collectibles', path: '/game-collectibles' },
   ];
 
@@ -134,7 +134,7 @@ export const RightSidebar = ({ isCollapsed, onCollapse }) => {
         <SidebarHeader isCollapsed={isCollapsed}>
           {!isCollapsed && <SidebarTitle>Gaming</SidebarTitle>}
           <CollapseButton onClick={toggleSidebar}>
-            {isCollapsed ? <FaGamepad /> : <FaGamepad />}
+            {isCollapsed ? <FaDice /> : <FaDice />}
           </CollapseButton>
         </SidebarHeader>
         <SidebarList>
