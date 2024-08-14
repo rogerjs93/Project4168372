@@ -1,36 +1,47 @@
 export const theme = {
   colors: {
-    primary: '#6200EA',       // Deep purple
-    secondary: '#03DAC6',     // Teal
-    accent: '#FF6B6B',        // Coral (kept from original)
-    background: '#F4F5FA',    // Light grayish blue
-    surfaceLight: '#FFFFFF',  // White
-    surfaceDark: '#2C2F33',   // Dark gray (kept from original)
-    textPrimary: '#333333',   // Dark gray for primary text
-    textSecondary: '#757575', // Medium gray for secondary text
-    borderColor: '#E0E0E0',   // Light gray for borders
-    link: '#3700B3',          // Darker purple for links
-    success: '#00C853',       // Green
-    warning: '#FFD600',       // Yellow
-    error: '#B00020',         // Red
-    lightGrey: '#F5F5F5',     // Very light gray
-    darkGrey: '#424242',      // Darker gray
+    primary: '#6200EA',
+    primaryLight: '#9D46FF',
+    primaryDark: '#3700B3',
+    secondary: '#03DAC6',
+    secondaryLight: '#66FFF8',
+    secondaryDark: '#018786',
+    accent: '#FF6B6B',
+    background: '#F4F5FA',
+    surfaceLight: '#FFFFFF',
+    surfaceDark: '#2C2F33',
+    textPrimary: '#333333',
+    textSecondary: '#757575',
+    textOnPrimary: '#FFFFFF',
+    textOnSecondary: '#000000',
+    borderColor: '#E0E0E0',
+    link: '#3700B3',
+    linkHover: '#6200EA',
+    success: '#00C853',
+    successLight: '#69F0AE',
+    warning: '#FFD600',
+    warningLight: '#FFE57F',
+    error: '#B00020',
+    errorLight: '#FF8A80',
+    lightGrey: '#F5F5F5',
+    darkGrey: '#424242',
     gradient: 'linear-gradient(45deg, #6200EA, #03DAC6)',
   },
   fonts: {
-    main: "'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
-    headings: "'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+    main: "'Roboto', 'Segoe UI', 'Helvetica Neue', sans-serif",
+    headings: "'Montserrat', 'Segoe UI', 'Helvetica Neue', sans-serif",
   },
   fontSizes: {
-    tiny: '0.75rem',
-    small: '0.875rem',
-    medium: '1rem',
-    large: '1.25rem',
-    xlarge: '1.5rem',
-    xxlarge: '2rem',
-    xxxlarge: '2.5rem',
+    tiny: '1.2rem',
+    small: '1.4rem',
+    medium: '1.6rem',
+    large: '1.8rem',
+    xlarge: '2.4rem',
+    xxlarge: '3.2rem',
+    xxxlarge: '4.8rem',
   },
   fontWeights: {
+    light: 300,
     normal: 400,
     medium: 500,
     semibold: 600,
@@ -39,14 +50,16 @@ export const theme = {
   lineHeights: {
     body: 1.5,
     heading: 1.2,
+    tight: 1.1,
+    loose: 1.8,
   },
   spacing: {
-    tiny: '0.25rem',
-    small: '0.5rem',
-    medium: '1rem',
-    large: '1.5rem',
-    xlarge: '2rem',
-    xxlarge: '3rem',
+    tiny: '0.4rem',
+    small: '0.8rem',
+    medium: '1.6rem',
+    large: '2.4rem',
+    xlarge: '3.2rem',
+    xxlarge: '4.8rem',
   },
   breakpoints: {
     mobile: '576px',
@@ -55,24 +68,30 @@ export const theme = {
     largeDesktop: '1200px',
   },
   borderRadius: {
-    small: '4px',
-    medium: '8px',
-    large: '12px',
+    small: '0.4rem',
+    medium: '0.8rem',
+    large: '1.2rem',
     full: '9999px',
   },
   boxShadow: {
-    small: '0 1px 2px rgba(0, 0, 0, 0.1)',
-    medium: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    large: '0 8px 16px rgba(0, 0, 0, 0.1)',
-    xlarge: '0 12px 24px rgba(0, 0, 0, 0.15)',
+    small: '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24)',
+    medium: '0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)',
+    large: '0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.10)',
+    xlarge: '0 15px 25px rgba(0, 0, 0, 0.15), 0 5px 10px rgba(0, 0, 0, 0.05)',
   },
   transitions: {
     fast: 'all 0.1s ease-in-out',
     medium: 'all 0.2s ease-in-out',
     slow: 'all 0.3s ease-in-out',
   },
-  animations: {
-    fadeIn: '@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }',
-    slideIn: '@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }',
+  zIndex: {
+    base: 1,
+    dropdown: 1000,
+    sticky: 1020,
+    fixed: 1030,
+    modalBackdrop: 1040,
+    modal: 1050,
+    popover: 1060,
+    tooltip: 1070,
   },
 };

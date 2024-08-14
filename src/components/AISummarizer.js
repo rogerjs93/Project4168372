@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect, useCallback } from 'react';
+import styled, { keyframes } from 'styled-components';
 import axios from 'axios';
-import { FaSpinner, FaRobot } from 'react-icons/fa';
+import { FaSpinner, FaRobot, FaSyncAlt, FaCopy, FaCheck } from 'react-icons/fa';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 const SummarizerWrapper = styled.div`
   max-width: 800px;
@@ -10,6 +15,7 @@ const SummarizerWrapper = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.boxShadow.medium};
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const Title = styled.h1`
@@ -35,6 +41,11 @@ const Button = styled.button`
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondary};
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
@@ -49,11 +60,15 @@ const SummaryBox = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   border: 1px solid ${({ theme }) => theme.colors.borderColor};
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const SummaryTitle = styled.h2`
   color: ${({ theme }) => theme.colors.textPrimary};
   margin-bottom: ${({ theme }) => theme.spacing.medium};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const SummaryText = styled.p`
@@ -72,6 +87,30 @@ const LoadingText = styled.p`
 const ErrorText = styled.p`
   color: ${({ theme }) => theme.colors.error};
   margin-top: ${({ theme }) => theme.spacing.medium};
+  padding: ${({ theme }) => theme.spacing.medium};
+  background-color: ${({ theme }) => theme.colors.errorLight};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+`;
+
+const SpinnerIcon = styled(FaSpinner)`
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textSecondary};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const AISummarizer = () => {
@@ -79,12 +118,9 @@ const AISummarizer = () => {
   const [summary, setSummary] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    fetchFeed();
-  }, []);
-
-  const fetchFeed = async () => {
+  const fetchFeed = useCallback(async () => {
     try {
       const response = await axios.get('http://localhost:3001/posts');
       setFeed(response.data);
@@ -92,9 +128,13 @@ const AISummarizer = () => {
       console.error('Error fetching feed:', error);
       setError('Failed to fetch feed. Please try again later.');
     }
-  };
+  }, []);
 
-  const generateSummary = () => {
+  useEffect(() => {
+    fetchFeed();
+  }, [fetchFeed]);
+
+  const generateSummary = useCallback(() => {
     setIsLoading(true);
     setError('');
     const allContent = feed.map(post => post.content).join(' ');
@@ -114,19 +154,31 @@ const AISummarizer = () => {
         setIsLoading(false);
       }
     }, 2000);
-  };
+  }, [feed]);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(summary).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [summary]);
 
   return (
     <SummarizerWrapper>
       <Title><FaRobot /> AI Feed Summarizer</Title>
       <Button onClick={generateSummary} disabled={isLoading}>
-        {isLoading ? <FaSpinner /> : 'Summarize My Feed'}
+        {isLoading ? <SpinnerIcon /> : <FaSyncAlt />} Summarize My Feed
       </Button>
-      {isLoading && <LoadingText><FaSpinner /> Processing your feed...</LoadingText>}
+      {isLoading && <LoadingText><SpinnerIcon /> Processing your feed...</LoadingText>}
       {error && <ErrorText>{error}</ErrorText>}
       {summary && !isLoading && (
         <SummaryBox>
-          <SummaryTitle>Your Feed Summary</SummaryTitle>
+          <SummaryTitle>
+            Your Feed Summary
+            <IconButton onClick={handleCopy} title="Copy summary">
+              {copied ? <FaCheck /> : <FaCopy />}
+            </IconButton>
+          </SummaryTitle>
           <SummaryText>{summary}</SummaryText>
         </SummaryBox>
       )}

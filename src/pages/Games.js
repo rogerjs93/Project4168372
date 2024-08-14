@@ -1,17 +1,22 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 import { FaGamepad, FaPlug } from 'react-icons/fa';
-// import { FaFilter } from 'react-icons/fa'; // Uncomment when implementing advanced filtering
 import ErrorBoundary from '../components/ErrorBoundary';
 import GameCard from '../components/GameCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useDebounce from '../hooks/useDebounce';
+import { FixedSizeList as List } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import InfiniteLoader from 'react-window-infinite-loader';
 
 const GamesWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
-  max-width: 1200px;
+  max-width: 800px; // Adjust based on your layout
   margin: 0 auto;
+  height: calc(100vh - 100px); // Adjust based on your layout
+  display: flex;
+  flex-direction: column;
 `;
 
 const GamesHeader = styled.div`
@@ -66,12 +71,6 @@ const SearchInput = styled.input`
   max-width: 300px;
 `;
 
-const GamesList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
-`;
-
 const ErrorMessage = styled.div`
   color: ${({ theme }) => theme.colors.error};
   text-align: center;
@@ -87,73 +86,74 @@ const FilterDropdown = styled.select`
   color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
+const GamesListWrapper = styled.div`
+  flex-grow: 1;
+  position: relative;
+
+  /* Hide scrollbars */
+  .scrollable-container {
+    overflow: hidden !important;
+  }
+
+  /* Custom scrollbar style */
+  .scrollable-content {
+    overflow-y: scroll !important;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    &::-webkit-scrollbar { /* WebKit */
+      width: 0;
+      height: 0;
+    }
+  }
+`;
+
 const Games = () => {
   const [games, setGames] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const observer = useRef();
+  const [hasNextPage, setHasNextPage] = useState(true);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const pageRef = useRef(1);
 
-  const gamesPerPage = 12;
-
-  const lastGameElementRef = useCallback(node => {
-    if (isLoading) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(prevPage => prevPage + 1);
-      }
-    });
-    if (node) observer.current.observe(node);
-  }, [isLoading, hasMore]);
+  const ITEMS_PER_PAGE = 20;
 
   const fetchGames = useCallback(async () => {
+    if (!hasNextPage) return;
+
     setIsLoading(true);
     setError(null);
     try {
-      // For the mock server, we'll fetch all games and then filter them client-side
-      const response = await axios.get(`http://localhost:3001/games`);
-      let filteredGames = response.data;
-
-      // Apply search filter
-      if (debouncedSearchTerm) {
-        filteredGames = filteredGames.filter(game => 
-          game.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          (game.description && game.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
-        );
-      }
-
-      // Apply game type filter
-      if (filter !== 'all') {
-        filteredGames = filteredGames.filter(game => game.gameType === filter);
-      }
-
-      // Apply pagination
-      const paginatedGames = filteredGames.slice((page - 1) * gamesPerPage, page * gamesPerPage);
-
-      setGames(prevGames => page === 1 ? paginatedGames : [...prevGames, ...paginatedGames]);
-      setHasMore(paginatedGames.length === gamesPerPage);
+      // NOTE: This is using mock data. Replace with actual API call when connecting to a real server
+      const response = await axios.get(`http://localhost:3001/games`, {
+        params: {
+          _page: pageRef.current,
+          _limit: ITEMS_PER_PAGE,
+          q: debouncedSearchTerm,
+          gameType: filter !== 'all' ? filter : undefined,
+        },
+      });
+      
+      // NOTE: When connecting to a real server, ensure the API returns both the games and the total count
+      const newGames = response.data;
+      setGames(prevGames => [...prevGames, ...newGames]);
+      setHasNextPage(newGames.length === ITEMS_PER_PAGE);
+      pageRef.current += 1;
     } catch (err) {
       console.error('Error fetching games:', err);
       setError('Failed to load games. Please try again later.');
     } finally {
       setIsLoading(false);
     }
-  }, [page, debouncedSearchTerm, filter]);
+  }, [debouncedSearchTerm, filter, hasNextPage]);
 
   useEffect(() => {
     setGames([]);
-    setPage(1);
-    setHasMore(true);
-  }, [debouncedSearchTerm, filter]);
-
-  useEffect(() => {
+    pageRef.current = 1;
+    setHasNextPage(true);
     fetchGames();
-  }, [fetchGames]);
+  }, [debouncedSearchTerm, filter]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -167,6 +167,24 @@ const Games = () => {
     console.log('Connecting to external program...');
     alert('This feature will be implemented in the future to connect with an external game creation program.');
   };
+
+  const MemoizedGameCard = useMemo(() => React.memo(GameCard), []);
+
+  const Row = ({ index, style }) => {
+    if (index >= games.length) return null;
+    const game = games[index];
+    return (
+      <div style={style}>
+        <MemoizedGameCard game={game} />
+      </div>
+    );
+  };
+
+  const itemCount = hasNextPage ? games.length + 1 : games.length;
+
+  const loadMoreItems = isLoading ? () => {} : fetchGames;
+
+  const isItemLoaded = (index) => !hasNextPage || index < games.length;
 
   return (
     <ErrorBoundary>
@@ -196,15 +214,32 @@ const Games = () => {
         {error ? (
           <ErrorMessage>{error}</ErrorMessage>
         ) : (
-          <GamesList>
-            {games.map((game, index) => (
-              <GameCard 
-                key={game.id} 
-                game={game} 
-                ref={games.length === index + 1 ? lastGameElementRef : undefined}
-              />
-            ))}
-          </GamesList>
+          <GamesListWrapper>
+            <AutoSizer>
+              {({ height, width }) => (
+                <InfiniteLoader
+                  isItemLoaded={isItemLoaded}
+                  itemCount={itemCount}
+                  loadMoreItems={loadMoreItems}
+                >
+                  {({ onItemsRendered, ref }) => (
+                    <List
+                      ref={ref}
+                      height={height}
+                      itemCount={itemCount}
+                      itemSize={300} // Adjust based on your GameCard height
+                      width={width}
+                      onItemsRendered={onItemsRendered}
+                      className="scrollable-content"
+                      style={{ overflowX: 'hidden' }}
+                    >
+                      {Row}
+                    </List>
+                  )}
+                </InfiniteLoader>
+              )}
+            </AutoSizer>
+          </GamesListWrapper>
         )}
         {isLoading && <LoadingSpinner />}
       </GamesWrapper>
@@ -212,4 +247,4 @@ const Games = () => {
   );
 };
 
-export default Games;
+export default React.memo(Games);
