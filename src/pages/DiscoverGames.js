@@ -1,80 +1,82 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { FaSearch, FaStar, FaSpinner, FaExclamationCircle, FaGamepad } from 'react-icons/fa';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import styled, { createGlobalStyle } from 'styled-components';
+import { FaSearch, FaStar, FaGamepad } from 'react-icons/fa';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+  }
 `;
 
 const DiscoverGamesWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.large};
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
 `;
 
 const Header = styled.h1`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  gap: 10px;
+  color: #1877f2;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 `;
 
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.large};
-  padding: ${({ theme }) => theme.spacing.small};
-  background-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.small};
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 `;
 
 const SearchInput = styled.input`
-  flex-grow: 1;
   border: none;
   background: none;
-  padding: ${({ theme }) => theme.spacing.small};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
-
+  flex-grow: 1;
+  font-size: 15px;
+  color: #1c1e21;
+  margin-left: 10px;
   &:focus {
     outline: none;
   }
 `;
 
-const SearchButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.textSecondary};
-  cursor: pointer;
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  transition: ${({ theme }) => theme.transitions.fast};
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const GameGrid = styled.div`
+const GamesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 `;
 
 const GameCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  background-color: #ffffff;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
-  transition: ${({ theme }) => theme.transitions.medium};
-  animation: ${fadeIn} 0.3s ease-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 `;
 
@@ -85,177 +87,107 @@ const GameImage = styled.img`
 `;
 
 const GameInfo = styled.div`
-  padding: ${({ theme }) => theme.spacing.medium};
+  padding: 16px;
 `;
 
 const GameTitle = styled.h3`
-  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
+  color: #1c1e21;
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
 `;
 
 const GameRating = styled.div`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.tiny};
-  color: ${({ theme }) => theme.colors.accent};
-  font-size: ${({ theme }) => theme.fontSizes.small};
-`;
-
-const LoadingSpinner = styled(FaSpinner)`
-  animation: spin 1s linear infinite;
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  color: ${({ theme }) => theme.colors.primary};
-  margin: ${({ theme }) => theme.spacing.large} auto;
-  display: block;
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: ${({ theme }) => theme.colors.error};
-  background-color: ${({ theme }) => theme.colors.errorLight};
-  padding: ${({ theme }) => theme.spacing.medium};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-`;
-
-const LoadMoreButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
-  border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.fast};
-  margin-top: ${({ theme }) => theme.spacing.large};
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.secondary};
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.textSecondary};
-    cursor: not-allowed;
-  }
+  gap: 4px;
+  color: #f1c40f;
+  font-size: 14px;
 `;
 
 const DiscoverGames = () => {
   const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
 
-  // Mock games data
-  const mockGames = [
-    { id: 1, title: 'Adventure Quest', image: 'https://picsum.photos/seed/game1/250/150', rating: 4.5 },
-    { id: 2, title: 'Strategy Master', image: 'https://picsum.photos/seed/game2/250/150', rating: 4.2 },
-    { id: 3, title: 'Puzzle Mania', image: 'https://picsum.photos/seed/game3/250/150', rating: 4.7 },
-    { id: 4, title: 'Sports Challenge', image: 'https://picsum.photos/seed/game4/250/150', rating: 4.0 },
-    { id: 5, title: 'Space Explorer', image: 'https://picsum.photos/seed/game5/250/150', rating: 4.8 },
-    { id: 6, title: 'Racing Fever', image: 'https://picsum.photos/seed/game6/250/150', rating: 4.3 },
-    { id: 7, title: 'Zombie Survival', image: 'https://picsum.photos/seed/game7/250/150', rating: 4.6 },
-    { id: 8, title: 'Medieval Conquest', image: 'https://picsum.photos/seed/game8/250/150', rating: 4.1 },
-  ];
-
-  const fetchGames = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Simulated API call using mock data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-      const filteredGames = mockGames.filter(game => 
-        game.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      const paginatedGames = filteredGames.slice((page - 1) * 4, page * 4);
-      setGames(prevGames => page === 1 ? paginatedGames : [...prevGames, ...paginatedGames]);
-      setHasMore(paginatedGames.length === 4);
-
-      // Uncomment the following block when connecting to a real server
-      /*
-      const response = await axios.get(`http://localhost:3001/games?_page=${page}&_limit=4&q=${searchTerm}`);
-      const newGames = response.data;
-      setGames(prevGames => page === 1 ? newGames : [...prevGames, ...newGames]);
-      setHasMore(newGames.length === 4);
-      */
-
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching games:', err);
-      setError('Failed to load games. Please try again later.');
-      setLoading(false);
-    }
-  }, [searchTerm, page]);
+  const generateMockGames = useCallback(() => {
+    return [
+      { id: 1, title: 'Adventure Quest', image: 'https://picsum.photos/seed/game1/250/150', rating: 4.5 },
+      { id: 2, title: 'Strategy Master', image: 'https://picsum.photos/seed/game2/250/150', rating: 4.2 },
+      { id: 3, title: 'Puzzle Mania', image: 'https://picsum.photos/seed/game3/250/150', rating: 4.7 },
+      { id: 4, title: 'Space Explorer', image: 'https://picsum.photos/seed/game4/250/150', rating: 4.3 },
+      { id: 5, title: 'Racing Fever', image: 'https://picsum.photos/seed/game5/250/150', rating: 4.1 },
+      { id: 6, title: 'Fantasy RPG', image: 'https://picsum.photos/seed/game6/250/150', rating: 4.8 },
+      { id: 7, title: 'Zombie Survival', image: 'https://picsum.photos/seed/game7/250/150', rating: 4.0 },
+      { id: 8, title: 'City Builder', image: 'https://picsum.photos/seed/game8/250/150', rating: 4.4 },
+      { id: 9, title: 'Sports Challenge', image: 'https://picsum.photos/seed/game9/250/150', rating: 4.2 },
+      { id: 10, title: 'Dungeon Crawler', image: 'https://picsum.photos/seed/game10/250/150', rating: 4.6 },
+      { id: 11, title: 'Magical Quest', image: 'https://picsum.photos/seed/game11/250/150', rating: 4.3 },
+      { id: 12, title: 'Pirate Treasure', image: 'https://picsum.photos/seed/game12/250/150', rating: 4.1 },
+      { id: 13, title: 'Wild West Adventure', image: 'https://picsum.photos/seed/game13/250/150', rating: 4.5 },
+      { id: 14, title: 'Cyberpunk Future', image: 'https://picsum.photos/seed/game14/250/150', rating: 4.7 },
+      { id: 15, title: 'Medieval Kingdoms', image: 'https://picsum.photos/seed/game15/250/150', rating: 4.2 },
+      { id: 16, title: 'Alien Invasion', image: 'https://picsum.photos/seed/game16/250/150', rating: 4.4 },
+      { id: 17, title: 'Ninja Warrior', image: 'https://picsum.photos/seed/game17/250/150', rating: 4.3 },
+      { id: 18, title: 'Candy Crush Clone', image: 'https://picsum.photos/seed/game18/250/150', rating: 4.0 },
+      { id: 19, title: 'Underwater Explorer', image: 'https://picsum.photos/seed/game19/250/150', rating: 4.6 },
+      { id: 20, title: 'Time Travel Paradox', image: 'https://picsum.photos/seed/game20/250/150', rating: 4.8 },
+      { id: 21, title: 'Galactic Empires', image: 'https://picsum.photos/seed/game21/250/150', rating: 4.5 },
+      { id: 22, title: 'Dragon Slayer', image: 'https://picsum.photos/seed/game22/250/150', rating: 4.7 },
+      { id: 23, title: 'Steampunk World', image: 'https://picsum.photos/seed/game23/250/150', rating: 4.2 },
+      { id: 24, title: 'Prehistoric Survival', image: 'https://picsum.photos/seed/game24/250/150', rating: 4.1 },
+      { id: 25, title: 'Virtual Pet Simulator', image: 'https://picsum.photos/seed/game25/250/150', rating: 4.0 },
+      { id: 26, title: 'Superhero Academy', image: 'https://picsum.photos/seed/game26/250/150', rating: 4.6 },
+      { id: 27, title: 'Mystery Detective', image: 'https://picsum.photos/seed/game27/250/150', rating: 4.3 },
+      { id: 28, title: 'Cooking Master', image: 'https://picsum.photos/seed/game28/250/150', rating: 4.2 },
+      { id: 29, title: 'Music Rhythm Challenge', image: 'https://picsum.photos/seed/game29/250/150', rating: 4.4 },
+      { id: 30, title: 'Escape Room Puzzler', image: 'https://picsum.photos/seed/game30/250/150', rating: 4.5 },
+      // ... Add more mock games here (up to 30 or more)
+    ];
+  }, []);
 
   useEffect(() => {
-    fetchGames();
-  }, [fetchGames]);
+    setGames(generateMockGames());
+  }, [generateMockGames]);
 
-  const handleSearch = () => {
-    setPage(1);
-    setGames([]);
-    fetchGames();
-  };
-
-  const handleLoadMore = () => {
-    setPage(prevPage => prevPage + 1);
-  };
+  const filteredGames = useMemo(() => 
+    games.filter(game =>
+      game.title.toLowerCase().includes(searchTerm.toLowerCase())
+    ),
+    [games, searchTerm]
+  );
 
   return (
-    <DiscoverGamesWrapper>
-      <Header>
-        <FaGamepad />
-        Discover Games
-      </Header>
-      <SearchBar>
-        <SearchInput
-          placeholder="Search for games..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <SearchButton onClick={handleSearch}>
-          <FaSearch />
-        </SearchButton>
-      </SearchBar>
-      {error && (
-        <ErrorMessage>
-          <FaExclamationCircle /> {error}
-        </ErrorMessage>
-      )}
-      <GameGrid>
-        {games.map((game) => (
-          <GameCard key={game.id}>
-            <GameImage src={game.image} alt={game.title} loading="lazy" />
-            <GameInfo>
-              <GameTitle>{game.title}</GameTitle>
-              <GameRating>
-                <FaStar /> {game.rating}
-              </GameRating>
-            </GameInfo>
-          </GameCard>
-        ))}
-      </GameGrid>
-      {loading && <LoadingSpinner />}
-      {!loading && hasMore && (
-        <LoadMoreButton onClick={handleLoadMore} disabled={loading}>
-          Load More Games
-        </LoadMoreButton>
-      )}
-    </DiscoverGamesWrapper>
+    <>
+      <GlobalStyle />
+      <DiscoverGamesWrapper>
+        <Header>
+          <FaGamepad />
+          Discover Games
+        </Header>
+        <SearchBar>
+          <FaSearch color="#65676b" />
+          <SearchInput
+            type="text"
+            placeholder="Search games..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </SearchBar>
+        <GamesGrid>
+          {filteredGames.map(game => (
+            <GameCard key={game.id}>
+              <GameImage src={game.image} alt={game.title} />
+              <GameInfo>
+                <GameTitle>{game.title}</GameTitle>
+                <GameRating>
+                  <FaStar /> {game.rating}
+                </GameRating>
+              </GameInfo>
+            </GameCard>
+          ))}
+        </GamesGrid>
+      </DiscoverGamesWrapper>
+    </>
   );
 };
 

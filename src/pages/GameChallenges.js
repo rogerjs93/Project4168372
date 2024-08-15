@@ -1,289 +1,242 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { FaTrophy, FaClock, FaMedal, FaSpinner, FaExclamationCircle, FaFilter } from 'react-icons/fa';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import styled, { createGlobalStyle } from 'styled-components';
+import { FaTrophy, FaClock, FaMedal, FaSearch, FaPlus, FaGamepad } from 'react-icons/fa';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+  }
 `;
 
 const GameChallengesWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.large};
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
 `;
 
 const Header = styled.h1`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  gap: 10px;
+  color: #1877f2;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 `;
 
-const FiltersBar = styled.div`
+const ActionsBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  margin-bottom: 20px;
 `;
 
-const FilterSelect = styled.select`
-  padding: ${({ theme }) => theme.spacing.small};
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.small};
-`;
-
-const ChallengeList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
-`;
-
-const ChallengeCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
-  transition: ${({ theme }) => theme.transitions.medium};
-  animation: ${fadeIn} 0.3s ease-out;
+const CreateChallengeButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #1877f2;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    background-color: #166fe5;
   }
 `;
 
-const ChallengeTitle = styled.h3`
-  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.large};
+const SearchBar = styled.div`
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
-const ChallengeGame = styled.p`
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+const SearchInput = styled.input`
+  border: none;
+  background: none;
+  flex-grow: 1;
+  font-size: 15px;
+  color: #1c1e21;
+  margin-left: 10px;
+  &:focus {
+    outline: none;
+  }
+`;
+
+const ChallengesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+`;
+
+const ChallengeCard = styled.div`
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+`;
+
+const ChallengeName = styled.h3`
+  color: #1c1e21;
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
 `;
 
 const ChallengeInfo = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: ${({ theme }) => theme.spacing.medium};
-`;
-
-const ChallengeMetadata = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-  color: ${({ theme }) => theme.colors.textSecondary};
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  gap: 8px;
+  color: #65676b;
+  font-size: 14px;
+  margin-bottom: 4px;
 `;
 
 const JoinButton = styled.button`
-  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.textOnPrimary};
+  background-color: #1877f2;
+  color: #ffffff;
   border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.small};
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  font-size: ${({ theme }) => theme.fontSizes.small};
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+  width: 100%;
+  margin-top: 12px;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryDark};
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.textSecondary};
-    cursor: not-allowed;
-  }
-`;
-
-const LoadingSpinner = styled(FaSpinner)`
-  animation: spin 1s linear infinite;
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  color: ${({ theme }) => theme.colors.primary};
-  margin: ${({ theme }) => theme.spacing.large} auto;
-  display: block;
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: ${({ theme }) => theme.colors.error};
-  background-color: ${({ theme }) => theme.colors.errorLight};
-  padding: ${({ theme }) => theme.spacing.medium};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.small};
-`;
-
-const LoadMoreButton = styled.button`
-  background-color: ${({ theme }) => theme.colors.secondary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
-  border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.fast};
-  margin-top: ${({ theme }) => theme.spacing.large};
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.secondaryDark};
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.textSecondary};
-    cursor: not-allowed;
+    background-color: #166fe5;
   }
 `;
 
 const GameChallenges = () => {
   const [challenges, setChallenges] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock challenges data
-  const mockChallenges = [
-    { id: 1, title: 'Speed Run Challenge', game: 'Adventure Quest', timeLeft: '2 days', reward: '1000 coins' },
-    { id: 2, title: 'High Score Challenge', game: 'Puzzle Mania', timeLeft: '1 week', reward: 'Exclusive Avatar' },
-    { id: 3, title: 'Multiplayer Tournament', game: 'Strategy Master', timeLeft: '3 days', reward: 'Champion Trophy' },
-    { id: 4, title: 'Boss Rush Challenge', game: 'Epic RPG', timeLeft: '5 days', reward: 'Legendary Weapon' },
-    { id: 5, title: 'Time Attack Mode', game: 'Racing Fever', timeLeft: '4 days', reward: 'Custom Car Skin' },
-    { id: 6, title: 'Survival Challenge', game: 'Zombie Outbreak', timeLeft: '6 days', reward: 'Unique Character' },
-  ];
-
-  const fetchChallenges = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Simulated API call using mock data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-      const filteredChallenges = filter === 'all' 
-        ? mockChallenges 
-        : mockChallenges.filter(challenge => challenge.game === filter);
-      const paginatedChallenges = filteredChallenges.slice((page - 1) * 3, page * 3);
-      setChallenges(prevChallenges => page === 1 ? paginatedChallenges : [...prevChallenges, ...paginatedChallenges]);
-      setHasMore(paginatedChallenges.length === 3);
-
-      // Uncomment the following block when connecting to a real server
-      /*
-      const response = await axios.get(`http://localhost:3001/challenges?_page=${page}&_limit=3${filter !== 'all' ? `&game=${filter}` : ''}`);
-      const newChallenges = response.data;
-      setChallenges(prevChallenges => page === 1 ? newChallenges : [...prevChallenges, ...newChallenges]);
-      setHasMore(newChallenges.length === 3);
-      */
-
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching challenges:', err);
-      setError('Failed to load challenges. Please try again later.');
-      setLoading(false);
-    }
-  }, [filter, page]);
+  const generateMockChallenges = useCallback(() => {
+    return [
+      { id: 1, name: 'Speed Run Challenge', game: 'Adventure Quest', timeLeft: '2 days', reward: '1000 coins' },
+      { id: 2, name: 'High Score Challenge', game: 'Puzzle Mania', timeLeft: '1 week', reward: 'Exclusive Avatar' },
+      { id: 3, name: 'Multiplayer Tournament', game: 'Strategy Master', timeLeft: '3 days', reward: 'Champion Trophy' },
+      { id: 4, name: 'Boss Rush Challenge', game: 'Epic RPG', timeLeft: '5 days', reward: 'Legendary Weapon' },
+      { id: 5, name: 'Time Attack Mode', game: 'Racing Fever', timeLeft: '4 days', reward: 'Custom Car Skin' },
+      { id: 6, name: 'Survival Challenge', game: 'Zombie Outbreak', timeLeft: '6 days', reward: 'Unique Character' },
+      { id: 7, name: 'Puzzle Master', game: 'Brain Teasers', timeLeft: '1 day', reward: '500 gems' },
+      { id: 8, name: 'PvP Arena', game: 'Battle Royale', timeLeft: '2 weeks', reward: 'Rare Weapon Skin' },
+      { id: 9, name: 'Endless Runner', game: 'Jungle Dash', timeLeft: '3 days', reward: 'Double XP Boost' },
+      { id: 10, name: 'Treasure Hunt', game: "Pirate's Quest", timeLeft: '5 days', reward: 'Golden Compass' },
+      { id: 11, name: 'Tower Defense', game: 'Kingdom Guard', timeLeft: '1 week', reward: 'Legendary Tower' },
+      { id: 12, name: 'Stealth Mission', game: 'Shadow Ops', timeLeft: '4 days', reward: 'Invisibility Cloak' },
+      { id: 13, name: 'Ultimate Speed Run', game: 'Cyber Quest', timeLeft: '3 days', reward: '5000 coins' },
+      { id: 14, name: 'Combo Master Challenge', game: 'Fighter Arena', timeLeft: '2 days', reward: 'Exclusive Fighter Skin' },
+      { id: 15, name: 'Mega Boss Fight', game: 'Monster Hunter', timeLeft: '1 week', reward: 'Epic Sword' },
+      { id: 16, name: 'Endurance Race', game: 'Super Racer', timeLeft: '4 days', reward: 'Nitro Boost' },
+      { id: 17, name: 'Treasure Hoard', game: 'Dragon’s Den', timeLeft: '5 days', reward: 'Dragon Egg' },
+      { id: 18, name: 'Survival Mode', game: 'Alien Invasion', timeLeft: '6 days', reward: 'Plasma Cannon' },
+      { id: 19, name: 'Mind Bender Challenge', game: 'Mystery Puzzles', timeLeft: '2 days', reward: '1000 gems' },
+      { id: 20, name: 'King of the Hill', game: 'Battle Zone', timeLeft: '1 week', reward: 'Crown of Glory' },
+      { id: 21, name: 'Speed Demon', game: 'Turbo Drift', timeLeft: '3 days', reward: 'Supercar' },
+      { id: 22, name: 'Warrior’s Gauntlet', game: 'Ancient Battles', timeLeft: '5 days', reward: 'Warrior’s Shield' },
+      { id: 23, name: 'Sniper Challenge', game: 'Sharp Shooter', timeLeft: '4 days', reward: 'Golden Rifle' },
+      { id: 24, name: 'Dungeon Crawl', game: 'Cave Explorer', timeLeft: '3 days', reward: 'Treasure Map' },
+      { id: 25, name: 'Defense Strategy', game: 'Fortress Builder', timeLeft: '1 week', reward: 'Ultimate Tower' },
+      { id: 26, name: 'Arena Showdown', game: 'Gladiator Wars', timeLeft: '2 weeks', reward: 'Champion’s Helmet' },
+      { id: 27, name: 'Escape the Maze', game: 'Labyrinth Escape', timeLeft: '3 days', reward: 'Compass of Truth' },
+      { id: 28, name: 'Hero’s Journey', game: 'Epic Quest', timeLeft: '5 days', reward: 'Hero’s Medal' },
+      { id: 29, name: 'Nightmare Mode', game: 'Horror Tales', timeLeft: '6 days', reward: 'Fearless Badge' },
+      { id: 30, name: 'Puzzle Genius', game: 'Mind Games', timeLeft: '2 days', reward: '2000 gems' },
+      { id: 31, name: 'Time Traveler', game: 'Chrono Quest', timeLeft: '1 week', reward: 'Temporal Artifact' },
+      { id: 32, name: 'Battle Royale', game: 'Warzone Alpha', timeLeft: '2 weeks', reward: 'Victory Crown' },
+      { id: 33, name: 'Climbing Challenge', game: 'Mountain Climber', timeLeft: '3 days', reward: 'Summit Flag' },
+      { id: 34, name: 'Space Explorer', game: 'Galactic Odyssey', timeLeft: '5 days', reward: 'Space Helmet' },     
+      // ... (add more mock challenges as needed)
+    ];
+  }, []);
 
   useEffect(() => {
-    fetchChallenges();
-  }, [fetchChallenges]);
+    setChallenges(generateMockChallenges());
+  }, [generateMockChallenges]);
 
-  const handleFilterChange = (e) => {
-    setFilter(e.target.value);
-    setPage(1);
-    setChallenges([]);
-  };
+  const handleJoinChallenge = useCallback((challengeId) => {
+    console.log(`Joined challenge ${challengeId}`);
+    // Implement join challenge logic here
+  }, []);
 
-  const handleLoadMore = () => {
-    setPage(prevPage => prevPage + 1);
-  };
+  const handleCreateChallenge = useCallback(() => {
+    console.log('Create new challenge');
+    // Implement challenge creation logic here
+  }, []);
 
-  const handleJoinChallenge = async (challengeId) => {
-    try {
-      // Simulated API call for joining a challenge
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-      console.log(`Joined challenge ${challengeId}`);
-      // You would typically update the challenge status in the state here
-      // For now, we'll just log the action
-
-      // Uncomment the following block when connecting to a real server
-      /*
-      await axios.post(`http://localhost:3001/challenges/${challengeId}/join`);
-      // Update the challenge status in the state
-      setChallenges(prevChallenges => 
-        prevChallenges.map(challenge => 
-          challenge.id === challengeId ? { ...challenge, joined: true } : challenge
-        )
-      );
-      */
-    } catch (err) {
-      console.error('Error joining challenge:', err);
-      setError('Failed to join challenge. Please try again.');
-    }
-  };
+  const filteredChallenges = useMemo(() => 
+    challenges.filter(challenge =>
+      (challenge.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      challenge.game?.toLowerCase().includes(searchTerm.toLowerCase())) ?? false
+    ),
+    [challenges, searchTerm]
+  );
 
   return (
-    <GameChallengesWrapper>
-      <Header>
-        <FaTrophy />
-        Game Challenges
-      </Header>
-      <FiltersBar>
-        <FilterSelect value={filter} onChange={handleFilterChange}>
-          <option value="all">All Games</option>
-          <option value="Adventure Quest">Adventure Quest</option>
-          <option value="Puzzle Mania">Puzzle Mania</option>
-          <option value="Strategy Master">Strategy Master</option>
-        </FilterSelect>
-      </FiltersBar>
-      {error && (
-        <ErrorMessage>
-          <FaExclamationCircle /> {error}
-        </ErrorMessage>
-      )}
-      <ChallengeList>
-        {challenges.map((challenge) => (
-          <ChallengeCard key={challenge.id}>
-            <ChallengeTitle>{challenge.title}</ChallengeTitle>
-            <ChallengeGame>Game: {challenge.game}</ChallengeGame>
-            <ChallengeInfo>
-              <ChallengeMetadata>
+    <>
+      <GlobalStyle />
+      <GameChallengesWrapper>
+        <Header>
+          <FaTrophy />
+          Game Challenges
+        </Header>
+        <ActionsBar>
+          <CreateChallengeButton onClick={handleCreateChallenge}>
+            <FaPlus /> Create New Challenge
+          </CreateChallengeButton>
+          <SearchBar>
+            <FaSearch color="#65676b" />
+            <SearchInput
+              type="text"
+              placeholder="Search challenges..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </SearchBar>
+        </ActionsBar>
+        <ChallengesGrid>
+          {filteredChallenges.map(challenge => (
+            <ChallengeCard key={challenge.id}>
+              <ChallengeName>{challenge.name}</ChallengeName>
+              <ChallengeInfo>
+                <FaGamepad /> {challenge.game}
+              </ChallengeInfo>
+              <ChallengeInfo>
                 <FaClock /> {challenge.timeLeft} left
-              </ChallengeMetadata>
-              <ChallengeMetadata>
+              </ChallengeInfo>
+              <ChallengeInfo>
                 <FaMedal /> Reward: {challenge.reward}
-              </ChallengeMetadata>
-            </ChallengeInfo>
-            <JoinButton onClick={() => handleJoinChallenge(challenge.id)}>
-              Join Challenge
-            </JoinButton>
-          </ChallengeCard>
-        ))}
-      </ChallengeList>
-      {loading && <LoadingSpinner />}
-      {!loading && hasMore && (
-        <LoadMoreButton onClick={handleLoadMore} disabled={loading}>
-          Load More Challenges
-        </LoadMoreButton>
-      )}
-    </GameChallengesWrapper>
+              </ChallengeInfo>
+              <JoinButton onClick={() => handleJoinChallenge(challenge.id)}>
+                Join Challenge
+              </JoinButton>
+            </ChallengeCard>
+          ))}
+        </ChallengesGrid>
+      </GameChallengesWrapper>
+    </>
   );
 };
 

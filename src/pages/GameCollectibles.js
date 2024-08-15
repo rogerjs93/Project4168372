@@ -1,102 +1,140 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { FaGem, FaStar, FaLock, FaSearch, FaFilter, FaSpinner } from 'react-icons/fa';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import styled, { createGlobalStyle } from 'styled-components';
+import { FaGem, FaStar, FaLock, FaSearch, FaFilter, FaPlus } from 'react-icons/fa';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f0f2f5;
+    color: #1c1e21;
+  }
 `;
 
 const CollectiblesWrapper = styled.div`
-  padding: ${({ theme }) => theme.spacing.large};
   max-width: 1200px;
   margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
 `;
 
 const Header = styled.h1`
   display: flex;
   align-items: center;
-  gap: ${({ theme }) => theme.spacing.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  gap: 10px;
+  color: #1877f2;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
 `;
 
-const ControlsWrapper = styled.div`
+const ActionsBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  margin-bottom: 20px;
+`;
+
+const CreateCollectibleButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #1877f2;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #166fe5;
+  }
 `;
 
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  background-color: ${({ theme }) => theme.colors.background};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.small};
+  background-color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 `;
 
 const SearchInput = styled.input`
   border: none;
   background: none;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  padding: ${({ theme }) => theme.spacing.small};
-  width: 200px;
-
+  flex-grow: 1;
+  font-size: 15px;
+  color: #1c1e21;
+  margin-left: 10px;
   &:focus {
     outline: none;
   }
 `;
 
 const FilterSelect = styled.select`
-  padding: ${({ theme }) => theme.spacing.small};
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  background-color: ${({ theme }) => theme.colors.background};
-  color: ${({ theme }) => theme.colors.textPrimary};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
+  padding: 8px 16px;
+  border: 1px solid #dddfe2;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #1c1e21;
+  font-size: 14px;
+  margin-left: 10px;
 `;
 
 const CollectibleGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: ${({ theme }) => theme.spacing.large};
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 `;
 
 const CollectibleCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.medium};
-  box-shadow: ${({ theme }) => theme.boxShadow.medium};
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
   text-align: center;
   position: relative;
-  transition: ${({ theme }) => theme.transitions.medium};
-  animation: ${fadeIn} 0.3s ease-out;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 `;
 
 const CollectibleIcon = styled.div`
-  font-size: 3rem;
-  color: ${({ theme, obtained }) => obtained ? theme.colors.primary : theme.colors.textSecondary};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
+  font-size: 2rem;
+  color: ${({ obtained }) => obtained ? '#1877f2' : '#65676b'};
+  margin-bottom: 8px;
 `;
 
 const CollectibleName = styled.h3`
-  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: #1c1e21;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
 `;
 
 const CollectibleRarity = styled.div`
   display: flex;
   justify-content: center;
-  gap: ${({ theme }) => theme.spacing.tiny};
-  color: ${({ theme }) => theme.colors.accent};
+  gap: 4px;
+  color: #f1c40f;
 `;
 
 const LockedOverlay = styled.div`
@@ -109,89 +147,94 @@ const LockedOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-`;
-
-const LoadingSpinner = styled(FaSpinner)`
-  animation: spin 1s linear infinite;
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  color: ${({ theme }) => theme.colors.primary};
-  margin: ${({ theme }) => theme.spacing.large} auto;
-  display: block;
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
+  border-radius: 8px;
 `;
 
 const GameCollectibles = () => {
   const [collectibles, setCollectibles] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
 
-  const fetchCollectibles = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock data (replace with actual API call when available)
-      const mockCollectibles = [
-        { id: 1, name: 'Golden Sword', rarity: 5, obtained: true },
-        { id: 2, name: 'Magic Amulet', rarity: 4, obtained: true },
-        { id: 3, name: 'Dragon Egg', rarity: 5, obtained: false },
-        { id: 4, name: 'Ancient Scroll', rarity: 3, obtained: true },
-        { id: 5, name: 'Mystic Orb', rarity: 4, obtained: false },
-        { id: 6, name: 'Phoenix Feather', rarity: 5, obtained: false },
-      ];
-      setCollectibles(mockCollectibles);
-
-      // Uncomment the following lines when connecting to a real server
-      // const response = await axios.get('http://localhost:3001/collectibles');
-      // setCollectibles(response.data);
-    } catch (error) {
-      console.error('Error fetching collectibles:', error);
-    } finally {
-      setLoading(false);
-    }
+  const generateMockCollectibles = useCallback(() => {
+    // This function will be replaced with actual API call when connecting to a real server
+    return [
+      { id: 1, name: 'Golden Sword', rarity: 5, obtained: true },
+      { id: 2, name: 'Magic Amulet', rarity: 4, obtained: true },
+      { id: 3, name: 'Dragon Egg', rarity: 5, obtained: false },
+      { id: 4, name: 'Ancient Scroll', rarity: 3, obtained: true },
+      { id: 5, name: 'Mystic Orb', rarity: 4, obtained: false },
+      { id: 6, name: 'Phoenix Feather', rarity: 5, obtained: false },
+      { id: 7, name: 'Enchanted Bow', rarity: 4, obtained: true },
+      { id: 8, name: 'Wizard Staff', rarity: 5, obtained: false },
+      { id: 9, name: 'Invisibility Cloak', rarity: 5, obtained: true },
+      { id: 10, name: 'Healing Potion', rarity: 2, obtained: true },
+      { id: 11, name: 'Dragonscale Armor', rarity: 5, obtained: false },
+      { id: 12, name: 'Flaming Sword', rarity: 4, obtained: true },
+      { id: 13, name: 'Ice Crown', rarity: 5, obtained: false },
+      { id: 14, name: 'Shadow Dagger', rarity: 4, obtained: true },
+      { id: 15, name: 'Philosopher Stone', rarity: 5, obtained: false },
+      { id: 16, name: 'Winged Boots', rarity: 3, obtained: true },
+      { id: 17, name: 'Cursed Ring', rarity: 4, obtained: false },
+      { id: 18, name: 'Mermaid Pearl', rarity: 4, obtained: true },
+      { id: 19, name: 'Unicorn Horn', rarity: 5, obtained: false },
+      { id: 20, name: 'Goblin Gold', rarity: 3, obtained: true },
+      { id: 21, name: 'Fairy Dust', rarity: 3, obtained: true },
+      { id: 22, name: 'Titan Gauntlet', rarity: 5, obtained: false },
+      { id: 23, name: 'Elven Locket', rarity: 4, obtained: true },
+      { id: 24, name: 'Dwarven Hammer', rarity: 4, obtained: false },
+      { id: 25, name: 'Siren Flute', rarity: 4, obtained: true },
+      { id: 26, name: 'Pegasus Feather', rarity: 5, obtained: false },
+      { id: 27, name: 'Vampire Fang', rarity: 3, obtained: true },
+      { id: 28, name: 'Werewolf Claw', rarity: 3, obtained: false },
+      { id: 29, name: 'Gorgon Eye', rarity: 5, obtained: false },
+      { id: 30, name: 'Phoenix Ash', rarity: 4, obtained: true },
+    ];
   }, []);
 
   useEffect(() => {
-    fetchCollectibles();
-  }, [fetchCollectibles]);
+    setCollectibles(generateMockCollectibles());
+  }, [generateMockCollectibles]);
 
-  const filteredCollectibles = collectibles.filter(collectible => 
-    collectible.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (filter === 'all' || (filter === 'obtained' && collectible.obtained) || (filter === 'locked' && !collectible.obtained))
+  const handleCreateCollectible = useCallback(() => {
+    console.log('Create new collectible');
+    // Implement collectible creation logic here
+  }, []);
+
+  const filteredCollectibles = useMemo(() => 
+    collectibles.filter(collectible => 
+      collectible.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (filter === 'all' || (filter === 'obtained' && collectible.obtained) || (filter === 'locked' && !collectible.obtained))
+    ),
+    [collectibles, searchTerm, filter]
   );
 
   return (
-    <CollectiblesWrapper>
-      <Header>
-        <FaGem />
-        Game Collectibles
-      </Header>
-      <ControlsWrapper>
-        <SearchBar>
-          <FaSearch />
-          <SearchInput
-            type="text"
-            placeholder="Search collectibles..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </SearchBar>
-        <FilterSelect value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All Collectibles</option>
-          <option value="obtained">Obtained</option>
-          <option value="locked">Locked</option>
-        </FilterSelect>
-      </ControlsWrapper>
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
+    <>
+      <GlobalStyle />
+      <CollectiblesWrapper>
+        <Header>
+          <FaGem />
+          Game Collectibles
+        </Header>
+        <ActionsBar>
+          <CreateCollectibleButton onClick={handleCreateCollectible}>
+            <FaPlus /> Create New Collectible
+          </CreateCollectibleButton>
+          <SearchBar>
+            <FaSearch color="#65676b" />
+            <SearchInput
+              type="text"
+              placeholder="Search collectibles..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <FilterSelect value={filter} onChange={(e) => setFilter(e.target.value)}>
+              <option value="all">All Collectibles</option>
+              <option value="obtained">Obtained</option>
+              <option value="locked">Locked</option>
+            </FilterSelect>
+          </SearchBar>
+        </ActionsBar>
         <CollectibleGrid>
           {filteredCollectibles.map((collectible) => (
             <CollectibleCard key={collectible.id}>
@@ -212,8 +255,8 @@ const GameCollectibles = () => {
             </CollectibleCard>
           ))}
         </CollectibleGrid>
-      )}
-    </CollectiblesWrapper>
+      </CollectiblesWrapper>
+    </>
   );
 };
 
