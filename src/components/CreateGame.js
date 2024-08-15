@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import Matter from 'matter-js';
 import { useDrag, useDrop } from 'react-dnd';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { FaSave, FaUndo, FaRedo, FaPlus, FaMinus, FaExpandArrowsAlt, FaCompressArrowsAlt } from 'react-icons/fa';
 
 const GameEditorWrapper = styled.div`
   display: flex;
@@ -12,42 +12,56 @@ const GameEditorWrapper = styled.div`
   gap: ${({ theme }) => theme.spacing.medium};
   position: relative;
   width: 100%;
-  height: 700px;
+  height: 100vh;
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
-const CanvasWrapper = styled.div`
-  width: 600px;
-  height: 400px;
-  position: relative;
-  margin: 0 auto;
+const Toolbar = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.small};
+  padding: ${({ theme }) => theme.spacing.small};
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
 `;
 
-const Canvas = styled.div`
-  width: 600px;
-  height: 400px;
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
-  position: absolute;
-  top: 0;
-  left: 0;
+const ToolbarButton = styled.button`
+  background-color: transparent;
+  border: none;
+  color: ${({ theme }) => theme.colors.textPrimary};
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: ${({ theme }) => theme.spacing.small};
+  border-radius: ${({ theme }) => theme.borderRadius.small};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.background};
+  }
 `;
 
 const EditorLayout = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.spacing.medium};
+  flex-grow: 1;
+  overflow: hidden;
 `;
 
 const Sidebar = styled.div`
-  width: 200px;
+  width: 250px;
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.medium};
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-right: 1px solid ${({ theme }) => theme.colors.borderColor};
 `;
 
 const Panel = styled.div`
   padding: ${({ theme }) => theme.spacing.medium};
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
+`;
+
+const PanelTitle = styled.h3`
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+  font-size: 1rem;
+  font-weight: bold;
 `;
 
 const Input = styled.input`
@@ -56,6 +70,8 @@ const Input = styled.input`
   margin-bottom: ${({ theme }) => theme.spacing.small};
   border: 1px solid ${({ theme }) => theme.colors.borderColor};
   border-radius: ${({ theme }) => theme.borderRadius.small};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
 `;
 
 const Button = styled.button`
@@ -87,34 +103,40 @@ const LibraryItem = styled.div`
   align-items: center;
   justify-content: center;
   cursor: move;
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
-const LayerItem = styled.div`
+const CanvasWrapper = styled.div`
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+`;
+
+const GameCanvas = styled.canvas`
+  background-color: white;
+`;
+
+const CanvasControls = styled.div`
+  position: absolute;
+  bottom: ${({ theme }) => theme.spacing.small};
+  right: ${({ theme }) => theme.spacing.small};
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.small};
+`;
+
+const StatusBar = styled.div`
   padding: ${({ theme }) => theme.spacing.small};
   background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
-  border-radius: ${({ theme }) => theme.borderRadius.small};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
-  cursor: pointer;
+  border-top: 1px solid ${({ theme }) => theme.colors.borderColor};
+  font-size: 0.8rem;
 `;
 
-const entityTypes = {
-  circle: (x, y, size) => Matter.Bodies.circle(x, y, size / 2),
-  rectangle: (x, y, size) => Matter.Bodies.rectangle(x, y, size, size / 2),
-  triangle: (x, y, size) => {
-    const trianglePoints = [
-      { x: 0, y: size / 2 },
-      { x: -size / 2, y: -size / 2 },
-      { x: size / 2, y: -size / 2 }
-    ];
-    return Matter.Bodies.fromVertices(x, y, [trianglePoints]);
-  },
-  platform: (x, y, width, height) => Matter.Bodies.rectangle(x, y, width, height, { isStatic: true }),
-  star: (x, y, size) => {
-    const starPoints = Matter.Vertices.fromPath('0 -50 10 -10 50 -10 20 10 30 50 0 25 -30 50 -20 10 -50 -10 -10 -10');
-    return Matter.Bodies.fromVertices(x, y, [starPoints], { scale: size / 100 });
-  }
-};
+const PropertiesPanel = styled.div`
+  width: 250px;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-left: 1px solid ${({ theme }) => theme.colors.borderColor};
+  padding: ${({ theme }) => theme.spacing.medium};
+`;
 
 const DraggableEntity = ({ type, color }) => {
   const [, drag] = useDrag(() => ({
@@ -140,99 +162,37 @@ const CreateGame = ({ onGameCreated }) => {
   const [layers, setLayers] = useState([{ id: 1, name: 'Layer 1', entities: [] }]);
   const [activeLayer, setActiveLayer] = useState(1);
   const [gameProperties, setGameProperties] = useState({
-    gravity: { x: 0, y: 1 },
+    gravity: { x: 0, y: 300 },
     backgroundImage: '',
   });
-  const engineRef = useRef(null);
-  const renderRef = useRef(null);
-  const entitiesRef = useRef({});
+  const [zoom, setZoom] = useState(1);
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const initializeEngine = useCallback(() => {
-    const engine = Matter.Engine.create({
-      gravity: gameProperties.gravity
-    });
-    const world = engine.world;
+  const canvasRef = useRef(null);
 
-    const render = Matter.Render.create({
-      engine: engine,
-      element: document.getElementById('game-canvas'),
-      options: {
-        width: 600,
-        height: 400,
-        wireframes: false,
-        background: 'transparent'
-      }
-    });
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
 
-    const mouse = Matter.Mouse.create(render.canvas);
-    const mouseConstraint = Matter.MouseConstraint.create(engine, {
-      mouse: mouse,
-      constraint: {
-        stiffness: 0.2,
-        render: {
-          visible: false
-        }
-      }
-    });
-
-    Matter.World.add(world, mouseConstraint);
-
-    engineRef.current = engine;
-    renderRef.current = render;
-    entitiesRef.current = {
-      physics: { engine: engine, world: world },
-      mouseConstraint: { body: mouseConstraint, constraint: mouseConstraint.constraint, mouse: mouse }
-    };
-
-    Matter.Render.run(render);
-    const runner = Matter.Runner.create();
-    Matter.Runner.run(runner, engine);
-
-    return () => {
-      Matter.Render.stop(render);
-      Matter.World.clear(world);
-      Matter.Engine.clear(engine);
-      Matter.Runner.stop(runner);
-      if (renderRef.current && renderRef.current.canvas) {
-        renderRef.current.canvas.remove();
-        renderRef.current.canvas = null;
-        renderRef.current.context = null;
-      }
-      renderRef.current = null;
-      engineRef.current = null;
-      entitiesRef.current = {};
-    };
-  }, [gameProperties.gravity]);
-
-  useEffect(() => {
-    if (!engineRef.current) {
-      return initializeEngine();
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+    if (!isFullscreen) {
+      setCanvasSize({ width: window.innerWidth, height: window.innerHeight });
+    } else {
+      setCanvasSize({ width: 800, height: 600 });
     }
-  }, [initializeEngine]);
-
-  useEffect(() => {
-    if (engineRef.current) {
-      engineRef.current.world.gravity = gameProperties.gravity;
-    }
-  }, [gameProperties.gravity]);
+  };
 
   const addEntity = useCallback((type, x, y, color) => {
-    const size = 40;
-    const body = entityTypes[type](x, y, size);
-    body.render.fillStyle = color;
-
-    Matter.World.add(engineRef.current.world, body);
-
-    const entityId = `entity${Object.keys(entitiesRef.current).length}`;
     const newEntity = {
-      id: entityId,
-      body: body,
-      size: size,
-      color: color,
-      type: type,
+      id: `entity${Date.now()}`,
+      type,
+      x,
+      y,
+      color,
+      size: 40,
     };
 
-    entitiesRef.current[entityId] = newEntity;
     setLayers(prevLayers => 
       prevLayers.map(layer => 
         layer.id === activeLayer
@@ -248,7 +208,7 @@ const CreateGame = ({ onGameCreated }) => {
     accept: 'entity',
     drop: (item, monitor) => {
       const offset = monitor.getSourceClientOffset();
-      const canvasBounds = document.getElementById('game-canvas').getBoundingClientRect();
+      const canvasBounds = canvasRef.current.getBoundingClientRect();
       const x = offset.x - canvasBounds.left;
       const y = offset.y - canvasBounds.top;
       addEntity(item.type, x, y, item.color);
@@ -258,15 +218,6 @@ const CreateGame = ({ onGameCreated }) => {
   const updateSelectedEntity = (property, value) => {
     if (selectedEntity) {
       const updatedEntity = { ...selectedEntity, [property]: value };
-      entitiesRef.current[selectedEntity.id] = updatedEntity;
-      setSelectedEntity(updatedEntity);
-
-      if (property === 'size') {
-        Matter.Body.scale(selectedEntity.body, value / selectedEntity.size, value / selectedEntity.size);
-      } else if (property === 'color') {
-        selectedEntity.body.render.fillStyle = value;
-      }
-
       setLayers(prevLayers =>
         prevLayers.map(layer => ({
           ...layer,
@@ -275,24 +226,14 @@ const CreateGame = ({ onGameCreated }) => {
           )
         }))
       );
+      setSelectedEntity(updatedEntity);
     }
   };
 
   const handleSave = () => {
     const gameData = {
       title: gameTitle,
-      layers: layers.map(layer => ({
-        ...layer,
-        entities: layer.entities.map(entity => ({
-          id: entity.id,
-          position: entity.body.position,
-          properties: {
-            size: entity.size,
-            color: entity.color,
-            type: entity.type
-          }
-        }))
-      })),
+      layers,
       gameType: 'custom',
       properties: gameProperties
     };
@@ -313,40 +254,21 @@ const CreateGame = ({ onGameCreated }) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <GameEditorWrapper>
-        <h2>Create New Game</h2>
-        <Input
-          type="text"
-          value={gameTitle}
-          onChange={(e) => setGameTitle(e.target.value)}
-          placeholder="Enter game title"
-        />
+        <Toolbar>
+          <ToolbarButton onClick={handleSave} title="Save"><FaSave /></ToolbarButton>
+          <ToolbarButton title="Undo"><FaUndo /></ToolbarButton>
+          <ToolbarButton title="Redo"><FaRedo /></ToolbarButton>
+        </Toolbar>
         <EditorLayout>
           <Sidebar>
             <Panel>
-              <h3>Entity Library</h3>
-              <EntityLibrary>
-                <DraggableEntity type="circle" color="red" />
-                <DraggableEntity type="rectangle" color="blue" />
-                <DraggableEntity type="triangle" color="green" />
-                <DraggableEntity type="platform" color="gray" />
-                <DraggableEntity type="star" color="yellow" />
-              </EntityLibrary>
-            </Panel>
-            <Panel>
-              <h3>Layers</h3>
-              {layers.map(layer => (
-                <LayerItem
-                  key={layer.id}
-                  onClick={() => setActiveLayer(layer.id)}
-                  style={{ backgroundColor: activeLayer === layer.id ? '#e0e0e0' : 'transparent' }}
-                >
-                  {layer.name}
-                </LayerItem>
-              ))}
-              <Button onClick={addLayer}>Add Layer</Button>
-            </Panel>
-            <Panel>
-              <h3>Game Properties</h3>
+              <PanelTitle>Game Properties</PanelTitle>
+              <Input
+                type="text"
+                value={gameTitle}
+                onChange={(e) => setGameTitle(e.target.value)}
+                placeholder="Enter game title"
+              />
               <Input
                 type="number"
                 value={gameProperties.gravity.y}
@@ -356,22 +278,51 @@ const CreateGame = ({ onGameCreated }) => {
                 })}
                 placeholder="Gravity Y"
               />
-              <Input
-                type="text"
-                value={gameProperties.backgroundImage}
-                onChange={(e) => setGameProperties({
-                  ...gameProperties,
-                  backgroundImage: e.target.value
-                })}
-                placeholder="Background Image URL"
-              />
+            </Panel>
+            <Panel>
+              <PanelTitle>Entity Library</PanelTitle>
+              <EntityLibrary>
+                <DraggableEntity type="circle" color="#ff0000" />
+                <DraggableEntity type="rectangle" color="#0000ff" />
+                <DraggableEntity type="triangle" color="#00ff00" />
+                <DraggableEntity type="platform" color="#808080" />
+                <DraggableEntity type="star" color="#ffff00" />
+              </EntityLibrary>
+            </Panel>
+            <Panel>
+              <PanelTitle>Layers</PanelTitle>
+              {layers.map(layer => (
+                <div
+                  key={layer.id}
+                  onClick={() => setActiveLayer(layer.id)}
+                  style={{ 
+                    padding: '5px', 
+                    backgroundColor: activeLayer === layer.id ? '#e0e0e0' : 'transparent',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {layer.name}
+                </div>
+              ))}
+              <Button onClick={addLayer}>Add Layer</Button>
             </Panel>
           </Sidebar>
-          <CanvasWrapper>
-            <Canvas id="game-canvas" ref={drop} />
+          <CanvasWrapper ref={drop}>
+            <GameCanvas
+              ref={canvasRef}
+              width={canvasSize.width}
+              height={canvasSize.height}
+            />
+            <CanvasControls>
+              <ToolbarButton onClick={handleZoomIn} title="Zoom In"><FaPlus /></ToolbarButton>
+              <ToolbarButton onClick={handleZoomOut} title="Zoom Out"><FaMinus /></ToolbarButton>
+              <ToolbarButton onClick={handleToggleFullscreen} title="Toggle Fullscreen">
+                {isFullscreen ? <FaCompressArrowsAlt /> : <FaExpandArrowsAlt />}
+              </ToolbarButton>
+            </CanvasControls>
           </CanvasWrapper>
-          <Panel>
-            <h3>Properties</h3>
+          <PropertiesPanel>
+            <PanelTitle>Properties</PanelTitle>
             {selectedEntity && (
               <>
                 <Input
@@ -387,9 +338,11 @@ const CreateGame = ({ onGameCreated }) => {
                 />
               </>
             )}
-          </Panel>
+          </PropertiesPanel>
         </EditorLayout>
-        <Button onClick={handleSave}>Save Game</Button>
+        <StatusBar>
+          Zoom: {(zoom * 100).toFixed(0)}% | Active Layer: {layers.find(l => l.id === activeLayer)?.name}
+        </StatusBar>
       </GameEditorWrapper>
     </DndProvider>
   );

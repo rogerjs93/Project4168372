@@ -8,12 +8,9 @@ import backgroundImage from '../assets/people-playing-games.gif';
 
 const GlobalStyle = createGlobalStyle`
   body {
-    overflow-y: scroll;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
   }
 `;
 
@@ -34,8 +31,13 @@ const pulse = keyframes`
 `;
 
 const HomeWrapper = styled.div`
-  max-width: 100%;
-  overflow-x: hidden;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const Hero = styled.section`
@@ -563,116 +565,118 @@ export const Home = () => {
   }, [gameCategories]);
 
   return (
-    <HomeWrapper>
+    <>
       <GlobalStyle />
-      <Hero ref={heroRef}>
-        <HeroContent style={{ opacity: animateHero ? 1 : 0, transition: 'opacity 1s ease-out' }}>
-          <HeroTitle>Welcome to Naama Online</HeroTitle>
-          <HeroSubtitle>Create, Play, and Share Amazing Games in a Thriving Community</HeroSubtitle>
-          <ButtonGroup>
-            <Button to="/register" primary>
-              Get Started <FaArrowRight aria-hidden="true" />
-            </Button>
-            <Button to="/games">
-              Explore Games <FaPlay aria-hidden="true" />
-            </Button>
-          </ButtonGroup>
-        </HeroContent>
-        <ScrollDownIndicator onClick={scrollToFeatures}>
-          <FaArrowRight style={{ transform: 'rotate(90deg)' }} aria-hidden="true" />
-        </ScrollDownIndicator>
-      </Hero>
-      
-      <FadeInSection>
-        <Section id="features">
-          <SectionTitle>Why Choose Naama</SectionTitle>
-          <FeatureGrid>
-            <FeatureCard>
-              <FeatureIcon><FaGamepad aria-hidden="true" /></FeatureIcon>
-              <FeatureTitle>Create Games</FeatureTitle>
-              <FeatureDescription>Design and build your own games with our intuitive tools and powerful engine. Bring your ideas to life effortlessly.</FeatureDescription>
-            </FeatureCard>
-            <FeatureCard>
-              <FeatureIcon><FaUsers aria-hidden="true" /></FeatureIcon>
-              <FeatureTitle>Play Together</FeatureTitle>
-              <FeatureDescription>Enjoy multiplayer games with friends, challenge players worldwide, and experience the thrill of competition.</FeatureDescription>
-            </FeatureCard>
-            <FeatureCard>
-              <FeatureIcon><FaShare aria-hidden="true" /></FeatureIcon>
-              <FeatureTitle>Share & Discover</FeatureTitle>
-              <FeatureDescription>Showcase your creations to a global audience and explore a vast library of unique games made by the community.</FeatureDescription>
-            </FeatureCard>
-          </FeatureGrid>
-        </Section>
-      </FadeInSection>
+      <HomeWrapper>
+        <Hero ref={heroRef}>
+          <HeroContent style={{ opacity: animateHero ? 1 : 0, transition: 'opacity 1s ease-out' }}>
+            <HeroTitle>Welcome to Naama Online</HeroTitle>
+            <HeroSubtitle>Create, Play, and Share Amazing Games in a Thriving Community</HeroSubtitle>
+            <ButtonGroup>
+              <Button to="/register" primary>
+                Get Started <FaArrowRight aria-hidden="true" />
+              </Button>
+              <Button to="/games">
+                Explore Games <FaPlay aria-hidden="true" />
+              </Button>
+            </ButtonGroup>
+          </HeroContent>
+          <ScrollDownIndicator onClick={scrollToFeatures}>
+            <FaArrowRight style={{ transform: 'rotate(90deg)' }} aria-hidden="true" />
+          </ScrollDownIndicator>
+        </Hero>
+        
+        <FadeInSection>
+          <Section id="features">
+            <SectionTitle>Why Choose Naama</SectionTitle>
+            <FeatureGrid>
+              <FeatureCard>
+                <FeatureIcon><FaGamepad aria-hidden="true" /></FeatureIcon>
+                <FeatureTitle>Create Games</FeatureTitle>
+                <FeatureDescription>Design and build your own games with our intuitive tools and powerful engine. Bring your ideas to life effortlessly.</FeatureDescription>
+              </FeatureCard>
+              <FeatureCard>
+                <FeatureIcon><FaUsers aria-hidden="true" /></FeatureIcon>
+                <FeatureTitle>Play Together</FeatureTitle>
+                <FeatureDescription>Enjoy multiplayer games with friends, challenge players worldwide, and experience the thrill of competition.</FeatureDescription>
+              </FeatureCard>
+              <FeatureCard>
+                <FeatureIcon><FaShare aria-hidden="true" /></FeatureIcon>
+                <FeatureTitle>Share & Discover</FeatureTitle>
+                <FeatureDescription>Showcase your creations to a global audience and explore a vast library of unique games made by the community.</FeatureDescription>
+              </FeatureCard>
+            </FeatureGrid>
+          </Section>
+        </FadeInSection>
 
-      <FadeInSection>
-        <Section alternate>
-          <SectionTitle>Trending Games</SectionTitle>
-          <GameGrid>
-            {[1, 2, 3, 4].map(renderGameCard)}
-          </GameGrid>
-        </Section>
-      </FadeInSection>
+        <FadeInSection>
+          <Section alternate>
+            <SectionTitle>Trending Games</SectionTitle>
+            <GameGrid>
+              {[1, 2, 3, 4].map(renderGameCard)}
+            </GameGrid>
+          </Section>
+        </FadeInSection>
 
-      <FadeInSection>
-        <TestimonialsSection>
-          <SectionTitle>What Our Users Say</SectionTitle>
-          <TestimonialWrapper>
-            <TestimonialButton left onClick={prevTestimonial}>
-              <FaChevronLeft aria-hidden="true" />
-            </TestimonialButton>
-            <TestimonialCard>
-              <QuoteIcon aria-hidden="true" />
-              <TestimonialText>{testimonials[currentTestimonial].text}</TestimonialText>
-              <TestimonialAuthor>
-                <AuthorAvatar>
-                  <FaUser aria-hidden="true" />
-                </AuthorAvatar>
-                <AuthorInfo>
-                  <AuthorName>{testimonials[currentTestimonial].author}</AuthorName>
-                  <AuthorRole>{testimonials[currentTestimonial].role}</AuthorRole>
-                </AuthorInfo>
-              </TestimonialAuthor>
-            </TestimonialCard>
-            <TestimonialButton right onClick={nextTestimonial}>
-              <FaChevronRight aria-hidden="true" />
-            </TestimonialButton>
-          </TestimonialWrapper>
-        </TestimonialsSection>
-      </FadeInSection>
+        <FadeInSection>
+          <TestimonialsSection>
+            <SectionTitle>What Our Users Say</SectionTitle>
+            <TestimonialWrapper>
+              <TestimonialButton left onClick={prevTestimonial}>
+                <FaChevronLeft aria-hidden="true" />
+              </TestimonialButton>
+              <TestimonialCard>
+                <QuoteIcon aria-hidden="true" />
+                <TestimonialText>{testimonials[currentTestimonial].text}</TestimonialText>
+                <TestimonialAuthor>
+                  <AuthorAvatar>
+                    <FaUser aria-hidden="true" />
+                  </AuthorAvatar>
+                  <AuthorInfo>
+                    <AuthorName>{testimonials[currentTestimonial].author}</AuthorName>
+                    <AuthorRole>{testimonials[currentTestimonial].role}</AuthorRole>
+                  </AuthorInfo>
+                </TestimonialAuthor>
+              </TestimonialCard>
+              <TestimonialButton right onClick={nextTestimonial}>
+                <FaChevronRight aria-hidden="true" />
+              </TestimonialButton>
+            </TestimonialWrapper>
+          </TestimonialsSection>
+        </FadeInSection>
 
-      <FadeInSection>
-        <MetricsSection>
-          <MetricsGrid>
-            <MetricItem>
-              <MetricValue>
-                <AnimatedNumber value={statistics.activeUsers} />+
-              </MetricValue>
-              <MetricLabel>Active Users</MetricLabel>
-            </MetricItem>
-            <MetricItem>
-              <MetricValue>
-                <AnimatedNumber value={statistics.gamesCreated} />+
-              </MetricValue>
-              <MetricLabel>Games Created</MetricLabel>
-            </MetricItem>
-            <MetricItem>
-              <MetricValue>
-                <AnimatedNumber value={statistics.gamesPlayed} />+
-              </MetricValue>
-              <MetricLabel>Games Played</MetricLabel>
-            </MetricItem>
-            <MetricItem>
-              <MetricValue>
-                <AnimatedNumber value={statistics.countriesReached} />+
-              </MetricValue>
-              <MetricLabel>Countries Reached</MetricLabel>
-            </MetricItem>
-          </MetricsGrid>
-        </MetricsSection>
-      </FadeInSection>
-    </HomeWrapper>
+        <FadeInSection>
+          <MetricsSection>
+            <MetricsGrid>
+              <MetricItem>
+                <MetricValue>
+                  <AnimatedNumber value={statistics.activeUsers} />+
+                </MetricValue>
+                <MetricLabel>Active Users</MetricLabel>
+              </MetricItem>
+              <MetricItem>
+                <MetricValue>
+                  <AnimatedNumber value={statistics.gamesCreated} />+
+                </MetricValue>
+                <MetricLabel>Games Created</MetricLabel>
+              </MetricItem>
+              <MetricItem>
+                <MetricValue>
+                  <AnimatedNumber value={statistics.gamesPlayed} />+
+                </MetricValue>
+                <MetricLabel>Games Played</MetricLabel>
+              </MetricItem>
+              <MetricItem>
+                <MetricValue>
+                  <AnimatedNumber value={statistics.countriesReached} />+
+                </MetricValue>
+                <MetricLabel>Countries Reached</MetricLabel>
+              </MetricItem>
+            </MetricsGrid>
+          </MetricsSection>
+        </FadeInSection>
+      </HomeWrapper>
+    </>
   );
 };
 

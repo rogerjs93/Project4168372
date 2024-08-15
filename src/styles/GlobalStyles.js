@@ -19,6 +19,11 @@ export const GlobalStyles = createGlobalStyle`
     padding: 0;
   }
 
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
   html {
     font-size: 62.5%; // This makes 1rem = 10px
   }
@@ -31,13 +36,22 @@ export const GlobalStyles = createGlobalStyle`
     background-color: ${({ theme }) => theme.colors.background};
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
   }
 
   #root {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+  }
+
+  /* Make the main content area scrollable */
+  #root > div {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   main {
@@ -115,22 +129,15 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
 
-  // Custom scrollbar
+  /* Hide scrollbar for Chrome, Safari and Opera */
   ::-webkit-scrollbar {
-    width: 8px;
+    display: none;
   }
 
-  ::-webkit-scrollbar-track {
-    background: ${({ theme }) => theme.colors.background};
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: ${({ theme }) => theme.colors.textSecondary};
-    border-radius: ${({ theme }) => theme.borderRadius.full};
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: ${({ theme }) => theme.colors.textPrimary};
+  /* Hide scrollbar for IE, Edge and Firefox */
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 
   // Utility classes
