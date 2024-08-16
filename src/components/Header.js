@@ -1,8 +1,10 @@
+// src/components/Header.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes } from 'react-icons/fa';
+import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes, FaSun, FaMoon } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from './ThemeProvider';
 import { Logo } from './Logo';
 import Chat from './Chat';
 import axios from 'axios';
@@ -189,6 +191,7 @@ const CloseButton = styled.button`
 
 export const Header = () => {
   const { isLoggedIn, user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -284,6 +287,9 @@ export const Header = () => {
           ))}
         </CenterSection>
         <RightSection>
+          <IconButton onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'light' ? <FaMoon /> : <FaSun />}
+          </IconButton>
           {isLoggedIn ? (
             <>
               <NotificationButton onClick={toggleNotificationCenter} aria-label="Notifications">

@@ -4,11 +4,8 @@ import { FaSearch, FaUserFriends, FaUserPlus, FaUserMinus } from 'react-icons/fa
 
 const GlobalStyle = createGlobalStyle`
   body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background-color: #f0f2f5;
-    color: #1c1e21;
+    background-color: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.textPrimary};
   }
 `;
 
@@ -23,7 +20,7 @@ const Header = styled.h1`
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1877f2;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
@@ -58,15 +55,15 @@ const FriendsGrid = styled.div`
 `;
 
 const FriendCard = styled.div`
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: 8px;
   padding: 16px;
   text-align: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ theme }) => theme.boxShadow.medium};
   transition: box-shadow 0.3s ease;
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: ${({ theme }) => theme.boxShadow.large};
   }
 `;
 
@@ -79,14 +76,14 @@ const FriendAvatar = styled.img`
 `;
 
 const FriendName = styled.h3`
-  color: #1c1e21;
+  color: ${({ theme }) => theme.colors.textPrimary};
   margin: 0 0 4px 0;
   font-size: 17px;
   font-weight: 600;
 `;
 
 const FriendStatus = styled.p`
-  color: #65676b;
+  color: ${({ theme }) => theme.colors.textSecondary};
   margin: 0 0 12px 0;
   font-size: 13px;
 `;

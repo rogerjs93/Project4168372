@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
-import { FaTrophy, FaClock, FaMedal, FaSearch, FaPlus, FaGamepad } from 'react-icons/fa';
+import { FaPlayCircle, FaTrophy, FaClock, FaMedal, FaSearch, FaPlus, FaGamepad } from 'react-icons/fa';
 
 const GlobalStyle = createGlobalStyle`
   body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background-color: #f0f2f5;
-    color: #1c1e21;
+    background-color: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.textPrimary};
   }
 `;
 
@@ -23,7 +20,7 @@ const Header = styled.h1`
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1877f2;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
@@ -40,8 +37,8 @@ const CreateChallengeButton = styled.button`
   display: flex;
   align-items: center;
   gap: 10px;
-  background-color: #1877f2;
-  color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.surfaceLight};
   border: none;
   border-radius: 6px;
   padding: 8px 16px;
@@ -51,17 +48,17 @@ const CreateChallengeButton = styled.button`
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #166fe5;
+    background-color: ${({ theme }) => theme.colors.primaryDark};
   }
 `;
 
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: 20px;
   padding: 8px 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ theme }) => theme.boxShadow.small};
 `;
 
 const SearchInput = styled.input`
@@ -69,7 +66,7 @@ const SearchInput = styled.input`
   background: none;
   flex-grow: 1;
   font-size: 15px;
-  color: #1c1e21;
+  color: ${({ theme }) => theme.colors.textPrimary};
   margin-left: 10px;
   &:focus {
     outline: none;
@@ -83,19 +80,19 @@ const ChallengesGrid = styled.div`
 `;
 
 const ChallengeCard = styled.div`
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ theme }) => theme.boxShadow.medium};
   transition: box-shadow 0.3s ease;
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: ${({ theme }) => theme.boxShadow.large};
   }
 `;
 
 const ChallengeName = styled.h3`
-  color: #1c1e21;
+  color: ${({ theme }) => theme.colors.textPrimary};
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
@@ -105,14 +102,14 @@ const ChallengeInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #65676b;
+  color: ${({ theme }) => theme.colors.textSecondary};
   font-size: 14px;
   margin-bottom: 4px;
 `;
 
 const JoinButton = styled.button`
-  background-color: #1877f2;
-  color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.surfaceLight};
   border: none;
   padding: 8px 12px;
   border-radius: 6px;
@@ -124,7 +121,7 @@ const JoinButton = styled.button`
   margin-top: 12px;
 
   &:hover {
-    background-color: #166fe5;
+    background-color: ${({ theme }) => theme.colors.primaryDark};
   }
 `;
 

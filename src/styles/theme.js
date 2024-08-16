@@ -1,4 +1,22 @@
-export const theme = {
+import { readableColor, darken, lighten } from 'polished';
+
+const createTheme = (baseTheme) => ({
+  ...baseTheme,
+  colors: {
+    ...baseTheme.colors,
+    textOnPrimary: readableColor(baseTheme.colors.primary),
+    textOnSecondary: readableColor(baseTheme.colors.secondary),
+    textOnAccent: readableColor(baseTheme.colors.accent),
+    textOnSuccess: readableColor(baseTheme.colors.success),
+    textOnWarning: readableColor(baseTheme.colors.warning),
+    textOnError: readableColor(baseTheme.colors.error),
+    primaryHover: darken(0.1, baseTheme.colors.primary),
+    secondaryHover: darken(0.1, baseTheme.colors.secondary),
+    accentHover: darken(0.1, baseTheme.colors.accent),
+  },
+});
+
+export const lightTheme = createTheme({
   colors: {
     primary: '#6200EA',
     primaryLight: '#9D46FF',
@@ -62,10 +80,10 @@ export const theme = {
     xxlarge: '4.8rem',
   },
   breakpoints: {
-    mobile: '576px',
-    tablet: '768px',
-    desktop: '992px',
-    largeDesktop: '1200px',
+    mobile: '36em',  // 576px
+    tablet: '48em',  // 768px
+    desktop: '62em', // 992px
+    largeDesktop: '75em', // 1200px
   },
   borderRadius: {
     small: '0.4rem',
@@ -94,4 +112,23 @@ export const theme = {
     popover: 1060,
     tooltip: 1070,
   },
-};
+});
+
+export const darkTheme = createTheme({
+  ...lightTheme,
+  colors: {
+    ...lightTheme.colors,
+    primary: '#BB86FC',
+    primaryLight: lighten(0.1, '#BB86FC'),
+    primaryDark: darken(0.1, '#BB86FC'),
+    secondary: '#03DAC6',
+    background: '#121212',
+    surfaceLight: '#1E1E1E',
+    surfaceDark: '#2C2F33',
+    textPrimary: '#E0E0E0',
+    textSecondary: '#A0A0A0',
+    borderColor: '#333333',
+  },
+});
+
+export const theme = lightTheme;

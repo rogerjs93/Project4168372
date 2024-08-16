@@ -1,14 +1,15 @@
+// src/App.js
 import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import styled, { ThemeProvider } from 'styled-components';
+import styled from 'styled-components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Header, LeftSidebar, RightSidebar } from './components';
-import { GlobalStyles, theme } from './styles';
 import { AuthProvider } from './AuthContext';
 import Loading from './components/Loading';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
+import { ThemeProvider } from './components/ThemeProvider';
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));
@@ -90,10 +91,9 @@ function App() {
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <DndProvider backend={HTML5Backend}>
         <AuthProvider>
-          <GlobalStyles />
           <Router>
             <AppWrapper>
               <Header />

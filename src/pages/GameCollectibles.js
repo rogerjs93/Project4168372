@@ -4,11 +4,8 @@ import { FaGem, FaStar, FaLock, FaSearch, FaFilter, FaPlus } from 'react-icons/f
 
 const GlobalStyle = createGlobalStyle`
   body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-    background-color: #f0f2f5;
-    color: #1c1e21;
+    background-color: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.textPrimary};
   }
 `;
 
@@ -23,7 +20,7 @@ const Header = styled.h1`
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #1877f2;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: bold;
@@ -40,8 +37,8 @@ const CreateCollectibleButton = styled.button`
   display: flex;
   align-items: center;
   gap: 10px;
-  background-color: #1877f2;
-  color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.surfaceLight};
   border: none;
   border-radius: 6px;
   padding: 8px 16px;
@@ -51,17 +48,17 @@ const CreateCollectibleButton = styled.button`
   transition: background-color 0.2s ease;
 
   &:hover {
-    background-color: #166fe5;
+    background-color: ${({ theme }) => theme.colors.primaryDark};
   }
 `;
 
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: 20px;
   padding: 8px 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ theme }) => theme.boxShadow.small};
 `;
 
 const SearchInput = styled.input`
@@ -69,7 +66,7 @@ const SearchInput = styled.input`
   background: none;
   flex-grow: 1;
   font-size: 15px;
-  color: #1c1e21;
+  color: ${({ theme }) => theme.colors.textPrimary};
   margin-left: 10px;
   &:focus {
     outline: none;
@@ -78,10 +75,10 @@ const SearchInput = styled.input`
 
 const FilterSelect = styled.select`
   padding: 8px 16px;
-  border: 1px solid #dddfe2;
+  border: 1px solid ${({ theme }) => theme.colors.borderColor};
   border-radius: 6px;
-  background-color: #ffffff;
-  color: #1c1e21;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  color: ${({ theme }) => theme.colors.textPrimary};
   font-size: 14px;
   margin-left: 10px;
 `;
@@ -104,27 +101,27 @@ const CollectibleGrid = styled.div`
 `;
 
 const CollectibleCard = styled.div`
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: ${({ theme }) => theme.boxShadow.medium};
   transition: box-shadow 0.3s ease;
   text-align: center;
   position: relative;
 
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: ${({ theme }) => theme.boxShadow.large};
   }
 `;
 
 const CollectibleIcon = styled.div`
   font-size: 2rem;
-  color: ${({ obtained }) => obtained ? '#1877f2' : '#65676b'};
+  color: ${({ obtained, theme }) => obtained ? theme.colors.primary : theme.colors.textSecondary};
   margin-bottom: 8px;
 `;
 
 const CollectibleName = styled.h3`
-  color: #1c1e21;
+  color: ${({ theme }) => theme.colors.textPrimary};
   margin: 0 0 8px 0;
   font-size: 16px;
   font-weight: 600;
@@ -134,7 +131,7 @@ const CollectibleRarity = styled.div`
   display: flex;
   justify-content: center;
   gap: 4px;
-  color: #f1c40f;
+  color: ${({ theme }) => theme.colors.warning};
 `;
 
 const LockedOverlay = styled.div`
@@ -143,7 +140,7 @@ const LockedOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${({ theme }) => `${theme.colors.surfaceDark}80`};
   display: flex;
   align-items: center;
   justify-content: center;
