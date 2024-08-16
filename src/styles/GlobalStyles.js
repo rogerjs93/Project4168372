@@ -255,4 +255,15 @@ export const GlobalStyles = createGlobalStyle`
       font-size: 50%; // This makes 1rem = 8px on mobile
     }
   }
+
+  /* Hide scrollbars */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    &::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent; /* Chrome/Safari/Webkit */
+    }
+  }
 `;
