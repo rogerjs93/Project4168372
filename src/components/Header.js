@@ -5,11 +5,11 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes, FaSun, FaMoon } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from './ThemeProvider';
-import { Logo } from './Logo';
 import Chat from './Chat';
 import axios from 'axios';
 import NotificationCenter from './NotificationCenter';
 import useDebounce from '../hooks/useDebounce';
+import logoImage from '../assets/logohead.png';
 
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -55,6 +55,11 @@ const LogoLink = styled(Link)`
   align-items: center;
   text-decoration: none;
   margin-right: ${({ theme }) => theme.spacing.medium};
+`;
+
+const LogoImage = styled.img`
+  width: 40px;
+  height: 40px;
 `;
 
 const SearchBar = styled.div`
@@ -265,7 +270,7 @@ export const Header = () => {
       <Nav>
         <LeftSection>
           <LogoLink to="/">
-            <Logo size="40" />
+            <LogoImage src={logoImage} alt="Naama Logo" />
           </LogoLink>
           <SearchBar>
             <SearchIcon />
@@ -330,3 +335,5 @@ export const Header = () => {
     </HeaderWrapper>
   );
 };
+
+export default Header;
