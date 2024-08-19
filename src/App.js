@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { DndProvider } from 'react-dnd';
@@ -10,6 +10,7 @@ import Loading from './components/Loading';
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './components/ThemeProvider';
+import ToastNotification from './components/ToastNotification';
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));
@@ -86,75 +87,102 @@ const LazyRoute = ({ component: Component, ...rest }) => (
   </ErrorBoundary>
 );
 
+export const ToastContext = React.createContext();
+
 function App() {
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = useCallback((type, message) => {
+    const id = Date.now();
+    setToasts((prevToasts) => [...prevToasts, { id, type, message }]);
+
+    // Auto-remove toast after 5 seconds
+    setTimeout(() => removeToast(id), 5000);
+  }, []);
+
+  const removeToast = useCallback((id) => {
+    setToasts((prevToasts) =>
+      prevToasts.map((toast) =>
+        toast.id === id ? { ...toast, isClosing: true } : toast
+      )
+    );
+
+    // Remove toast from state after animation completes
+    setTimeout(() => {
+      setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
+    }, 300);
+  }, []);
 
   return (
     <ThemeProvider>
       <DndProvider backend={HTML5Backend}>
         <AuthProvider>
-          <Router>
-            <AppWrapper>
-              <Header />
-              <MainWrapper>
-                <LeftSidebar
-                  isCollapsed={isLeftSidebarCollapsed}
-                  onCollapse={setIsLeftSidebarCollapsed}
-                />
-                <ContentWrapper
-                  isLeftSidebarCollapsed={isLeftSidebarCollapsed}
-                  isRightSidebarCollapsed={isRightSidebarCollapsed}
-                >
-                  <ContentArea>
-                    <ErrorBoundary>
-                      <Routes>
-                        {/* Public Routes */}
-                        <Route path="/" element={<LazyRoute component={Home} />} />
-                        <Route path="/about" element={<LazyRoute component={About} />} />
-                        <Route path="/services" element={<LazyRoute component={Services} />} />
-                        <Route path="/contact" element={<LazyRoute component={Contact} />} />
-                        <Route path="/login" element={<LazyRoute component={Login} />} />
-                        <Route path="/register" element={<LazyRoute component={Register} />} />
+          <ToastContext.Provider value={addToast}>
+            <Router>
+              <AppWrapper>
+                <Header />
+                <MainWrapper>
+                  <LeftSidebar
+                    isCollapsed={isLeftSidebarCollapsed}
+                    onCollapse={setIsLeftSidebarCollapsed}
+                  />
+                  <ContentWrapper
+                    isLeftSidebarCollapsed={isLeftSidebarCollapsed}
+                    isRightSidebarCollapsed={isRightSidebarCollapsed}
+                  >
+                    <ContentArea>
+                      <ErrorBoundary>
+                        <Routes>
+                          {/* Public Routes */}
+                          <Route path="/" element={<LazyRoute component={Home} />} />
+                          <Route path="/about" element={<LazyRoute component={About} />} />
+                          <Route path="/services" element={<LazyRoute component={Services} />} />
+                          <Route path="/contact" element={<LazyRoute component={Contact} />} />
+                          <Route path="/login" element={<LazyRoute component={Login} />} />
+                          <Route path="/register" element={<LazyRoute component={Register} />} />
 
-                        {/* Protected Routes */}
-                        <Route path="/dashboard" element={<ProtectedRoute><LazyRoute component={Dashboard} /></ProtectedRoute>} />
-                        <Route path="/profile" element={<ProtectedRoute><LazyRoute component={Profile} /></ProtectedRoute>} />
-                        <Route path="/feed" element={<ProtectedRoute><LazyRoute component={NewsFeed} /></ProtectedRoute>} />
-                        <Route path="/games" element={<ProtectedRoute><LazyRoute component={Games} /></ProtectedRoute>} />
-                        <Route path="/community" element={<ProtectedRoute><LazyRoute component={Community} /></ProtectedRoute>} />
-                        <Route path="/support" element={<ProtectedRoute><LazyRoute component={Support} /></ProtectedRoute>} />
-                        <Route path="/notifications" element={<ProtectedRoute><LazyRoute component={NotificationCenter} /></ProtectedRoute>} />
-                        
-                        {/* Left Sidebar Routes */}
-                        <Route path="/friends" element={<ProtectedRoute><LazyRoute component={Friends} /></ProtectedRoute>} />
-                        <Route path="/groups" element={<ProtectedRoute><LazyRoute component={Groups} /></ProtectedRoute>} />
-                        <Route path="/events" element={<ProtectedRoute><LazyRoute component={Events} /></ProtectedRoute>} />
-                        <Route path="/memories" element={<ProtectedRoute><LazyRoute component={Memories} /></ProtectedRoute>} />
-                        <Route path="/saved" element={<ProtectedRoute><LazyRoute component={Saved} /></ProtectedRoute>} />
-                        <Route path="/ai-summarizer" element={<ProtectedRoute><LazyRoute component={AISummarizer} /></ProtectedRoute>} />
-                        <Route path="/watch" element={<ProtectedRoute><LazyRoute component={Watch} /></ProtectedRoute>} />
-                        
-                        {/* Right Sidebar Routes */}
-                        <Route path="/my-games" element={<ProtectedRoute><LazyRoute component={MyGames} /></ProtectedRoute>} />
-                        <Route path="/discover-games" element={<ProtectedRoute><LazyRoute component={DiscoverGames} /></ProtectedRoute>} />
-                        <Route path="/game-challenges" element={<ProtectedRoute><LazyRoute component={GameChallenges} /></ProtectedRoute>} />
-                        <Route path="/leaderboards" element={<ProtectedRoute><LazyRoute component={Leaderboards} /></ProtectedRoute>} />
-                        <Route path="/game-tournaments" element={<ProtectedRoute><LazyRoute component={GameTournaments} /></ProtectedRoute>} />
-                        <Route path="/game-communities" element={<ProtectedRoute><LazyRoute component={GameCommunities} /></ProtectedRoute>} />
-                        <Route path="/global-chat" element={<ProtectedRoute><LazyRoute component={GlobalChat} /></ProtectedRoute>} />
-                        <Route path="/game-collectibles" element={<ProtectedRoute><LazyRoute component={GameCollectibles} /></ProtectedRoute>} />
-                      </Routes>
-                    </ErrorBoundary>
-                  </ContentArea>
-                </ContentWrapper>
-                <RightSidebar
-                  isCollapsed={isRightSidebarCollapsed}
-                  onCollapse={setIsRightSidebarCollapsed}
-                />
-              </MainWrapper>
-            </AppWrapper>
-          </Router>
+                          {/* Protected Routes */}
+                          <Route path="/dashboard" element={<ProtectedRoute><LazyRoute component={Dashboard} /></ProtectedRoute>} />
+                          <Route path="/profile" element={<ProtectedRoute><LazyRoute component={Profile} /></ProtectedRoute>} />
+                          <Route path="/feed" element={<ProtectedRoute><LazyRoute component={NewsFeed} /></ProtectedRoute>} />
+                          <Route path="/games" element={<ProtectedRoute><LazyRoute component={Games} /></ProtectedRoute>} />
+                          <Route path="/community" element={<ProtectedRoute><LazyRoute component={Community} /></ProtectedRoute>} />
+                          <Route path="/support" element={<ProtectedRoute><LazyRoute component={Support} /></ProtectedRoute>} />
+                          <Route path="/notifications" element={<ProtectedRoute><LazyRoute component={NotificationCenter} /></ProtectedRoute>} />
+                          
+                          {/* Left Sidebar Routes */}
+                          <Route path="/friends" element={<ProtectedRoute><LazyRoute component={Friends} /></ProtectedRoute>} />
+                          <Route path="/groups" element={<ProtectedRoute><LazyRoute component={Groups} /></ProtectedRoute>} />
+                          <Route path="/events" element={<ProtectedRoute><LazyRoute component={Events} /></ProtectedRoute>} />
+                          <Route path="/memories" element={<ProtectedRoute><LazyRoute component={Memories} /></ProtectedRoute>} />
+                          <Route path="/saved" element={<ProtectedRoute><LazyRoute component={Saved} /></ProtectedRoute>} />
+                          <Route path="/ai-summarizer" element={<ProtectedRoute><LazyRoute component={AISummarizer} /></ProtectedRoute>} />
+                          <Route path="/watch" element={<ProtectedRoute><LazyRoute component={Watch} /></ProtectedRoute>} />
+                          
+                          {/* Right Sidebar Routes */}
+                          <Route path="/my-games" element={<ProtectedRoute><LazyRoute component={MyGames} /></ProtectedRoute>} />
+                          <Route path="/discover-games" element={<ProtectedRoute><LazyRoute component={DiscoverGames} /></ProtectedRoute>} />
+                          <Route path="/game-challenges" element={<ProtectedRoute><LazyRoute component={GameChallenges} /></ProtectedRoute>} />
+                          <Route path="/leaderboards" element={<ProtectedRoute><LazyRoute component={Leaderboards} /></ProtectedRoute>} />
+                          <Route path="/game-tournaments" element={<ProtectedRoute><LazyRoute component={GameTournaments} /></ProtectedRoute>} />
+                          <Route path="/game-communities" element={<ProtectedRoute><LazyRoute component={GameCommunities} /></ProtectedRoute>} />
+                          <Route path="/global-chat" element={<ProtectedRoute><LazyRoute component={GlobalChat} /></ProtectedRoute>} />
+                          <Route path="/game-collectibles" element={<ProtectedRoute><LazyRoute component={GameCollectibles} /></ProtectedRoute>} />
+                        </Routes>
+                      </ErrorBoundary>
+                    </ContentArea>
+                  </ContentWrapper>
+                  <RightSidebar
+                    isCollapsed={isRightSidebarCollapsed}
+                    onCollapse={setIsRightSidebarCollapsed}
+                  />
+                </MainWrapper>
+                <ToastNotification toasts={toasts} removeToast={removeToast} />
+              </AppWrapper>
+            </Router>
+          </ToastContext.Provider>
         </AuthProvider>
       </DndProvider>
     </ThemeProvider>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import styled from 'styled-components';
-import { FaPlus, FaSpinner, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import styled, { keyframes } from 'styled-components';
+import { FaPlus, FaSpinner, FaChevronLeft, FaChevronRight, FaChartLine, FaGamepad, FaUsers, FaStar } from 'react-icons/fa';
 import UserProfileCard from './UserProfileCard';
 import TrendingTopicsCard from './TrendingTopicsCard';
 import SocialFeed from './SocialFeed';
@@ -10,6 +10,12 @@ import CreateGame from './CreateGame';
 import ErrorBoundary from './ErrorBoundary';
 import { useAuth } from '../hooks/useAuth';
 import Skeleton from './SkeletonLoader';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 const DashboardContainer = styled.div`
   display: grid;
@@ -18,6 +24,7 @@ const DashboardContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
   max-width: 1200px;
   margin: 0 auto;
+  animation: ${fadeIn} 0.5s ease-out;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     grid-template-columns: 1fr;
@@ -110,19 +117,65 @@ const QuickGameCreation = styled.div`
   box-shadow: ${({ theme }) => theme.boxShadow.small};
 `;
 
-const PaginationControls = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.medium};
-  margin-top: ${({ theme }) => theme.spacing.medium};
-`;
-
 const SkeletonCard = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   padding: ${({ theme }) => theme.spacing.medium};
   margin-bottom: ${({ theme }) => theme.spacing.medium};
+`;
+
+const ScrollableSection = styled.div`
+  height: 500px;
+  overflow-y: auto;
+  padding: ${({ theme }) => theme.spacing.medium};
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  box-shadow: ${({ theme }) => theme.boxShadow.medium};
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.colors.background};
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: ${({ theme }) => theme.colors.primary};
+    border-radius: 20px;
+    border: 3px solid ${({ theme }) => theme.colors.background};
+  }
+`;
+
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: ${({ theme }) => theme.spacing.medium};
+  margin-bottom: ${({ theme }) => theme.spacing.large};
+`;
+
+const StatCard = styled.div`
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  padding: ${({ theme }) => theme.spacing.medium};
+  text-align: center;
+  box-shadow: ${({ theme }) => theme.boxShadow.small};
+`;
+
+const StatValue = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.xxlarge};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
+  color: ${({ theme }) => theme.colors.primary};
+`;
+
+const StatLabel = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+const ChartContainer = styled.div`
+  height: 300px;
+  margin-bottom: ${({ theme }) => theme.spacing.large};
 `;
 
 const useFetch = (url) => {
@@ -153,10 +206,7 @@ const Dashboard = () => {
   const [posts, setPosts] = useState([]);
   const [games, setGames] = useState([]);
   const [showCreateGame, setShowCreateGame] = useState(false);
-  const [postPage, setPostPage] = useState(1);
-  const [gamePage, setGamePage] = useState(1);
-  const postsPerPage = 5;
-  const gamesPerPage = 3;
+  const [activityData, setActivityData] = useState([]);
 
   const { data: userData, loading: userLoading, error: userError } = useFetch(`http://localhost:3001/users/${user?.id}`);
   const { data: postsData, loading: postsLoading, error: postsError } = useFetch('http://localhost:3001/posts');
@@ -171,6 +221,12 @@ const Dashboard = () => {
   useEffect(() => {
     if (gamesData) {
       setGames(gamesData);
+      // Generate mock activity data
+      const mockActivityData = gamesData.map((game, index) => ({
+        date: new Date(Date.now() - (30 - index) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        plays: Math.floor(Math.random() * 100)
+      }));
+      setActivityData(mockActivityData);
     }
   }, [gamesData]);
 
@@ -244,9 +300,6 @@ const Dashboard = () => {
   if (userLoading || postsLoading || gamesLoading) return renderSkeletonDashboard();
   if (userError || postsError || gamesError) return <ErrorMessage>Error loading dashboard data. Please try again later.</ErrorMessage>;
 
-  const paginatedPosts = posts.slice((postPage - 1) * postsPerPage, postPage * postsPerPage);
-  const paginatedGames = games.slice((gamePage - 1) * gamesPerPage, gamePage * gamesPerPage);
-
   return (
     <ErrorBoundary>
       <DashboardContainer>
@@ -259,34 +312,50 @@ const Dashboard = () => {
               <FaPlus /> Create New Game
             </Button>
           </QuickGameCreation>
+          <StatsGrid>
+            <StatCard>
+              <StatValue><FaGamepad /> {games.length}</StatValue>
+              <StatLabel>Games Created</StatLabel>
+            </StatCard>
+            <StatCard>
+              <StatValue><FaUsers /> {userData.followers || 0}</StatValue>
+              <StatLabel>Followers</StatLabel>
+            </StatCard>
+            <StatCard>
+              <StatValue><FaChartLine /> {games.reduce((sum, game) => sum + game.playCount, 0)}</StatValue>
+              <StatLabel>Total Plays</StatLabel>
+            </StatCard>
+            <StatCard>
+              <StatValue><FaStar /> {(games.reduce((sum, game) => sum + game.rating, 0) / games.length || 0).toFixed(1)}</StatValue>
+              <StatLabel>Avg. Rating</StatLabel>
+            </StatCard>
+          </StatsGrid>
+          <ChartContainer>
+            <SectionTitle>Game Activity</SectionTitle>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={activityData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="plays" stroke="#8884d8" activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </Section>
 
         <Section>
           <SectionTitle>Social Feed</SectionTitle>
-          <SocialFeed posts={paginatedPosts} onLike={handleLikePost} />
-          <PaginationControls>
-            <Button onClick={() => setPostPage(prev => Math.max(prev - 1, 1))} disabled={postPage === 1}>
-              <FaChevronLeft /> Previous
-            </Button>
-            <span>Page {postPage}</span>
-            <Button onClick={() => setPostPage(prev => prev + 1)} disabled={postPage * postsPerPage >= posts.length}>
-              Next <FaChevronRight />
-            </Button>
-          </PaginationControls>
+          <ScrollableSection>
+            <SocialFeed posts={posts} onLike={handleLikePost} />
+          </ScrollableSection>
         </Section>
 
         <Section>
           <SectionTitle>My Games</SectionTitle>
-          <GameList games={paginatedGames} />
-          <PaginationControls>
-            <Button onClick={() => setGamePage(prev => Math.max(prev - 1, 1))} disabled={gamePage === 1}>
-              <FaChevronLeft /> Previous
-            </Button>
-            <span>Page {gamePage}</span>
-            <Button onClick={() => setGamePage(prev => prev + 1)} disabled={gamePage * gamesPerPage >= games.length}>
-              Next <FaChevronRight />
-            </Button>
-          </PaginationControls>
+          <ScrollableSection>
+            <GameList games={games} />
+          </ScrollableSection>
         </Section>
 
         {showCreateGame && (
