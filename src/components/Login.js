@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { FaEnvelope, FaLock } from 'react-icons/fa';
-import { useAuth } from '../AuthContext'; // Import useAuth
+import styled, { keyframes } from 'styled-components';
+import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
+import { useAuth } from '../AuthContext';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
 
 const LoginWrapper = styled.div`
   max-width: 400px;
@@ -12,19 +17,21 @@ const LoginWrapper = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.boxShadow.large};
+  animation: ${fadeIn} 0.5s ease-out;
 `;
 
 const Title = styled.h2`
-  color: ${({ theme }) => theme.colors.textPrimary};
+  color: ${({ theme }) => theme.colors.primary};
   font-size: ${({ theme }) => theme.fontSizes.xxlarge};
   margin-bottom: ${({ theme }) => theme.spacing.large};
   text-align: center;
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${({ theme }) => theme.spacing.medium};
+  gap: ${({ theme }) => theme.spacing.large};
 `;
 
 const InputWrapper = styled.div`
@@ -33,26 +40,32 @@ const InputWrapper = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: ${({ theme }) => theme.spacing.medium};
-  padding-left: ${({ theme }) => theme.spacing.xlarge};
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
+  padding: ${({ theme }) => theme.spacing.medium} ${({ theme }) => theme.spacing.xlarge};
+  border: 2px solid ${({ theme }) => theme.colors.borderColor};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   font-size: ${({ theme }) => theme.fontSizes.medium};
   transition: ${({ theme }) => theme.transitions.fast};
+  background-color: ${({ theme }) => theme.colors.background};
+  color: ${({ theme }) => theme.colors.textPrimary};
 
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}33;
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}33;
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textSecondary};
   }
 `;
 
 const InputIcon = styled.span`
   position: absolute;
-  left: ${({ theme }) => theme.spacing.small};
+  left: ${({ theme }) => theme.spacing.medium};
   top: 50%;
   transform: translateY(-50%);
-  color: ${({ theme }) => theme.colors.textSecondary};
+  color: ${({ theme }) => theme.colors.primary};
+  font-size: ${({ theme }) => theme.fontSizes.large};
 `;
 
 const Button = styled.button`
@@ -62,17 +75,29 @@ const Button = styled.button`
   border: none;
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   font-size: ${({ theme }) => theme.fontSizes.medium};
-  font-weight: ${({ theme }) => theme.fontWeights.semibold};
+  font-weight: ${({ theme }) => theme.fontWeights.bold};
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.small};
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondary};
+    transform: translateY(-2px);
+    box-shadow: ${({ theme }) => theme.boxShadow.medium};
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
     background-color: ${({ theme }) => theme.colors.textSecondary};
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 `;
 
@@ -81,12 +106,47 @@ const ErrorMessage = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.small};
   margin-top: ${({ theme }) => theme.spacing.small};
   text-align: center;
+  background-color: ${({ theme }) => theme.colors.errorLight};
+  padding: ${({ theme }) => theme.spacing.small};
+  border-radius: ${({ theme }) => theme.borderRadius.small};
 `;
 
 const RememberMeWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.small};
+`;
+
+const Checkbox = styled.input`
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid ${({ theme }) => theme.colors.borderColor};
+  border-radius: ${({ theme }) => theme.borderRadius.small};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+
+  &:checked {
+    background-color: ${({ theme }) => theme.colors.primary};
+    border-color: ${({ theme }) => theme.colors.primary};
+    position: relative;
+    
+    &::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: ${({ theme }) => theme.colors.surfaceLight};
+      font-size: 12px;
+    }
+  }
+`;
+
+const CheckboxLabel = styled.label`
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  color: ${({ theme }) => theme.colors.textSecondary};
+  cursor: pointer;
 `;
 
 const LinkWrapper = styled.div`
@@ -98,9 +158,11 @@ const LinkWrapper = styled.div`
 const StyledLink = styled(Link)`
   color: ${({ theme }) => theme.colors.primary};
   text-decoration: none;
-  font-size: ${({ theme }) => theme.fontSizes.medium};
+  font-size: ${({ theme }) => theme.fontSizes.small};
+  transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover {
+    color: ${({ theme }) => theme.colors.secondary};
     text-decoration: underline;
   }
 `;
@@ -113,7 +175,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth(); // Use the login function from AuthContext
+  const { login } = useAuth();
 
   const { email, password, rememberMe } = formData;
 
@@ -130,12 +192,10 @@ const Login = () => {
     e.preventDefault();
     setError('');
     try {
-      // Use axios to query the JSON server
       const res = await axios.get(`http://localhost:3001/users?email=${email}&password=${password}`);
       
       if (res.data.length > 0) {
         const user = res.data[0];
-        // Call the login function from AuthContext
         login(user.id);
         if (rememberMe) {
           localStorage.setItem('rememberMe', email);
@@ -179,16 +239,19 @@ const Login = () => {
           />
         </InputWrapper>
         <RememberMeWrapper>
-          <input
+          <Checkbox
             type="checkbox"
             id="rememberMe"
             name="rememberMe"
             checked={rememberMe}
             onChange={onChange}
           />
-          <label htmlFor="rememberMe">Remember me</label>
+          <CheckboxLabel htmlFor="rememberMe">Remember me</CheckboxLabel>
         </RememberMeWrapper>
-        <Button type="submit" disabled={!validateForm()}>Login</Button>
+        <Button type="submit" disabled={!validateForm()}>
+          <FaSignInAlt />
+          Login
+        </Button>
       </Form>
       {error && <ErrorMessage>{error}</ErrorMessage>}
       <LinkWrapper>

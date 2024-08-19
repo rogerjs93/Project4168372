@@ -1,6 +1,6 @@
 // src/components/Header.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes, FaSun, FaMoon } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
@@ -45,23 +45,23 @@ const Nav = styled.nav`
   margin: 0 auto;
 `;
 
-const LeftSection = styled.div`
+const Section = styled.div`
   display: flex;
   align-items: center;
+`;
+
+const LeftSection = styled(Section)`
   width: 390px;
 `;
 
-const CenterSection = styled.div`
-  display: flex;
+const CenterSection = styled(Section)`
   justify-content: center;
   flex-grow: 1;
 `;
 
-const RightSection = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+const RightSection = styled(Section)`
   width: 240px;
+  justify-content: flex-end;
   position: relative;
 `;
 
@@ -120,22 +120,33 @@ const SearchIcon = styled(FaSearch)`
   }
 `;
 
-const NavIcon = styled(Link)`
+const NavMenu = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.medium};
+`;
+
+const NavItem = styled(Link)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   color: ${({ theme, active }) => active ? theme.colors.primary : theme.colors.textSecondary};
-  font-size: 1.5rem;
-  padding: ${({ theme }) => theme.spacing.medium};
-  margin: 0 ${({ theme }) => theme.spacing.small};
-  border-radius: 8px;
+  text-decoration: none;
+  font-size: ${({ theme }) => theme.fontSizes.small};
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.primary};
     transform: translateY(-2px);
   }
+`;
 
-  &:active {
-    transform: translateY(0);
-  }
+const NavIcon = styled.div`
+  font-size: 1.5rem;
+  margin-bottom: ${({ theme }) => theme.spacing.tiny};
+`;
+
+const NavText = styled.span`
+  font-weight: ${({ theme }) => theme.fontWeights.medium};
 `;
 
 const IconButton = styled.button`
@@ -316,10 +327,10 @@ export const Header = () => {
   }, [notifications]);
 
   const navItems = useMemo(() => [
-    { path: '/', icon: <FaHome />, ariaLabel: 'Home' },
-    { path: '/games', icon: <FaGamepad />, ariaLabel: 'Games' },
-    { path: '/community', icon: <FaUsers />, ariaLabel: 'Community' },
-    { path: '/dashboard', icon: <FaChartBar />, ariaLabel: 'Dashboard' },
+    { path: '/', icon: <FaHome />, label: 'Home', ariaLabel: 'Home' },
+    { path: '/games', icon: <FaGamepad />, label: 'Games', ariaLabel: 'Games' },
+    { path: '/community', icon: <FaUsers />, label: 'Community', ariaLabel: 'Community' },
+    { path: '/dashboard', icon: <FaChartBar />, label: 'Dashboard', ariaLabel: 'Dashboard' },
   ], []);
 
   return (
@@ -342,11 +353,14 @@ export const Header = () => {
           </SearchBar>
         </LeftSection>
         <CenterSection>
-          {navItems.map(({ path, icon, ariaLabel }) => (
-            <NavIcon key={path} to={path} active={location.pathname === path} aria-label={ariaLabel}>
-              {icon}
-            </NavIcon>
-          ))}
+          <NavMenu>
+            {navItems.map(({ path, icon, label, ariaLabel }) => (
+              <NavItem key={path} to={path} active={location.pathname === path} aria-label={ariaLabel}>
+                <NavIcon>{icon}</NavIcon>
+                <NavText>{label}</NavText>
+              </NavItem>
+            ))}
+          </NavMenu>
         </CenterSection>
         <RightSection>
           <IconButton onClick={toggleTheme} aria-label="Toggle theme">
