@@ -1,6 +1,6 @@
 // src/components/Header.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes, FaSun, FaMoon } from 'react-icons/fa';
 import { useAuth } from '../hooks/useAuth';
@@ -11,6 +11,16 @@ import NotificationCenter from './NotificationCenter';
 import useDebounce from '../hooks/useDebounce';
 import logoImage from '../assets/logohead.png';
 
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+const slideDown = keyframes`
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+`;
+
 const HeaderWrapper = styled.header`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
@@ -20,6 +30,11 @@ const HeaderWrapper = styled.header`
   left: 0;
   right: 0;
   z-index: 1000;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: ${({ theme }) => theme.boxShadow.large};
+  }
 `;
 
 const Nav = styled.nav`
@@ -55,6 +70,11 @@ const LogoLink = styled(Link)`
   align-items: center;
   text-decoration: none;
   margin-right: ${({ theme }) => theme.spacing.medium};
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 `;
 
 const LogoImage = styled.img`
@@ -69,6 +89,12 @@ const SearchBar = styled.div`
   border-radius: 20px;
   padding: ${({ theme }) => theme.spacing.small};
   width: 240px;
+  transition: all 0.3s ease;
+
+  &:focus-within {
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary};
+    width: 280px;
+  }
 `;
 
 const SearchInput = styled.input`
@@ -87,6 +113,11 @@ const SearchInput = styled.input`
 const SearchIcon = styled(FaSearch)`
   color: ${({ theme }) => theme.colors.textSecondary};
   margin-right: ${({ theme }) => theme.spacing.small};
+  transition: color 0.2s ease;
+
+  ${SearchBar}:focus-within & {
+    color: ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const NavIcon = styled(Link)`
@@ -95,10 +126,15 @@ const NavIcon = styled(Link)`
   padding: ${({ theme }) => theme.spacing.medium};
   margin: 0 ${({ theme }) => theme.spacing.small};
   border-radius: 8px;
-  transition: ${({ theme }) => theme.transitions.fast};
+  transition: all 0.2s ease;
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.background};
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
@@ -110,18 +146,29 @@ const IconButton = styled.button`
   cursor: pointer;
   padding: ${({ theme }) => theme.spacing.small};
   position: relative;
-  transition: ${({ theme }) => theme.transitions.fast};
+  transition: all 0.2s ease;
   border-radius: 50%;
   background-color: ${({ theme }) => theme.colors.background};
   margin-left: ${({ theme }) => theme.spacing.small};
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.borderColor};
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(1);
   }
 `;
 
 const NotificationButton = styled(IconButton)`
   position: relative;
+`;
+
+const pulseAnimation = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
 `;
 
 const NotificationCount = styled.span`
@@ -135,6 +182,7 @@ const NotificationCount = styled.span`
   padding: 2px 5px;
   border-radius: 10px;
   transform: translate(50%, -50%);
+  animation: ${pulseAnimation} 2s infinite;
 `;
 
 const UserMenuDropdown = styled.div`
@@ -147,6 +195,7 @@ const UserMenuDropdown = styled.div`
   padding: ${({ theme }) => theme.spacing.medium};
   min-width: 200px;
   z-index: 1100;
+  animation: ${slideDown} 0.3s ease-out;
 `;
 
 const UserMenuLink = styled(Link)`
@@ -154,10 +203,11 @@ const UserMenuLink = styled(Link)`
   color: ${({ theme }) => theme.colors.textPrimary};
   text-decoration: none;
   padding: ${({ theme }) => theme.spacing.small};
-  transition: ${({ theme }) => theme.transitions.fast};
+  transition: all 0.2s ease;
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.background};
+    transform: translateX(5px);
   }
 `;
 
@@ -177,6 +227,7 @@ const NotificationCenterModal = styled.div`
   width: 100%;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+  animation: ${fadeIn} 0.3s ease-out;
 
   @media (max-width: ${({ theme }) => theme.breakpoints.large}) {
     right: 20px;
@@ -192,6 +243,12 @@ const CloseButton = styled.button`
   font-size: 1.2rem;
   cursor: pointer;
   color: ${({ theme }) => theme.colors.textSecondary};
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+    transform: rotate(90deg);
+  }
 `;
 
 export const Header = () => {
