@@ -7,6 +7,7 @@ import GamesSection from './ProfileComponents/GamesSection';
 import ActivityFeed from './ProfileComponents/ActivityFeed';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
+import Skeleton from './SkeletonLoader';
 
 const ProfileWrapper = styled.div`
   max-width: 1000px;
@@ -29,6 +30,10 @@ const SectionTitle = styled.h2`
   font-size: ${({ theme }) => theme.fontSizes.xlarge};
   color: ${({ theme }) => theme.colors.textPrimary};
   margin-bottom: ${({ theme }) => theme.spacing.medium};
+`;
+
+const SkeletonSection = styled(Section)`
+  height: 200px;
 `;
 
 const Profile = () => {
@@ -79,7 +84,35 @@ const Profile = () => {
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  const renderSkeletonProfile = () => (
+    <ProfileWrapper>
+      <SkeletonSection>
+        <Skeleton.Rect height="200px" />
+      </SkeletonSection>
+      <ProfileContent>
+        <SkeletonSection>
+          <SectionTitle>Skills</SectionTitle>
+          <Skeleton.Line height="20px" width="100%" />
+          <Skeleton.Line height="20px" width="80%" />
+          <Skeleton.Line height="20px" width="60%" />
+        </SkeletonSection>
+        <SkeletonSection>
+          <SectionTitle>Top Games</SectionTitle>
+          <Skeleton.Rect height="100px" />
+          <Skeleton.Line height="20px" width="60%" />
+          <Skeleton.Line height="16px" width="40%" />
+        </SkeletonSection>
+        <SkeletonSection>
+          <SectionTitle>Recent Activity</SectionTitle>
+          <Skeleton.Line height="16px" width="100%" />
+          <Skeleton.Line height="16px" width="80%" />
+          <Skeleton.Line height="16px" width="90%" />
+        </SkeletonSection>
+      </ProfileContent>
+    </ProfileWrapper>
+  );
+
+  if (loading) return renderSkeletonProfile();
   if (error) return <ErrorMessage message={error} />;
   if (!profile) return <ErrorMessage message="Profile not found." />;
 

@@ -6,12 +6,13 @@ import { useAuth } from '../hooks/useAuth';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import InfiniteLoader from 'react-window-infinite-loader';
+import Skeleton from './SkeletonLoader';
 
 const FeedWrapper = styled.div`
   max-width: 600px;
   margin: 0 auto;
   padding: ${({ theme }) => theme.spacing.medium};
-  height: calc(100vh - 100px); // Adjust based on your layout
+  height: calc(100vh - 100px);
   display: flex;
   flex-direction: column;
 `;
@@ -30,7 +31,7 @@ const Post = styled.div`
 `;
 
 const PostAuthor = styled.h3`
-  margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
+  margin: 0 0 ${({ theme }) => theme.spacing.small};
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.fontSizes.large};
 `;
@@ -146,21 +147,23 @@ const FeedListWrapper = styled.div`
   flex-grow: 1;
   position: relative;
 
-  /* Hide scrollbars */
   .scrollable-container {
     overflow: hidden !important;
   }
 
-  /* Custom scrollbar style */
   .scrollable-content {
     overflow-y: scroll !important;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
-    &::-webkit-scrollbar { /* WebKit */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    &::-webkit-scrollbar {
       width: 0;
       height: 0;
     }
   }
+`;
+
+const SkeletonPost = styled(Post)`
+  height: 200px;
 `;
 
 const NewsFeed = () => {
@@ -169,7 +172,6 @@ const NewsFeed = () => {
   const [error, setError] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const { user } = useAuth();
-
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const ITEMS_PER_PAGE = 10;
@@ -180,7 +182,6 @@ const NewsFeed = () => {
     setLoading(true);
     setError('');
     try {
-      // NOTE: This is using mock data. Replace with actual API call when connecting to a real server
       const response = await axios.get(`http://localhost:3001/posts`, {
         params: {
           _page: page,
@@ -239,9 +240,18 @@ const NewsFeed = () => {
     }
   };
 
+  const renderSkeletonPost = () => (
+    <SkeletonPost>
+      <Skeleton.Line height="24px" width="40%" />
+      <Skeleton.Line height="16px" width="100%" />
+      <Skeleton.Line height="16px" width="100%" />
+      <Skeleton.Line height="16px" width="80%" />
+    </SkeletonPost>
+  );
+
   const MemoizedPost = useMemo(() => React.memo(({ post }) => {
-    if (!post) return null; // Return null if post is undefined
-  
+    if (!post) return renderSkeletonPost();
+
     return (
       <Post>
         <PostAuthor>{post.userId}</PostAuthor>
@@ -268,7 +278,7 @@ const NewsFeed = () => {
       </Post>
     );
   }), [handleLike]);
-  
+
   const Row = ({ index, style }) => {
     const post = posts[index];
     return (
@@ -314,13 +324,17 @@ const NewsFeed = () => {
                   ref={ref}
                   height={height}
                   itemCount={itemCount}
-                  itemSize={300} // Adjust this value based on your average post height
+                  itemSize={300}
                   width={width}
                   onItemsRendered={onItemsRendered}
                   className="scrollable-content"
                   style={{ overflowX: 'hidden' }}
                 >
-                  {Row}
+                  {({ index, style }) => (
+                    <div style={style}>
+                      {isItemLoaded(index) ? <MemoizedPost post={posts[index]} /> : renderSkeletonPost()}
+                    </div>
+                  )}
                 </List>
               )}
             </InfiniteLoader>

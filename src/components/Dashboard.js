@@ -9,6 +9,7 @@ import GameList from './GameList';
 import CreateGame from './CreateGame';
 import ErrorBoundary from './ErrorBoundary';
 import { useAuth } from '../hooks/useAuth';
+import Skeleton from './SkeletonLoader';
 
 const DashboardContainer = styled.div`
   display: grid;
@@ -117,6 +118,13 @@ const PaginationControls = styled.div`
   margin-top: ${({ theme }) => theme.spacing.medium};
 `;
 
+const SkeletonCard = styled.div`
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  padding: ${({ theme }) => theme.spacing.medium};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
+`;
+
 const useFetch = (url) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -196,7 +204,44 @@ const Dashboard = () => {
     }
   }, [posts]);
 
-  if (userLoading || postsLoading || gamesLoading) return <LoadingSpinner />;
+  const renderSkeletonDashboard = () => (
+    <DashboardContainer>
+      <Section>
+        <SkeletonCard>
+          <Skeleton.Circle size="80px" />
+          <Skeleton.Line height="20px" width="60%" />
+          <Skeleton.Line height="16px" width="40%" />
+        </SkeletonCard>
+        <SkeletonCard>
+          <Skeleton.Line height="24px" width="80%" />
+          <Skeleton.Line height="16px" width="100%" />
+          <Skeleton.Line height="16px" width="100%" />
+        </SkeletonCard>
+      </Section>
+      <Section>
+        <SectionTitle>Social Feed</SectionTitle>
+        {[1, 2, 3].map((_, index) => (
+          <SkeletonCard key={index}>
+            <Skeleton.Line height="20px" width="40%" />
+            <Skeleton.Line height="16px" width="100%" />
+            <Skeleton.Line height="16px" width="80%" />
+          </SkeletonCard>
+        ))}
+      </Section>
+      <Section>
+        <SectionTitle>My Games</SectionTitle>
+        {[1, 2, 3].map((_, index) => (
+          <SkeletonCard key={index}>
+            <Skeleton.Rect height="100px" />
+            <Skeleton.Line height="20px" width="60%" />
+            <Skeleton.Line height="16px" width="40%" />
+          </SkeletonCard>
+        ))}
+      </Section>
+    </DashboardContainer>
+  );
+
+  if (userLoading || postsLoading || gamesLoading) return renderSkeletonDashboard();
   if (userError || postsError || gamesError) return <ErrorMessage>Error loading dashboard data. Please try again later.</ErrorMessage>;
 
   const paginatedPosts = posts.slice((postPage - 1) * postsPerPage, postPage * postsPerPage);

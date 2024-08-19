@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Card } from './Card';
+import Skeleton from './SkeletonLoader';
 
 const GameGrid = styled.div`
   display: grid;
@@ -17,7 +18,26 @@ const GameCard = styled(Card)`
   }
 `;
 
-const GameList = ({ games }) => {
+const SkeletonGameCard = styled(Card)`
+  height: 200px;
+`;
+
+const GameList = ({ games, loading }) => {
+  if (loading) {
+    return (
+      <GameGrid>
+        {[1, 2, 3, 4, 5, 6].map((_, index) => (
+          <SkeletonGameCard key={index}>
+            <Skeleton.Rect height="100px" />
+            <Skeleton.Line height="20px" width="60%" />
+            <Skeleton.Line height="16px" width="40%" />
+            <Skeleton.Line height="16px" width="30%" />
+          </SkeletonGameCard>
+        ))}
+      </GameGrid>
+    );
+  }
+
   return (
     <GameGrid>
       {games.map(game => (
