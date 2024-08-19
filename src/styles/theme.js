@@ -18,32 +18,32 @@ const createTheme = (baseTheme) => ({
 
 export const lightTheme = createTheme({
   colors: {
-    primary: '#6200EA',
-    primaryLight: '#9D46FF',
-    primaryDark: '#3700B3',
-    secondary: '#03DAC6',
-    secondaryLight: '#66FFF8',
-    secondaryDark: '#018786',
-    accent: '#FF6B6B',
-    background: '#F4F5FA',
+    primary: '#4A148C', // Deep Purple
+    primaryLight: '#7C43BD',
+    primaryDark: '#12005E',
+    secondary: '#00BFA5', // Teal
+    secondaryLight: '#5DF2D6',
+    secondaryDark: '#008E76',
+    accent: '#FF4081', // Pink
+    background: '#F5F5F5',
     surfaceLight: '#FFFFFF',
     surfaceDark: '#2C2F33',
-    textPrimary: '#333333',
+    textPrimary: '#212121',
     textSecondary: '#757575',
     textOnPrimary: '#FFFFFF',
     textOnSecondary: '#000000',
     borderColor: '#E0E0E0',
     link: '#3700B3',
-    linkHover: '#6200EA',
+    linkHover: '#4A148C',
     success: '#00C853',
     successLight: '#69F0AE',
     warning: '#FFD600',
     warningLight: '#FFE57F',
-    error: '#B00020',
+    error: '#D50000',
     errorLight: '#FF8A80',
     lightGrey: '#F5F5F5',
     darkGrey: '#424242',
-    gradient: 'linear-gradient(45deg, #6200EA, #03DAC6)',
+    gradient: 'linear-gradient(45deg, #4A148C, #00BFA5)',
   },
   fonts: {
     main: "'Roboto', 'Segoe UI', 'Helvetica Neue', sans-serif",
@@ -118,10 +118,10 @@ export const darkTheme = createTheme({
   ...lightTheme,
   colors: {
     ...lightTheme.colors,
-    primary: '#BB86FC',
-    primaryLight: lighten(0.1, '#BB86FC'),
-    primaryDark: darken(0.1, '#BB86FC'),
-    secondary: '#03DAC6',
+    primary: '#B39DDB', // Light Purple
+    primaryLight: lighten(0.1, '#B39DDB'),
+    primaryDark: darken(0.1, '#B39DDB'),
+    secondary: '#4DB6AC', // Light Teal
     background: '#121212',
     surfaceLight: '#1E1E1E',
     surfaceDark: '#2C2F33',

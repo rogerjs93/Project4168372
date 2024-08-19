@@ -46,8 +46,15 @@ export const GlobalStyles = createGlobalStyle`
   :root {
     /* CSS Custom Properties for easy theme switching */
     --color-primary: ${({ theme }) => theme.colors.primary};
+    --color-primary-light: ${({ theme }) => theme.colors.primaryLight};
+    --color-primary-dark: ${({ theme }) => theme.colors.primaryDark};
     --color-secondary: ${({ theme }) => theme.colors.secondary};
+    --color-secondary-light: ${({ theme }) => theme.colors.secondaryLight};
+    --color-secondary-dark: ${({ theme }) => theme.colors.secondaryDark};
+    --color-accent: ${({ theme }) => theme.colors.accent};
     --color-background: ${({ theme }) => theme.colors.background};
+    --color-surface-light: ${({ theme }) => theme.colors.surfaceLight};
+    --color-surface-dark: ${({ theme }) => theme.colors.surfaceDark};
     --color-text-primary: ${({ theme }) => theme.colors.textPrimary};
     --color-text-secondary: ${({ theme }) => theme.colors.textSecondary};
     --color-border: ${({ theme }) => theme.colors.borderColor};
@@ -115,7 +122,7 @@ export const GlobalStyles = createGlobalStyle`
     transition: ${({ theme }) => theme.transitions.fast};
 
     &:hover {
-      color: var(--color-secondary);
+      color: var(--color-primary-dark);
     }
   }
 
@@ -128,10 +135,16 @@ export const GlobalStyles = createGlobalStyle`
     border: none;
     border-radius: ${({ theme }) => theme.borderRadius.medium};
     padding: ${({ theme }) => `${theme.spacing.small} ${theme.spacing.medium}`};
+    background-color: var(--color-primary);
+    color: var(--color-surface-light);
+
+    &:hover {
+      background-color: var(--color-primary-dark);
+    }
 
     &:focus {
       outline: none;
-      box-shadow: 0 0 0 2px var(--color-primary);
+      box-shadow: 0 0 0 2px var(--color-primary-light);
     }
 
     &:disabled {
@@ -148,11 +161,12 @@ export const GlobalStyles = createGlobalStyle`
     border-radius: ${({ theme }) => theme.borderRadius.medium};
     padding: ${({ theme }) => theme.spacing.small};
     transition: ${({ theme }) => theme.transitions.fast};
+    background-color: var(--color-surface-light);
 
     &:focus {
       outline: none;
       border-color: var(--color-primary);
-      box-shadow: 0 0 0 2px var(--color-primary);
+      box-shadow: 0 0 0 2px var(--color-primary-light);
     }
 
     &::placeholder {
@@ -218,7 +232,7 @@ export const GlobalStyles = createGlobalStyle`
     top: -40px;
     left: 0;
     background: var(--color-primary);
-    color: var(--color-text-on-primary);
+    color: var(--color-surface-light);
     padding: 8px;
     z-index: 100;
     
@@ -243,7 +257,7 @@ export const GlobalStyles = createGlobalStyle`
     }
   }
 
-  /* Responsive design */
+/* Responsive design */
   @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
     html {
       font-size: 56.25%; // This makes 1rem = 9px on tablets
@@ -266,4 +280,130 @@ export const GlobalStyles = createGlobalStyle`
       background: transparent; /* Chrome/Safari/Webkit */
     }
   }
+
+  /* Custom scrollbar for browsers that support it */
+  @media screen and (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--color-background);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-primary);
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-primary-dark);
+    }
+  }
+
+  /* Additional utility classes */
+  .text-center {
+    text-align: center;
+  }
+
+  .text-left {
+    text-align: left;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .flex {
+    display: flex;
+  }
+
+  .flex-column {
+    flex-direction: column;
+  }
+
+  .items-center {
+    align-items: center;
+  }
+
+  .justify-center {
+    justify-content: center;
+  }
+
+  .justify-between {
+    justify-content: space-between;
+  }
+
+  .w-full {
+    width: 100%;
+  }
+
+  .h-full {
+    height: 100%;
+  }
+
+  /* Color utility classes */
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+
+  .bg-secondary {
+    background-color: var(--color-secondary);
+  }
+
+  .text-primary {
+    color: var(--color-primary);
+  }
+
+  .text-secondary {
+    color: var(--color-secondary);
+  }
+
+  /* Spacing utility classes */
+  .m-0 { margin: 0; }
+  .m-1 { margin: ${({ theme }) => theme.spacing.tiny}; }
+  .m-2 { margin: ${({ theme }) => theme.spacing.small}; }
+  .m-3 { margin: ${({ theme }) => theme.spacing.medium}; }
+  .m-4 { margin: ${({ theme }) => theme.spacing.large}; }
+
+  .mt-0 { margin-top: 0; }
+  .mt-1 { margin-top: ${({ theme }) => theme.spacing.tiny}; }
+  .mt-2 { margin-top: ${({ theme }) => theme.spacing.small}; }
+  .mt-3 { margin-top: ${({ theme }) => theme.spacing.medium}; }
+  .mt-4 { margin-top: ${({ theme }) => theme.spacing.large}; }
+
+  .mb-0 { margin-bottom: 0; }
+  .mb-1 { margin-bottom: ${({ theme }) => theme.spacing.tiny}; }
+  .mb-2 { margin-bottom: ${({ theme }) => theme.spacing.small}; }
+  .mb-3 { margin-bottom: ${({ theme }) => theme.spacing.medium}; }
+  .mb-4 { margin-bottom: ${({ theme }) => theme.spacing.large}; }
+
+  .p-0 { padding: 0; }
+  .p-1 { padding: ${({ theme }) => theme.spacing.tiny}; }
+  .p-2 { padding: ${({ theme }) => theme.spacing.small}; }
+  .p-3 { padding: ${({ theme }) => theme.spacing.medium}; }
+  .p-4 { padding: ${({ theme }) => theme.spacing.large}; }
+
+  /* Responsive hide/show classes */
+  .hide-on-mobile {
+    @media (max-width: ${({ theme }) => theme.breakpoints.mobile}) {
+      display: none !important;
+    }
+  }
+
+  .hide-on-tablet {
+    @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
+      display: none !important;
+    }
+  }
+
+  .show-on-desktop {
+    @media (max-width: ${({ theme }) => theme.breakpoints.desktop}) {
+      display: none !important;
+    }
+  }
+
+  /* Add more utility classes as needed for your project */
 `;
+
+export default GlobalStyles;
