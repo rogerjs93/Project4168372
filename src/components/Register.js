@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { FaUser, FaEnvelope, FaLock, FaUserPlus } from 'react-icons/fa';
+import { useToast } from '../components/ToastProvider';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -144,9 +145,10 @@ const Register = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const addToast = useToast();
+  const navigate = useNavigate();
 
   const { username, email, password, password2 } = formData;
-  const navigate = useNavigate();
 
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -154,12 +156,14 @@ const Register = () => {
     e.preventDefault();
     if (password !== password2) {
       setError('Passwords do not match');
+      addToast('error', 'Passwords do not match');
     } else {
       try {
         // Check if user already exists
         const checkUser = await axios.get(`http://localhost:3001/users?email=${email}`);
         if (checkUser.data.length > 0) {
           setError('User already exists');
+          addToast('error', 'User already exists');
           return;
         }
 
@@ -176,13 +180,16 @@ const Register = () => {
           localStorage.setItem('userId', res.data.id);
           setSuccess(true);
           setError('');
+          addToast('success', 'Registration successful!');
           setTimeout(() => navigate('/dashboard'), 2000);
         } else {
           setError('Registration failed');
+          addToast('error', 'Registration failed');
         }
       } catch (err) {
         console.error('Registration error:', err);
         setError(err.message || 'An error occurred during registration');
+        addToast('error', err.message || 'An error occurred during registration');
       }
     }
   };

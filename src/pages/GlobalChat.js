@@ -4,6 +4,7 @@ import { FaComments, FaPaperPlane, FaExclamationCircle, FaSpinner, FaSmile, FaIm
 import axios from 'axios';
 import { useAuth } from '../hooks/useAuth';
 import EmojiPicker from 'emoji-picker-react';
+import { useToast } from '../hooks/useToast';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(10px); }
@@ -173,6 +174,7 @@ const GlobalChat = () => {
   const chatBoxRef = useRef(null);
   const emojiPickerRef = useRef(null);
   const { user } = useAuth();
+  const addToast = useToast();
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -183,10 +185,11 @@ const GlobalChat = () => {
     } catch (err) {
       console.error('Error fetching messages:', err);
       setError('Failed to load messages. Please try again.');
+      addToast('error', 'Failed to load messages. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addToast]);
 
   useEffect(() => {
     fetchMessages();
@@ -228,13 +231,15 @@ const GlobalChat = () => {
       setMessages(prevMessages => [...prevMessages, messageToSend]);
       setNewMessage('');
       setError('');
+      addToast('success', 'Message sent successfully!');
     } catch (err) {
       console.error('Error sending message:', err);
       setError('Failed to send message. Please try again.');
+      addToast('error', 'Failed to send message. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  }, [newMessage, user.username]);
+  }, [newMessage, user.username, addToast]);
 
   const formatTimestamp = useMemo(() => (timestamp) => {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

@@ -11,6 +11,8 @@ import ErrorBoundary from './ErrorBoundary';
 import { useAuth } from '../hooks/useAuth';
 import Skeleton from './SkeletonLoader';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -20,14 +22,16 @@ const fadeIn = keyframes`
 const DashboardContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: ${({ theme }) => theme.spacing.large};
-  padding: ${({ theme }) => theme.spacing.medium};
+  gap: ${({ theme }) => theme.spacing.medium};
+  padding: ${({ theme }) => theme.spacing.small};
   max-width: 1200px;
   margin: 0 auto;
   animation: ${fadeIn} 0.5s ease-out;
 
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: ${({ theme }) => theme.spacing.large};
+    padding: ${({ theme }) => theme.spacing.medium};
   }
 
   @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
@@ -173,24 +177,37 @@ const ScrollableSection = styled.div`
 const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: ${({ theme }) => theme.spacing.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  gap: ${({ theme }) => theme.spacing.small};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    gap: ${({ theme }) => theme.spacing.medium};
+    margin-bottom: ${({ theme }) => theme.spacing.large};
+  }
 `;
 
 const StatCard = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
-  padding: ${({ theme }) => theme.spacing.medium};
+  padding: ${({ theme }) => theme.spacing.small};
   text-align: center;
   box-shadow: ${({ theme }) => theme.boxShadow.small};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.medium};
+  }
 `;
 
 const StatValue = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.large};
+  font-size: ${({ theme }) => theme.fontSizes.medium};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   color: ${({ theme }) => theme.colors.primary};
 
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: ${({ theme }) => theme.fontSizes.large};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
     font-size: ${({ theme }) => theme.fontSizes.xlarge};
   }
 `;
@@ -201,10 +218,15 @@ const StatLabel = styled.div`
 `;
 
 const ChartContainer = styled.div`
-  height: 250px;
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  height: 200px;
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
 
   @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    height: 250px;
+    margin-bottom: ${({ theme }) => theme.spacing.large};
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
     height: 300px;
   }
 `;
@@ -275,8 +297,10 @@ const Dashboard = () => {
       });
       setGames(prevGames => [...prevGames, response.data]);
       setShowCreateGame(false);
+      toast.success('Game created successfully!');
     } catch (error) {
       console.error('Error creating game:', error);
+      toast.error('Failed to create game. Please try again.');
     }
   }, [user]);
 
@@ -286,8 +310,10 @@ const Dashboard = () => {
       updatedPost.likes += 1;
       await axios.put(`http://localhost:3001/posts/${postId}`, updatedPost);
       setPosts(prevPosts => prevPosts.map(post => post.id === postId ? updatedPost : post));
+      toast.success('Post liked!');
     } catch (error) {
       console.error('Error liking post:', error);
+      toast.error('Failed to like post. Please try again.');
     }
   }, [posts]);
 
@@ -398,6 +424,7 @@ const Dashboard = () => {
           </Modal>
         )}
       </DashboardContainer>
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </ErrorBoundary>
   );
 };

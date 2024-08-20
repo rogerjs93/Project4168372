@@ -9,6 +9,7 @@ import useDebounce from '../hooks/useDebounce';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import InfiniteLoader from 'react-window-infinite-loader';
+import { useToast } from '../hooks/useToast';
 
 const GamesWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
@@ -142,6 +143,7 @@ const Games = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const pageRef = useRef(1);
+  const addToast = useToast();
 
   const ITEMS_PER_PAGE = 20;
 
@@ -171,17 +173,18 @@ const Games = () => {
     } catch (err) {
       console.error('Error fetching games:', err);
       setError('Failed to load games. Please try again later.');
+      addToast('error', 'Failed to load games. Please try again later.');
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchTerm, filter, hasNextPage, sortOrder]);
+  }, [debouncedSearchTerm, filter, hasNextPage, sortOrder, addToast]);
 
   useEffect(() => {
     setGames([]);
     pageRef.current = 1;
     setHasNextPage(true);
     fetchGames();
-  }, [debouncedSearchTerm, filter, sortOrder]);
+  }, [debouncedSearchTerm, filter, sortOrder, fetchGames]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

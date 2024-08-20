@@ -5,6 +5,7 @@ import axios from 'axios';
 import { FixedSizeList as List } from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import AutoSizer from 'react-virtualized-auto-sizer';
+import { useToast } from '../hooks/useToast';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -163,6 +164,7 @@ const Community = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const addToast = useToast();
 
   const ITEMS_PER_PAGE = 20;
 
@@ -235,17 +237,18 @@ const Community = () => {
     } catch (error) {
       console.error('Error fetching forums:', error);
       setError('Failed to load forums. Please try again later.');
+      addToast('error', 'Failed to load forums. Please try again later.');
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, category, sortBy, sortOrder, page, hasNextPage]);
+  }, [searchTerm, category, sortBy, sortOrder, page, hasNextPage, addToast]);
 
   useEffect(() => {
     setForums([]);
     setPage(1);
     setHasNextPage(true);
     fetchForums();
-  }, [searchTerm, category, sortBy, sortOrder]);
+  }, [searchTerm, category, sortBy, sortOrder, fetchForums]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);

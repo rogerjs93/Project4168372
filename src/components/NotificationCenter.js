@@ -6,6 +6,7 @@ import { FaBell, FaCheckCircle, FaUserPlus, FaTrophy, FaCheck, FaRegBell, FaSync
 import { FixedSizeList as List } from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import AutoSizer from 'react-virtualized-auto-sizer';
+import { useToast } from '../hooks/useToast';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(10px); }
@@ -174,6 +175,7 @@ const NotificationCenter = () => {
   const { user } = useAuth();
   const [hasNextPage, setHasNextPage] = useState(true);
   const [page, setPage] = useState(1);
+  const addToast = useToast();
 
   const ITEMS_PER_PAGE = 20;
 
@@ -201,10 +203,11 @@ const NotificationCenter = () => {
     } catch (error) {
       console.error('Error fetching notifications:', error);
       setError('Failed to load notifications. Please try again.');
+      addToast('error', 'Failed to load notifications. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [user.id, page, hasNextPage]);
+  }, [user.id, page, hasNextPage, addToast]);
 
   useEffect(() => {
     fetchNotifications();
@@ -217,8 +220,10 @@ const NotificationCenter = () => {
       setNotifications(notifications.map(notification => 
         notification.id === notificationId ? { ...notification, isRead: true } : notification
       ));
+      addToast('success', 'Notification marked as read');
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      addToast('error', 'Failed to mark notification as read. Please try again.');
     }
   };
 
@@ -231,8 +236,10 @@ const NotificationCenter = () => {
           .map(n => axios.patch(`http://localhost:3001/notifications/${n.id}`, { isRead: true }))
       );
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      addToast('success', 'All notifications marked as read');
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      addToast('error', 'Failed to mark all notifications as read. Please try again.');
     }
   };
 

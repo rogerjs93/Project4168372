@@ -28,9 +28,15 @@ const Header = styled.h1`
 
 const ActionsBar = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 `;
 
 const CreateCollectibleButton = styled.button`
@@ -54,11 +60,15 @@ const CreateCollectibleButton = styled.button`
 
 const SearchBar = styled.div`
   display: flex;
-  align-items: center;
-  background-color: ${({ theme }) => theme.colors.surfaceLight};
-  border-radius: 20px;
-  padding: 8px 16px;
-  box-shadow: ${({ theme }) => theme.boxShadow.small};
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
 `;
 
 const SearchInput = styled.input`
@@ -85,19 +95,16 @@ const FilterSelect = styled.select`
 
 const CollectibleGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  overflow-y: auto;
-  max-height: calc(100vh - 200px);
-  
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  &::-webkit-scrollbar {
-    display: none;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(3, 1fr);
   }
 
-  /* Hide scrollbar for IE, Edge and Firefox */
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
+    grid-template-columns: repeat(5, 1fr);
+  }
 `;
 
 const CollectibleCard = styled.div`

@@ -11,6 +11,7 @@ import Skeleton from './SkeletonLoader';
 import { FaUser, FaGamepad, FaHistory, FaChartBar, FaTrophy, FaUsers, FaStar } from 'react-icons/fa';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useToast } from '../hooks/useToast';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -144,6 +145,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sectionOrder, setSectionOrder] = useState(['skills', 'stats', 'games', 'activity']);
+  const addToast = useToast();
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -156,24 +158,28 @@ const Profile = () => {
 
         setProfile(profileResponse.data);
         setGames(gamesResponse.data);
+        addToast('success', 'Profile data loaded successfully');
       } catch (error) {
         console.error('Error fetching profile data:', error);
         setError("Failed to load profile data. Please try again later.");
+        addToast('error', "Failed to load profile data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfileData();
-  }, []);
+  }, [addToast]);
 
   const handleUpdateProfile = async (updatedProfile) => {
     try {
       const response = await axios.put(`http://localhost:3001/profiles/${profile.id}`, updatedProfile);
       setProfile(response.data);
+      addToast('success', 'Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
       setError("Failed to update profile. Please try again.");
+      addToast('error', 'Failed to update profile');
     }
   };
 
@@ -181,9 +187,11 @@ const Profile = () => {
     try {
       const response = await axios.put(`http://localhost:3001/games/${updatedGame.id}`, updatedGame);
       setGames(games.map(game => game.id === updatedGame.id ? response.data : game));
+      addToast('success', 'Game updated successfully');
     } catch (error) {
       console.error('Error updating game:', error);
       setError("Failed to update game. Please try again.");
+      addToast('error', 'Failed to update game');
     }
   };
 
@@ -192,6 +200,7 @@ const Profile = () => {
     const [movedSection] = updatedOrder.splice(fromIndex, 1);
     updatedOrder.splice(toIndex, 0, movedSection);
     setSectionOrder(updatedOrder);
+    addToast('info', 'Section order updated');
   };
 
   const renderSkeletonProfile = () => (

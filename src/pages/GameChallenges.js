@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { FaPlayCircle, FaTrophy, FaClock, FaMedal, FaSearch, FaPlus, FaGamepad } from 'react-icons/fa';
+import { useToast } from '../hooks/useToast';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -28,9 +29,15 @@ const Header = styled.h1`
 
 const ActionsBar = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 `;
 
 const CreateChallengeButton = styled.button`
@@ -75,8 +82,16 @@ const SearchInput = styled.input`
 
 const ChallengesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 20px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
+    grid-template-columns: repeat(3, 1fr);
+  }
 `;
 
 const ChallengeCard = styled.div`
@@ -128,6 +143,7 @@ const JoinButton = styled.button`
 const GameChallenges = () => {
   const [challenges, setChallenges] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const addToast = useToast();
 
   const generateMockChallenges = useCallback(() => {
     return [
@@ -147,18 +163,18 @@ const GameChallenges = () => {
       { id: 14, name: 'Combo Master Challenge', game: 'Fighter Arena', timeLeft: '2 days', reward: 'Exclusive Fighter Skin' },
       { id: 15, name: 'Mega Boss Fight', game: 'Monster Hunter', timeLeft: '1 week', reward: 'Epic Sword' },
       { id: 16, name: 'Endurance Race', game: 'Super Racer', timeLeft: '4 days', reward: 'Nitro Boost' },
-      { id: 17, name: 'Treasure Hoard', game: 'Dragon’s Den', timeLeft: '5 days', reward: 'Dragon Egg' },
+      { id: 17, name: 'Treasure Hoard', game: 'Dragon Den', timeLeft: '5 days', reward: 'Dragon Egg' },
       { id: 18, name: 'Survival Mode', game: 'Alien Invasion', timeLeft: '6 days', reward: 'Plasma Cannon' },
       { id: 19, name: 'Mind Bender Challenge', game: 'Mystery Puzzles', timeLeft: '2 days', reward: '1000 gems' },
       { id: 20, name: 'King of the Hill', game: 'Battle Zone', timeLeft: '1 week', reward: 'Crown of Glory' },
       { id: 21, name: 'Speed Demon', game: 'Turbo Drift', timeLeft: '3 days', reward: 'Supercar' },
-      { id: 22, name: 'Warrior’s Gauntlet', game: 'Ancient Battles', timeLeft: '5 days', reward: 'Warrior’s Shield' },
+      { id: 22, name: 'Warrior Gauntlet', game: 'Ancient Battles', timeLeft: '5 days', reward: 'Warrior Shield' },
       { id: 23, name: 'Sniper Challenge', game: 'Sharp Shooter', timeLeft: '4 days', reward: 'Golden Rifle' },
       { id: 24, name: 'Dungeon Crawl', game: 'Cave Explorer', timeLeft: '3 days', reward: 'Treasure Map' },
       { id: 25, name: 'Defense Strategy', game: 'Fortress Builder', timeLeft: '1 week', reward: 'Ultimate Tower' },
-      { id: 26, name: 'Arena Showdown', game: 'Gladiator Wars', timeLeft: '2 weeks', reward: 'Champion’s Helmet' },
+      { id: 26, name: 'Arena Showdown', game: 'Gladiator Wars', timeLeft: '2 weeks', reward: 'Champion Helmet' },
       { id: 27, name: 'Escape the Maze', game: 'Labyrinth Escape', timeLeft: '3 days', reward: 'Compass of Truth' },
-      { id: 28, name: 'Hero’s Journey', game: 'Epic Quest', timeLeft: '5 days', reward: 'Hero’s Medal' },
+      { id: 28, name: 'Hero Journey', game: 'Epic Quest', timeLeft: '5 days', reward: 'Hero Medal' },
       { id: 29, name: 'Nightmare Mode', game: 'Horror Tales', timeLeft: '6 days', reward: 'Fearless Badge' },
       { id: 30, name: 'Puzzle Genius', game: 'Mind Games', timeLeft: '2 days', reward: '2000 gems' },
       { id: 31, name: 'Time Traveler', game: 'Chrono Quest', timeLeft: '1 week', reward: 'Temporal Artifact' },
@@ -183,13 +199,13 @@ const GameChallenges = () => {
     // Implement challenge creation logic here
   }, []);
 
-  const filteredChallenges = useMemo(() => 
-    challenges.filter(challenge =>
-      (challenge.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      challenge.game?.toLowerCase().includes(searchTerm.toLowerCase())) ?? false
-    ),
-    [challenges, searchTerm]
-  );
+  const filteredChallenges = useMemo(() => {
+    return challenges.filter(challenge => {
+      const nameMatch = challenge.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const gameMatch = challenge.game?.toLowerCase().includes(searchTerm.toLowerCase());
+      return nameMatch || gameMatch || false;
+    });
+  }, [challenges, searchTerm]);
 
   return (
     <>

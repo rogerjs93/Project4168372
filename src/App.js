@@ -11,6 +11,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './components/ThemeProvider';
 import ToastNotification from './components/ToastNotification';
+import { ToastProvider } from './components/ToastProvider';
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));
@@ -119,7 +120,7 @@ function App() {
     <ThemeProvider>
       <DndProvider backend={HTML5Backend}>
         <AuthProvider>
-          <ToastContext.Provider value={addToast}>
+          <ToastProvider value={{ addToast, removeToast }}>
             <Router>
               <AppWrapper>
                 <Header />
@@ -182,7 +183,7 @@ function App() {
                 <ToastNotification toasts={toasts} removeToast={removeToast} />
               </AppWrapper>
             </Router>
-          </ToastContext.Provider>
+          </ToastProvider>
         </AuthProvider>
       </DndProvider>
     </ThemeProvider>

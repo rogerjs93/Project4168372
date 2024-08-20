@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
 import { useAuth } from '../AuthContext';
+import { useToast } from '../components/ToastProvider';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -176,6 +177,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
+  const toast = useToast();
 
   const { email, password, rememberMe } = formData;
 
@@ -202,13 +204,16 @@ const Login = () => {
         } else {
           localStorage.removeItem('rememberMe');
         }
+        toast('success', 'Login successful!');
         navigate('/dashboard');
       } else {
         setError('Invalid email or password');
+        toast('error', 'Invalid email or password');
       }
     } catch (err) {
       console.error('Login error:', err);
       setError('An error occurred during login');
+      toast('error', 'An error occurred during login');
     }
   };
 

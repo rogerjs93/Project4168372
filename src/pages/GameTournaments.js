@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { createGlobalStyle } from 'styled-components';
 import { FaTrophy, FaCalendarAlt, FaUsers, FaCoins, FaSearch, FaGamepad, FaPlus } from 'react-icons/fa';
+import { useToast } from '../hooks/useToast';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -29,9 +30,15 @@ const Header = styled.h1`
 
 const ActionsBar = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 `;
 
 const CreateTournamentButton = styled.button`
@@ -76,8 +83,17 @@ const SearchInput = styled.input`
 
 const TournamentGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 20px;
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   overflow-y: auto;
   max-height: calc(100vh - 200px);
   
@@ -140,6 +156,7 @@ const RegisterButton = styled.button`
 const GameTournaments = () => {
   const [tournaments, setTournaments] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const addToast = useToast();
 
   const generateMockTournaments = useCallback(() => {
     // This function will be replaced with actual API call when connecting to a real server
@@ -184,12 +201,14 @@ const GameTournaments = () => {
   const handleRegister = useCallback((tournamentId) => {
     console.log(`Registered for tournament ${tournamentId}`);
     // Implement registration logic here
-  }, []);
+    addToast('success', 'Registered for tournament successfully!');
+  }, [addToast]);
 
   const handleCreateTournament = useCallback(() => {
     console.log('Create new tournament');
     // Implement tournament creation logic here
-  }, []);
+    addToast('success', 'New tournament created successfully!');
+  }, [addToast]);
 
   const filteredTournaments = useMemo(() => 
     tournaments.filter(tournament =>

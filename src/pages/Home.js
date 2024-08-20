@@ -485,14 +485,18 @@ export const Home = () => {
     fetchStatistics();
   }, []);
 
-  const fetchStatistics = async () => {
+  const fetchStatistics = useCallback(async () => {
     try {
       const response = await axios.get('http://localhost:3001/statistics');
       setStatistics(response.data);
     } catch (error) {
       console.error('Error fetching statistics:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchStatistics();
+  }, [fetchStatistics]);
 
   const gameCategories = useMemo(() => ['Action', 'Puzzle', 'Strategy', 'Adventure'], []);
 

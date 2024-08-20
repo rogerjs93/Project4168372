@@ -7,6 +7,7 @@ import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import InfiniteLoader from 'react-window-infinite-loader';
 import Skeleton from './SkeletonLoader';
+import { useToast } from '../hooks/useToast';
 
 const FeedWrapper = styled.div`
   max-width: 600px;
@@ -175,6 +176,7 @@ const NewsFeed = () => {
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const ITEMS_PER_PAGE = 10;
+  const { addToast } = useToast();
 
   const fetchPosts = useCallback(async () => {
     if (!hasNextPage) return;
@@ -198,10 +200,11 @@ const NewsFeed = () => {
     } catch (error) {
       console.error('Error fetching posts:', error);
       setError('Failed to load posts. Please try again.');
+      addToast('error', 'Failed to load posts. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [page, hasNextPage]);
+  }, [page, hasNextPage, addToast]);
 
   useEffect(() => {
     fetchPosts();
@@ -216,8 +219,9 @@ const NewsFeed = () => {
     } catch (error) {
       console.error('Error liking post:', error);
       setError('Failed to like post. Please try again.');
+      addToast('error', 'Failed to like post. Please try again.');
     }
-  }, [posts]);
+  }, [posts, addToast]);
 
   const handleNewPost = async (e) => {
     e.preventDefault();
@@ -234,9 +238,11 @@ const NewsFeed = () => {
       const response = await axios.post('http://localhost:3001/posts', newPost);
       setPosts(prevPosts => [response.data, ...prevPosts]);
       setNewPostContent('');
+      addToast('success', 'Post created successfully!');
     } catch (error) {
       console.error('Error creating new post:', error);
       setError('Failed to create new post. Please try again.');
+      addToast('error', 'Failed to create new post. Please try again.');
     }
   };
 
