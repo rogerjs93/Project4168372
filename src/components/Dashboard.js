@@ -19,15 +19,20 @@ const fadeIn = keyframes`
 
 const DashboardContainer = styled.div`
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.large};
-  padding: ${({ theme }) => theme.spacing.large};
+  padding: ${({ theme }) => theme.spacing.medium};
   max-width: 1200px;
   margin: 0 auto;
   animation: ${fadeIn} 0.5s ease-out;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr;
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.desktop}) {
+    grid-template-columns: 1fr 2fr 1fr;
+    padding: ${({ theme }) => theme.spacing.large};
   }
 `;
 
@@ -38,9 +43,13 @@ const Section = styled.div`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: ${({ theme }) => theme.fontSizes.xlarge};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   color: ${({ theme }) => theme.colors.textPrimary};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: ${({ theme }) => theme.fontSizes.xlarge};
+  }
 `;
 
 const Button = styled.button`
@@ -56,6 +65,7 @@ const Button = styled.button`
   align-items: center;
   justify-content: center;
   gap: ${({ theme }) => theme.spacing.small};
+  font-size: ${({ theme }) => theme.fontSizes.small};
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondary};
@@ -66,6 +76,10 @@ const Button = styled.button`
     background-color: ${({ theme }) => theme.colors.textSecondary};
     cursor: not-allowed;
     transform: none;
+  }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: ${({ theme }) => theme.fontSizes.medium};
   }
 `;
 
@@ -84,13 +98,17 @@ const Modal = styled.div`
 
 const ModalContent = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
-  padding: ${({ theme }) => theme.spacing.large};
+  padding: ${({ theme }) => theme.spacing.medium};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: ${({ theme }) => theme.boxShadow.large};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    padding: ${({ theme }) => theme.spacing.large};
+  }
 `;
 
 const LoadingSpinner = styled(FaSpinner)`
@@ -107,6 +125,7 @@ const LoadingSpinner = styled(FaSpinner)`
 const ErrorMessage = styled.p`
   color: ${({ theme }) => theme.colors.error};
   text-align: center;
+  padding: ${({ theme }) => theme.spacing.medium};
 `;
 
 const QuickGameCreation = styled.div`
@@ -125,7 +144,7 @@ const SkeletonCard = styled.div`
 `;
 
 const ScrollableSection = styled.div`
-  height: 500px;
+  height: 400px;
   overflow-y: auto;
   padding: ${({ theme }) => theme.spacing.medium};
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -145,6 +164,10 @@ const ScrollableSection = styled.div`
     border-radius: 20px;
     border: 3px solid ${({ theme }) => theme.colors.background};
   }
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    height: 500px;
+  }
 `;
 
 const StatsGrid = styled.div`
@@ -163,9 +186,13 @@ const StatCard = styled.div`
 `;
 
 const StatValue = styled.div`
-  font-size: ${({ theme }) => theme.fontSizes.xxlarge};
+  font-size: ${({ theme }) => theme.fontSizes.large};
   font-weight: ${({ theme }) => theme.fontWeights.bold};
   color: ${({ theme }) => theme.colors.primary};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    font-size: ${({ theme }) => theme.fontSizes.xlarge};
+  }
 `;
 
 const StatLabel = styled.div`
@@ -174,8 +201,12 @@ const StatLabel = styled.div`
 `;
 
 const ChartContainer = styled.div`
-  height: 300px;
+  height: 250px;
   margin-bottom: ${({ theme }) => theme.spacing.large};
+
+  @media (min-width: ${({ theme }) => theme.breakpoints.tablet}) {
+    height: 300px;
+  }
 `;
 
 const useFetch = (url) => {
