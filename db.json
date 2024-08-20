@@ -300,17 +300,17 @@
   ],
   "toasts": [
     {
-      "id": 1,
+      "id": "1",
       "message": "Login successful!",
       "type": "success"
     },
     {
-      "id": 2,
+      "id": "2",
       "message": "Invalid email or password",
       "type": "error"
     },
     {
-      "id": 3,
+      "id": "3",
       "message": "An error occurred during login",
       "type": "error"
     }

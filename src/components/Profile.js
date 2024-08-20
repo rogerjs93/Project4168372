@@ -12,6 +12,7 @@ import { FaUser, FaGamepad, FaHistory, FaChartBar, FaTrophy, FaUsers, FaStar } f
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useToast } from '../hooks/useToast';
+import ProfileSettings from './ProfileSettings';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -146,6 +147,7 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [sectionOrder, setSectionOrder] = useState(['skills', 'stats', 'games', 'activity']);
   const addToast = useToast();
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -315,19 +317,24 @@ const Profile = () => {
         <ProfileHeader
           profile={profile}
           onUpdateProfile={handleUpdateProfile}
+          onShowSettings={() => setShowSettings(true)}
         />
-        <ProfileContent>
-          {sectionOrder.map((sectionId, index) => (
-            <DraggableSection
-              key={sectionId}
-              id={sectionId}
-              index={index}
-              moveSection={moveSection}
-            >
-              {sections[sectionId]}
-            </DraggableSection>
-          ))}
-        </ProfileContent>
+        {showSettings ? (
+          <ProfileSettings />
+        ) : (
+          <ProfileContent>
+            {sectionOrder.map((sectionId, index) => (
+              <DraggableSection
+                key={sectionId}
+                id={sectionId}
+                index={index}
+                moveSection={moveSection}
+              >
+                {sections[sectionId]}
+              </DraggableSection>
+            ))}
+          </ProfileContent>
+        )}
       </ProfileWrapper>
     </DndProvider>
   );

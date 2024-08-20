@@ -12,6 +12,7 @@ import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './components/ThemeProvider';
 import ToastNotification from './components/ToastNotification';
 import { ToastProvider } from './components/ToastProvider';
+import { ProfileSettings } from './components'; // Import ProfileSettings component
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));
@@ -147,6 +148,7 @@ function App() {
                           {/* Protected Routes */}
                           <Route path="/dashboard" element={<ProtectedRoute><LazyRoute component={Dashboard} /></ProtectedRoute>} />
                           <Route path="/profile" element={<ProtectedRoute><LazyRoute component={Profile} /></ProtectedRoute>} />
+                          <Route path="/settings" element={<ProtectedRoute><LazyRoute component={ProfileSettings} /></ProtectedRoute>} />
                           <Route path="/feed" element={<ProtectedRoute><LazyRoute component={NewsFeed} /></ProtectedRoute>} />
                           <Route path="/games" element={<ProtectedRoute><LazyRoute component={Games} /></ProtectedRoute>} />
                           <Route path="/community" element={<ProtectedRoute><LazyRoute component={Community} /></ProtectedRoute>} />
