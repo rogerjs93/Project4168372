@@ -4,7 +4,19 @@
       "id": "aa09",
       "username": "test",
       "email": "test@mail.com",
-      "password": "test123"
+      "password": "test123",
+      "language": "English",
+      "privacySettings": {
+        "profileVisibility": "Public",
+        "showOnlineStatus": true
+      },
+      "notificationPreferences": {
+        "emailNotifications": true,
+        "pushNotifications": true
+      },
+      "securitySettings": {
+        "twoFactorAuth": false
+      }
     },
     {
       "id": "bb10",
@@ -313,6 +325,20 @@
       "id": "3",
       "message": "An error occurred during login",
       "type": "error"
+    }
+  ],
+  "loginHistory": [
+    {
+      "userId": "aa09",
+      "date": "2023-05-01",
+      "ip": "192.168.1.1",
+      "device": "Chrome on Windows"
+    },
+    {
+      "userId": "aa09",
+      "date": "2023-04-28",
+      "ip": "192.168.1.2",
+      "device": "Safari on iOS"
     }
   ]
 }

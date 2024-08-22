@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { FaUser, FaLock, FaBell, FaGlobe, FaShieldAlt, FaSignOutAlt } from 'react-icons/fa';
+import { profileService } from '../services/mockProfileService';
+import { useAuth } from '../hooks/useAuth';
 
 const SettingsWrapper = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
@@ -101,6 +103,35 @@ const SaveButton = styled.button`
 
 const ProfileSettings = () => {
   const [activeTab, setActiveTab] = useState('account');
+  const { user } = useAuth();
+  const [accountInfo, setAccountInfo] = useState({
+    username: user.username,
+    language: 'English',
+  });
+  const [privacySettings, setPrivacySettings] = useState({
+    profileVisibility: 'Public',
+    showOnlineStatus: true,
+  });
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    emailNotifications: true,
+    pushNotifications: true,
+  });
+  const [securitySettings, setSecuritySettings] = useState({
+    twoFactorAuth: false,
+  });
+
+  const handleSaveChanges = async () => {
+    try {
+      await profileService.updateAccountInfo(user.id, accountInfo);
+      await profileService.updatePrivacySettings(user.id, privacySettings);
+      await profileService.updateNotificationPreferences(user.id, notificationPreferences);
+      await profileService.updateSecuritySettings(user.id, securitySettings);
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings. Please try again.');
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -110,7 +141,11 @@ const ProfileSettings = () => {
             <SettingTitle>Account Information</SettingTitle>
             <SettingItem>
               <SettingLabel><FaUser /> Username</SettingLabel>
-              <SettingInput type="text" placeholder="Current username" />
+              <SettingInput
+                type="text"
+                value={accountInfo.username}
+                onChange={(e) => setAccountInfo({ ...accountInfo, username: e.target.value })}
+              />
             </SettingItem>
             <SettingItem>
               <SettingLabel><FaLock /> Password</SettingLabel>
@@ -118,7 +153,10 @@ const ProfileSettings = () => {
             </SettingItem>
             <SettingItem>
               <SettingLabel><FaGlobe /> Language</SettingLabel>
-              <select>
+              <select
+                value={accountInfo.language}
+                onChange={(e) => setAccountInfo({ ...accountInfo, language: e.target.value })}
+              >
                 <option>English</option>
                 <option>Spanish</option>
                 <option>French</option>
@@ -132,7 +170,10 @@ const ProfileSettings = () => {
             <SettingTitle>Privacy Settings</SettingTitle>
             <SettingItem>
               <SettingLabel>Profile Visibility</SettingLabel>
-              <select>
+              <select
+                value={privacySettings.profileVisibility}
+                onChange={(e) => setPrivacySettings({ ...privacySettings, profileVisibility: e.target.value })}
+              >
                 <option>Public</option>
                 <option>Friends Only</option>
                 <option>Private</option>
@@ -140,7 +181,11 @@ const ProfileSettings = () => {
             </SettingItem>
             <SettingItem>
               <SettingLabel>Show Online Status</SettingLabel>
-              <SettingToggle type="checkbox" />
+              <SettingToggle
+                type="checkbox"
+                checked={privacySettings.showOnlineStatus}
+                onChange={(e) => setPrivacySettings({ ...privacySettings, showOnlineStatus: e.target.checked })}
+              />
             </SettingItem>
           </SettingSection>
         );
@@ -150,11 +195,19 @@ const ProfileSettings = () => {
             <SettingTitle>Notification Preferences</SettingTitle>
             <SettingItem>
               <SettingLabel>Email Notifications</SettingLabel>
-              <SettingToggle type="checkbox" />
+              <SettingToggle
+                type="checkbox"
+                checked={notificationPreferences.emailNotifications}
+                onChange={(e) => setNotificationPreferences({ ...notificationPreferences, emailNotifications: e.target.checked })}
+              />
             </SettingItem>
             <SettingItem>
               <SettingLabel>Push Notifications</SettingLabel>
-              <SettingToggle type="checkbox" />
+              <SettingToggle
+                type="checkbox"
+                checked={notificationPreferences.pushNotifications}
+                onChange={(e) => setNotificationPreferences({ ...notificationPreferences, pushNotifications: e.target.checked })}
+              />
             </SettingItem>
           </SettingSection>
         );
@@ -164,11 +217,15 @@ const ProfileSettings = () => {
             <SettingTitle>Security Settings</SettingTitle>
             <SettingItem>
               <SettingLabel>Two-Factor Authentication</SettingLabel>
-              <SettingToggle type="checkbox" />
+              <SettingToggle
+                type="checkbox"
+                checked={securitySettings.twoFactorAuth}
+                onChange={(e) => setSecuritySettings({ ...securitySettings, twoFactorAuth: e.target.checked })}
+              />
             </SettingItem>
             <SettingItem>
               <SettingLabel>Login History</SettingLabel>
-              <button>View History</button>
+              <button onClick={() => profileService.getLoginHistory(user.id)}>View History</button>
             </SettingItem>
           </SettingSection>
         );
@@ -197,7 +254,7 @@ const ProfileSettings = () => {
       <SettingsContent>
         {renderContent()}
       </SettingsContent>
-      <SaveButton>Save Changes</SaveButton>
+      <SaveButton onClick={handleSaveChanges}>Save Changes</SaveButton>
     </SettingsWrapper>
   );
 };

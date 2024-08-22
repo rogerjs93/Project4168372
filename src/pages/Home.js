@@ -3,14 +3,14 @@ import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FaGamepad, FaUsers, FaShare, FaArrowRight, FaPlay, FaStar, FaQuoteLeft, FaUser, FaChevronLeft, FaChevronRight, FaPuzzlePiece, FaChess, FaRocket, FaGlobe } from 'react-icons/fa';
 import { useInView } from 'react-intersection-observer';
-import axios from 'axios';
 import backgroundImage from '../assets/people-playing-games.gif';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
   }
 `;
 
@@ -31,56 +31,67 @@ const pulse = keyframes`
 `;
 
 const HomeWrapper = styled.div`
-  height: 100vh;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  overflow-x: hidden;
+`;
+
+const MaxWidthContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 ${({ theme }) => theme.spacing.large};
 `;
 
 const Hero = styled.section`
-  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${backgroundImage});
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  color: ${({ theme }) => theme.colors.surfaceLight};
-  padding: ${({ theme }) => theme.spacing.xxxlarge} ${({ theme }) => theme.spacing.large};
-  text-align: center;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 `;
 
-const HeroContent = styled.div`
+const HeroBackground = styled(motion.div)`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url(${backgroundImage});
+  background-size: cover;
+  background-position: center;
+`;
+
+const HeroContent = styled(motion.div)`
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.surfaceLight};
   max-width: 800px;
-  margin: 0 auto;
-  animation: ${fadeIn} 1s ease-out;
+  padding: ${({ theme }) => theme.spacing.large};
 `;
 
 const HeroTitle = styled.h1`
-  font-size: ${({ theme }) => theme.fontSizes.xxxxlarge};
+  font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: ${({ theme }) => theme.fontWeights.bold};
-  margin-bottom: ${({ theme }) => theme.spacing.large};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   letter-spacing: 2px;
 `;
 
 const HeroSubtitle = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.xlarge};
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
   margin-bottom: ${({ theme }) => theme.spacing.xlarge};
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   line-height: 1.5;
+  max-width: 800px;
+  margin: 0 auto ${({ theme }) => theme.spacing.xlarge};
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
   justify-content: center;
   gap: ${({ theme }) => theme.spacing.medium};
+  flex-wrap: wrap;
+  justify-content: center;
 `;
 
 const Button = styled(Link)`
@@ -88,17 +99,20 @@ const Button = styled(Link)`
   align-items: center;
   background-color: ${({ theme, primary }) => primary ? theme.colors.primary : 'transparent'};
   color: ${({ theme }) => theme.colors.surfaceLight};
-  padding: ${({ theme }) => theme.spacing.medium} ${({ theme }) => theme.spacing.large};
+  padding: ${({ theme }) => theme.spacing.medium} ${({ theme }) => theme.spacing.xlarge};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   text-decoration: none;
   font-weight: ${({ theme }) => theme.fontWeights.semibold};
   font-size: ${({ theme }) => theme.fontSizes.large};
   transition: ${({ theme }) => theme.transitions.medium};
   border: 2px solid ${({ theme, primary }) => primary ? theme.colors.primary : theme.colors.surfaceLight};
+  margin: ${({ theme }) => theme.spacing.small};
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 
   &:hover {
     background-color: ${({ theme, primary }) => primary ? theme.colors.secondary : 'rgba(255, 255, 255, 0.1)'};
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
   }
 
   svg {
@@ -119,15 +133,24 @@ const ScrollDownIndicator = styled.div`
     40% { transform: translateY(-30px) translateX(-50%); }
     60% { transform: translateY(-15px) translateX(-50%); }
   }
+
+  &:hover {
+    transform: translateY(5px) translateX(-50%);
+  }
 `;
 
 const Section = styled.section`
-  padding: ${({ theme }) => theme.spacing.xxxlarge} 0;
+  padding: ${({ theme }) => theme.spacing.xxxxlarge} ${({ theme }) => theme.spacing.large};
   background-color: ${({ theme, alternate }) => alternate ? theme.colors.background : theme.colors.surfaceLight};
 `;
 
+const SectionContent = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+`;
+
 const SectionTitle = styled.h2`
-  font-size: ${({ theme }) => theme.fontSizes.xxxlarge};
+  font-size: clamp(2rem, 4vw, 3rem);
   color: ${({ theme }) => theme.colors.textPrimary};
   margin-bottom: ${({ theme }) => theme.spacing.xlarge};
   text-align: center;
@@ -140,8 +163,8 @@ const SectionTitle = styled.h2`
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 100px;
-    height: 4px;
+    width: 60px;
+    height: 3px;
     background-color: ${({ theme }) => theme.colors.accent};
   }
 `;
@@ -150,23 +173,22 @@ const FeatureGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: ${({ theme }) => theme.spacing.xlarge};
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 ${({ theme }) => theme.spacing.large};
 `;
 
 const FeatureCard = styled.div`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
-  padding: ${({ theme }) => theme.spacing.xlarge};
+  padding: ${({ theme }) => theme.spacing.xxlarge};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.boxShadow.large};
   transition: ${({ theme }) => theme.transitions.medium};
   text-align: center;
   animation: ${slideIn} 0.5s ease-out;
+  border: 1px solid ${({ theme }) => theme.colors.border};
 
   &:hover {
     transform: translateY(-10px);
     box-shadow: ${({ theme }) => theme.boxShadow.xlarge};
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
@@ -174,6 +196,20 @@ const FeatureIcon = styled.div`
   font-size: 3rem;
   color: ${({ theme }) => theme.colors.primary};
   margin-bottom: ${({ theme }) => theme.spacing.large};
+  background-color: ${({ theme }) => theme.colors.background};
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto ${({ theme }) => theme.spacing.large};
+  transition: ${({ theme }) => theme.transitions.medium};
+
+  ${FeatureCard}:hover & {
+    background-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.surfaceLight};
+  }
 `;
 
 const FeatureTitle = styled.h3`
@@ -192,9 +228,6 @@ const GameGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: ${({ theme }) => theme.spacing.xlarge};
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 ${({ theme }) => theme.spacing.large};
 `;
 
 const GameCard = styled.div`
@@ -204,10 +237,11 @@ const GameCard = styled.div`
   box-shadow: ${({ theme }) => theme.boxShadow.medium};
   transition: ${({ theme }) => theme.transitions.medium};
   animation: ${slideIn} 0.5s ease-out;
+  border: 1px solid ${({ theme }) => theme.colors.border};
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
+    box-shadow: ${({ theme }) => theme.boxShadow.xlarge};
   }
 `;
 
@@ -225,6 +259,11 @@ const IconContainer = styled.div`
   justify-content: center;
   background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.primary};
+  transition: ${({ theme }) => theme.transitions.medium};
+
+  ${GameCard}:hover & {
+    transform: scale(1.1);
+  }
 `;
 
 const GameCategory = styled.span`
@@ -293,24 +332,19 @@ const TestimonialsSection = styled(Section)`
 `;
 
 const TestimonialWrapper = styled.div`
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
   position: relative;
 `;
 
-const TestimonialCard = styled.div`
+const TestimonialCard = styled(motion.div)`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   padding: ${({ theme }) => theme.spacing.xlarge};
   border-radius: ${({ theme }) => theme.borderRadius.large};
   box-shadow: ${({ theme }) => theme.boxShadow.large};
   position: relative;
-  transition: ${({ theme }) => theme.transitions.medium};
-  margin: 0 ${({ theme }) => theme.spacing.large};
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.xlarge};
-  }
+  margin: 0 auto;
+  max-width: 600px;
 `;
 
 const QuoteIcon = styled(FaQuoteLeft)`
@@ -373,61 +407,23 @@ const TestimonialButton = styled.button`
   color: ${({ theme }) => theme.colors.surfaceLight};
   border: none;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: ${({ theme }) => theme.transitions.fast};
   z-index: 1;
+  opacity: 0.7;
 
   &:hover {
+    opacity: 1;
     background-color: ${({ theme }) => theme.colors.secondary};
   }
 
-  ${({ left }) => left && `left: -25px;`}
-  ${({ right }) => right && `right: -25px;`}
-`;
-
-const MetricsSection = styled(Section)`
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surfaceLight};
-`;
-
-const MetricsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: ${({ theme }) => theme.spacing.xlarge};
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 ${({ theme }) => theme.spacing.large};
-`;
-
-const MetricItem = styled.div`
-  text-align: center;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: ${({ theme }) => theme.borderRadius.large};
-  padding: ${({ theme }) => theme.spacing.large};
-  transition: ${({ theme }) => theme.transitions.medium};
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: ${({ theme }) => theme.boxShadow.large};
-  }
-`;
-
-const MetricValue = styled.h3`
-  font-size: ${({ theme }) => theme.fontSizes.xxxxlarge};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
-  background: linear-gradient(45deg, ${({ theme }) => theme.colors.accent}, ${({ theme }) => theme.colors.secondary});
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-`;
-
-const MetricLabel = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  opacity: 0.9;
+  ${({ left }) => left && `left: 0;`}
+  ${({ right }) => right && `right: 0;`}
 `;
 
 const FadeInSection = ({ children }) => {
@@ -443,60 +439,14 @@ const FadeInSection = ({ children }) => {
   );
 };
 
-const AnimatedNumber = ({ value }) => {
-  const [displayValue, setDisplayValue] = useState(0);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const animationDuration = 2000;
-    const frameDuration = 1000 / 60;
-    const totalFrames = Math.round(animationDuration / frameDuration);
-    let frame = 0;
-
-    const counter = setInterval(() => {
-      frame++;
-      const progress = frame / totalFrames;
-      setDisplayValue(Math.floor(value * progress));
-
-      if (frame === totalFrames) {
-        clearInterval(counter);
-      }
-    }, frameDuration);
-
-    return () => clearInterval(counter);
-  }, [value]);
-
-  return <span ref={ref}>{displayValue.toLocaleString()}</span>;
-};
-
 export const Home = () => {
   const [animateHero, setAnimateHero] = useState(false);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [statistics, setStatistics] = useState({
-    activeUsers: 0,
-    gamesCreated: 0,
-    gamesPlayed: 0,
-    countriesReached: 0,
-  });
   const heroRef = useRef(null);
 
   useEffect(() => {
     setAnimateHero(true);
-    fetchStatistics();
   }, []);
-
-  const fetchStatistics = useCallback(async () => {
-    try {
-      const response = await axios.get('http://localhost:3001/statistics');
-      setStatistics(response.data);
-    } catch (error) {
-      console.error('Error fetching statistics:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStatistics();
-  }, [fetchStatistics]);
 
   const gameCategories = useMemo(() => ['Action', 'Puzzle', 'Strategy', 'Adventure'], []);
 
@@ -518,11 +468,32 @@ export const Home = () => {
     }
   ];
 
+  const testimonialVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0,
+    }),
+  };
+
+  const [direction, setDirection] = useState(0);
+
   const nextTestimonial = () => {
+    setDirection(1);
     setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
   };
 
   const prevTestimonial = () => {
+    setDirection(-1);
     setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
@@ -568,12 +539,39 @@ export const Home = () => {
     );
   }, [gameCategories]);
 
+  const heroVariants = {
+    hidden: { opacity: 0, scale: 1.1 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: { duration: 1.5, ease: "easeOut" }
+    }
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.8, delay: 0.5 }
+    }
+  };
+
   return (
     <>
       <GlobalStyle />
       <HomeWrapper>
         <Hero ref={heroRef}>
-          <HeroContent style={{ opacity: animateHero ? 1 : 0, transition: 'opacity 1s ease-out' }}>
+          <HeroBackground
+            variants={heroVariants}
+            initial="hidden"
+            animate="visible"
+          />
+          <HeroContent
+            variants={contentVariants}
+            initial="hidden"
+            animate="visible"
+          >
             <HeroTitle>Welcome to Naama Online</HeroTitle>
             <HeroSubtitle>Create, Play, and Share Amazing Games in a Thriving Community</HeroSubtitle>
             <ButtonGroup>
@@ -592,92 +590,80 @@ export const Home = () => {
         
         <FadeInSection>
           <Section id="features">
-            <SectionTitle>Why Choose Naama</SectionTitle>
-            <FeatureGrid>
-              <FeatureCard>
-                <FeatureIcon><FaGamepad aria-hidden="true" /></FeatureIcon>
-                <FeatureTitle>Create Games</FeatureTitle>
-                <FeatureDescription>Design and build your own games with our intuitive tools and powerful engine. Bring your ideas to life effortlessly.</FeatureDescription>
-              </FeatureCard>
-              <FeatureCard>
-                <FeatureIcon><FaUsers aria-hidden="true" /></FeatureIcon>
-                <FeatureTitle>Play Together</FeatureTitle>
-                <FeatureDescription>Enjoy multiplayer games with friends, challenge players worldwide, and experience the thrill of competition.</FeatureDescription>
-              </FeatureCard>
-              <FeatureCard>
-                <FeatureIcon><FaShare aria-hidden="true" /></FeatureIcon>
-                <FeatureTitle>Share & Discover</FeatureTitle>
-                <FeatureDescription>Showcase your creations to a global audience and explore a vast library of unique games made by the community.</FeatureDescription>
-              </FeatureCard>
-            </FeatureGrid>
+            <SectionContent>
+              <SectionTitle>Why Choose Naama</SectionTitle>
+              <FeatureGrid>
+                <FeatureCard>
+                  <FeatureIcon><FaGamepad aria-hidden="true" /></FeatureIcon>
+                  <FeatureTitle>Create Games</FeatureTitle>
+                  <FeatureDescription>Design and build your own games with our intuitive tools and powerful engine. Bring your ideas to life effortlessly.</FeatureDescription>
+                </FeatureCard>
+                <FeatureCard>
+                  <FeatureIcon><FaUsers aria-hidden="true" /></FeatureIcon>
+                  <FeatureTitle>Play Together</FeatureTitle>
+                  <FeatureDescription>Enjoy multiplayer games with friends, challenge players worldwide, and experience the thrill of competition.</FeatureDescription>
+                </FeatureCard>
+                <FeatureCard>
+                  <FeatureIcon><FaShare aria-hidden="true" /></FeatureIcon>
+                  <FeatureTitle>Share & Discover</FeatureTitle>
+                  <FeatureDescription>Showcase your creations to a global audience and explore a vast library of unique games made by the community.</FeatureDescription>
+                </FeatureCard>
+              </FeatureGrid>
+            </SectionContent>
           </Section>
         </FadeInSection>
 
         <FadeInSection>
           <Section alternate>
-            <SectionTitle>Trending Games</SectionTitle>
-            <GameGrid>
-              {[1, 2, 3, 4].map(renderGameCard)}
-            </GameGrid>
+            <SectionContent>
+              <SectionTitle>Trending Games</SectionTitle>
+              <GameGrid>
+                {[1, 2, 3, 4].map(renderGameCard)}
+              </GameGrid>
+            </SectionContent>
           </Section>
         </FadeInSection>
 
         <FadeInSection>
           <TestimonialsSection>
-            <SectionTitle>What Our Users Say</SectionTitle>
-            <TestimonialWrapper>
-              <TestimonialButton left onClick={prevTestimonial}>
-                <FaChevronLeft aria-hidden="true" />
-              </TestimonialButton>
-              <TestimonialCard>
-                <QuoteIcon aria-hidden="true" />
-                <TestimonialText>{testimonials[currentTestimonial].text}</TestimonialText>
-                <TestimonialAuthor>
-                  <AuthorAvatar>
-                    <FaUser aria-hidden="true" />
-                  </AuthorAvatar>
-                  <AuthorInfo>
-                    <AuthorName>{testimonials[currentTestimonial].author}</AuthorName>
-                    <AuthorRole>{testimonials[currentTestimonial].role}</AuthorRole>
-                  </AuthorInfo>
-                </TestimonialAuthor>
-              </TestimonialCard>
-              <TestimonialButton right onClick={nextTestimonial}>
-                <FaChevronRight aria-hidden="true" />
-              </TestimonialButton>
-            </TestimonialWrapper>
+            <SectionContent>
+              <SectionTitle>What Our Users Say</SectionTitle>
+              <TestimonialWrapper>
+                <AnimatePresence initial={false} custom={direction}>
+                  <TestimonialCard
+                    key={currentTestimonial}
+                    custom={direction}
+                    variants={testimonialVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 },
+                    }}
+                  >
+                    <QuoteIcon aria-hidden="true" />
+                    <TestimonialText>{testimonials[currentTestimonial].text}</TestimonialText>
+                    <TestimonialAuthor>
+                      <AuthorAvatar>
+                        <FaUser aria-hidden="true" />
+                      </AuthorAvatar>
+                      <AuthorInfo>
+                        <AuthorName>{testimonials[currentTestimonial].author}</AuthorName>
+                        <AuthorRole>{testimonials[currentTestimonial].role}</AuthorRole>
+                      </AuthorInfo>
+                    </TestimonialAuthor>
+                  </TestimonialCard>
+                </AnimatePresence>
+                <TestimonialButton left onClick={prevTestimonial}>
+                  <FaChevronLeft aria-hidden="true" />
+                </TestimonialButton>
+                <TestimonialButton right onClick={nextTestimonial}>
+                  <FaChevronRight aria-hidden="true" />
+                </TestimonialButton>
+              </TestimonialWrapper>
+            </SectionContent>
           </TestimonialsSection>
-        </FadeInSection>
-
-        <FadeInSection>
-          <MetricsSection>
-            <MetricsGrid>
-              <MetricItem>
-                <MetricValue>
-                  <AnimatedNumber value={statistics.activeUsers} />+
-                </MetricValue>
-                <MetricLabel>Active Users</MetricLabel>
-              </MetricItem>
-              <MetricItem>
-                <MetricValue>
-                  <AnimatedNumber value={statistics.gamesCreated} />+
-                </MetricValue>
-                <MetricLabel>Games Created</MetricLabel>
-              </MetricItem>
-              <MetricItem>
-                <MetricValue>
-                  <AnimatedNumber value={statistics.gamesPlayed} />+
-                </MetricValue>
-                <MetricLabel>Games Played</MetricLabel>
-              </MetricItem>
-              <MetricItem>
-                <MetricValue>
-                  <AnimatedNumber value={statistics.countriesReached} />+
-                </MetricValue>
-                <MetricLabel>Countries Reached</MetricLabel>
-              </MetricItem>
-            </MetricsGrid>
-          </MetricsSection>
         </FadeInSection>
       </HomeWrapper>
     </>

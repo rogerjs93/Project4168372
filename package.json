@@ -13,6 +13,7 @@
     "emoji-picker-react": "^4.11.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc-68dbd84b-20240812",
     "express": "^4.19.2",
+    "framer-motion": "^11.3.28",
     "jsonwebtoken": "^9.0.2",
     "matter-js": "^0.20.0",
     "mongoose": "^8.5.2",
@@ -43,7 +44,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "server": "json-server --watch db.json --port 3001"
   },
   "eslintConfig": {
     "extends": [
