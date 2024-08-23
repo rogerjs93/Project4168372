@@ -3,7 +3,7 @@ import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { FaGamepad, FaUsers, FaShare, FaArrowRight, FaPlay, FaStar, FaQuoteLeft, FaUser, FaChevronLeft, FaChevronRight, FaPuzzlePiece, FaChess, FaRocket, FaGlobe } from 'react-icons/fa';
 import { useInView } from 'react-intersection-observer';
-import backgroundImage from '../assets/people-playing-games.gif';
+import backgroundImage from '../assets/people-playing-games.webp';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const GlobalStyle = createGlobalStyle`

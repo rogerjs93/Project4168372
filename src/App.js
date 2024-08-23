@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, lazy, Suspense, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -12,7 +11,7 @@ import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './components/ThemeProvider';
 import ToastNotification from './components/ToastNotification';
 import { ToastProvider } from './components/ToastProvider';
-import { ProfileSettings } from './components'; // Import ProfileSettings component
+import { ProfileSettings } from './components';
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));
@@ -68,6 +67,10 @@ const ContentWrapper = styled.main`
   min-height: calc(100vh - 60px);
   overflow-y: auto;
   overflow-x: hidden;
+  outline: none;
+  &:focus {
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary};
+  }
 `;
 
 const ContentArea = styled.div`
@@ -99,8 +102,6 @@ function App() {
   const addToast = useCallback((type, message) => {
     const id = Date.now();
     setToasts((prevToasts) => [...prevToasts, { id, type, message }]);
-
-    // Auto-remove toast after 5 seconds
     setTimeout(() => removeToast(id), 5000);
   }, []);
 
@@ -110,8 +111,6 @@ function App() {
         toast.id === id ? { ...toast, isClosing: true } : toast
       )
     );
-
-    // Remove toast from state after animation completes
     setTimeout(() => {
       setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
     }, 300);
@@ -133,6 +132,8 @@ function App() {
                   <ContentWrapper
                     isLeftSidebarCollapsed={isLeftSidebarCollapsed}
                     isRightSidebarCollapsed={isRightSidebarCollapsed}
+                    tabIndex="-1"
+                    aria-label="Main content"
                   >
                     <ContentArea>
                       <ErrorBoundary>
