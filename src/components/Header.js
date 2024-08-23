@@ -1,5 +1,4 @@
-// src/components/Header.js
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaUsers, FaGamepad, FaUser, FaSearch, FaBell, FaCaretDown, FaChartBar, FaComments, FaTimes, FaSun, FaMoon } from 'react-icons/fa';
@@ -89,11 +88,13 @@ const SearchBar = styled.div`
   border-radius: 20px;
   padding: ${({ theme }) => theme.spacing.small};
   width: 240px;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 
   &:focus-within {
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary};
     width: 280px;
+    background-color: ${({ theme }) => theme.colors.surfaceLight};
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   }
 `;
 
@@ -104,19 +105,31 @@ const SearchInput = styled.input`
   color: ${({ theme }) => theme.colors.textPrimary};
   padding: ${({ theme }) => theme.spacing.small};
   width: 100%;
+  transition: all 0.3s ease;
 
   &:focus {
     outline: none;
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textSecondary};
+    transition: all 0.3s ease;
+  }
+
+  ${SearchBar}:focus-within &::placeholder {
+    color: ${({ theme }) => theme.colors.primary};
   }
 `;
 
 const SearchIcon = styled(FaSearch)`
   color: ${({ theme }) => theme.colors.textSecondary};
   margin-right: ${({ theme }) => theme.spacing.small};
-  transition: color 0.2s ease;
+  transition: all 0.3s ease;
+  font-size: 1.1rem;
 
   ${SearchBar}:focus-within & {
     color: ${({ theme }) => theme.colors.primary};
+    transform: scale(1.1);
   }
 `;
 
@@ -129,14 +142,45 @@ const NavItem = styled(Link)`
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: ${({ theme, active }) => active ? theme.colors.primary : theme.colors.textSecondary};
+  color: ${({ theme, $active }) => $active ? theme.colors.primary : theme.colors.textSecondary};
   text-decoration: none;
   font-size: ${({ theme }) => theme.fontSizes.small};
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: ${({ theme }) => theme.colors.primary};
+    transition: all 0.3s ease;
+  }
+
+  &:hover, &.active {
+    color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => `${theme.colors.primary}10`};
+
+    &::before {
+      width: 100%;
+      left: 0;
+    }
+  }
 
   &:hover {
-    color: ${({ theme }) => theme.colors.primary};
     transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &.active {
+    font-weight: ${({ theme }) => theme.fontWeights.bold};
   }
 `;
 
@@ -169,6 +213,11 @@ const IconButton = styled.button`
 
   &:active {
     transform: scale(1);
+  }
+
+  &:focus {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
   }
 `;
 
@@ -220,6 +269,11 @@ const UserMenuLink = styled(Link)`
     background-color: ${({ theme }) => theme.colors.background};
     transform: translateX(5px);
   }
+
+  &:focus {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: -2px;
+  }
 `;
 
 const ChatIcon = styled(IconButton)`
@@ -260,6 +314,11 @@ const CloseButton = styled.button`
     color: ${({ theme }) => theme.colors.primary};
     transform: rotate(90deg);
   }
+
+  &:focus {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
 `;
 
 export const Header = () => {
@@ -273,6 +332,7 @@ export const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const userMenuRef = useRef(null);
 
   const fetchNotifications = useCallback(async () => {
     if (isLoggedIn && user) {
@@ -292,6 +352,19 @@ export const Header = () => {
   useEffect(() => {
     fetchNotifications();
   }, [fetchNotifications]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSearch = useCallback(() => {
     if (debouncedSearchQuery.trim()) {
@@ -337,11 +410,11 @@ export const Header = () => {
     <HeaderWrapper>
       <Nav>
         <LeftSection>
-          <LogoLink to="/">
+          <LogoLink to="/" aria-label="Naama Home">
             <LogoImage src={logoImage} alt="Naama Logo" />
           </LogoLink>
-          <SearchBar>
-            <SearchIcon />
+          <SearchBar role="search">
+            <SearchIcon aria-hidden="true" />
             <SearchInput
               type="text"
               placeholder="Search Naama"
@@ -353,43 +426,49 @@ export const Header = () => {
           </SearchBar>
         </LeftSection>
         <CenterSection>
-          <NavMenu>
+          <NavMenu role="navigation" aria-label="Main Navigation">
             {navItems.map(({ path, icon, label, ariaLabel }) => (
-              <NavItem key={path} to={path} active={location.pathname === path} aria-label={ariaLabel}>
-                <NavIcon>{icon}</NavIcon>
+              <NavItem 
+                key={path} 
+                to={path} 
+                $active={location.pathname === path}
+                className={location.pathname === path ? 'active' : ''}
+                aria-label={ariaLabel}
+              >
+                <NavIcon aria-hidden="true">{icon}</NavIcon>
                 <NavText>{label}</NavText>
               </NavItem>
             ))}
           </NavMenu>
         </CenterSection>
         <RightSection>
-          <IconButton onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'light' ? <FaMoon /> : <FaSun />}
+          <IconButton onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}>
+            {theme === 'light' ? <FaMoon aria-hidden="true" /> : <FaSun aria-hidden="true" />}
           </IconButton>
           {isLoggedIn ? (
             <>
-              <NotificationButton onClick={toggleNotificationCenter} aria-label="Notifications">
-                <FaBell />
-                {unreadNotificationsCount > 0 && <NotificationCount>{unreadNotificationsCount}</NotificationCount>}
+              <NotificationButton onClick={toggleNotificationCenter} aria-label={`Notifications (${unreadNotificationsCount} unread)`}>
+                <FaBell aria-hidden="true" />
+                {unreadNotificationsCount > 0 && <NotificationCount aria-hidden="true">{unreadNotificationsCount}</NotificationCount>}
               </NotificationButton>
-              <ChatIcon onClick={toggleChat} aria-label="Chat">
-                <FaComments />
+              <ChatIcon onClick={toggleChat} aria-label="Open chat">
+                <FaComments aria-hidden="true" />
               </ChatIcon>
-              <IconButton onClick={toggleUserMenu} aria-label="User menu" aria-expanded={isUserMenuOpen}>
-                <FaUser />
-                <FaCaretDown />
+              <IconButton onClick={toggleUserMenu} aria-label="User menu" aria-expanded={isUserMenuOpen} aria-haspopup="true">
+                <FaUser aria-hidden="true" />
+                <FaCaretDown aria-hidden="true" />
               </IconButton>
               {isUserMenuOpen && (
-                <UserMenuDropdown>
-                  <UserMenuLink to="/profile">Profile</UserMenuLink>
-                  <UserMenuLink to="/settings">Settings</UserMenuLink>
-                  <UserMenuLink as="button" onClick={handleLogout}>Logout</UserMenuLink>
+                <UserMenuDropdown ref={userMenuRef} role="menu">
+                  <UserMenuLink to="/profile" role="menuitem">Profile</UserMenuLink>
+                  <UserMenuLink to="/settings" role="menuitem">Settings</UserMenuLink>
+                  <UserMenuLink as="button" onClick={handleLogout} role="menuitem">Logout</UserMenuLink>
                 </UserMenuDropdown>
               )}
             </>
           ) : (
             <IconButton as={Link} to="/login" aria-label="Login">
-              <FaUser />
+              <FaUser aria-hidden="true" />
             </IconButton>
           )}
         </RightSection>
@@ -398,13 +477,13 @@ export const Header = () => {
       {isNotificationCenterOpen && (
         <NotificationCenterModal>
           <CloseButton onClick={toggleNotificationCenter} aria-label="Close notifications">
-            <FaTimes />
+            <FaTimes aria-hidden="true" />
           </CloseButton>
           <NotificationCenter />
         </NotificationCenterModal>
       )}
     </HeaderWrapper>
   );
-};
-
-export default Header;
+  };
+  
+  export default Header;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { FaUsers, FaComments, FaSearch, FaSpinner, FaExclamationCircle, FaFilter, FaSortAmountDown } from 'react-icons/fa';
+import { FaUsers, FaComments, FaSearch, FaSpinner, FaExclamationCircle, FaFilter, FaSortAmountDown, FaRedoAlt } from 'react-icons/fa';
 import axios from 'axios';
 import { FixedSizeList as List } from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
@@ -150,8 +150,39 @@ const ErrorMessage = styled.div`
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   margin-bottom: ${({ theme }) => theme.spacing.medium};
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: ${({ theme }) => theme.spacing.small};
+`;
+
+const RetryButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+  border: none;
+  padding: ${({ theme }) => theme.spacing.small} ${({ theme }) => theme.spacing.medium};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  cursor: pointer;
+  transition: ${({ theme }) => theme.transitions.fast};
+  display: flex;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.small};
+  margin-top: ${({ theme }) => theme.spacing.medium};
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondary};
+  }
+`;
+
+const SkeletonForumItem = styled(ForumItem)`
+  height: 150px;
+`;
+
+const SkeletonLine = styled.div`
+  height: ${props => props.height || '16px'};
+  width: ${props => props.width || '100%'};
+  background-color: ${({ theme }) => theme.colors.background};
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+  border-radius: ${({ theme }) => theme.borderRadius.small};
 `;
 
 const Community = () => {
@@ -183,26 +214,7 @@ const Community = () => {
         { id: 3, name: "Feedback & Suggestions", description: "Share your ideas to improve the Naama platform", threads: 75, posts: 450 },
         { id: 4, name: "Indie Showcase", description: "Show off your indie game projects and get feedback", threads: 100, posts: 800 },
         { id: 5, name: "Technical Support", description: "Get help with technical issues and troubleshooting", threads: 200, posts: 1500 },
-        { id: 6, name: "Game Design", description: "Share and discuss game design concepts and theories", threads: 180, posts: 2200 },
-        { id: 7, name: "Art & Animation", description: "Showcase your game art and discuss animation techniques", threads: 120, posts: 950 },
-        { id: 8, name: "Sound & Music", description: "Talk about game audio, share your compositions, and get feedback", threads: 90, posts: 700 },
-        { id: 9, name: "Marketing & Promotion", description: "Discuss strategies for marketing and promoting your games", threads: 110, posts: 1300 },
-        { id: 10, name: "Game Jams", description: "Organize and participate in game development challenges", threads: 80, posts: 600 },
-        { id: 11, name: "VR & AR Gaming", description: "Explore virtual and augmented reality in gaming", threads: 70, posts: 550 },
-        { id: 12, name: "Mobile Gaming", description: "Discuss mobile game development and trends", threads: 160, posts: 1800 },
-        { id: 13, name: "Modding Community", description: "Share and discuss game mods and modding techniques", threads: 130, posts: 1600 },
-        { id: 14, name: "Game Writing", description: "Explore narrative design and game writing techniques", threads: 85, posts: 720 },
-        { id: 15, name: "Esports & Competitions", description: "Discuss competitive gaming and organize tournaments", threads: 140, posts: 2500 },
-        { id: 16, name: "Game Industry News", description: "Share and discuss the latest news in the game industry", threads: 220, posts: 3000 },
-        { id: 17, name: "Retro Gaming", description: "Celebrate classic games and discuss retro gaming", threads: 95, posts: 1100 },
-        { id: 18, name: "Game Accessibility", description: "Discuss making games more accessible to all players", threads: 60, posts: 400 },
-        { id: 19, name: "Educational Games", description: "Explore the world of educational game development", threads: 75, posts: 580 },
-        { id: 20, name: "Game AI", description: "Discuss artificial intelligence in game development", threads: 100, posts: 850 },
-        { id: 21, name: "Crowdfunding & Publishing", description: "Share experiences with game crowdfunding and publishing", threads: 65, posts: 520 },
-        { id: 22, name: "Game Localization", description: "Discuss techniques for localizing games for different markets", threads: 55, posts: 380 },
-        { id: 23, name: "Game Analytics", description: "Explore data analysis and metrics in game development", threads: 70, posts: 600 },
-        { id: 24, name: "Cross-Platform Development", description: "Discuss strategies for developing games across multiple platforms", threads: 85, posts: 720 },
-        { id: 25, name: "Game Asset Marketplace", description: "Buy, sell, and discuss game development assets", threads: 110, posts: 1400 },
+        // ... (add more mock forums as needed)
       ];
 
       const filteredForums = mockForums
@@ -236,7 +248,7 @@ const Community = () => {
       // setPage(prevPage => prevPage + 1);
     } catch (error) {
       console.error('Error fetching forums:', error);
-      setError('Failed to load forums. Please try again later.');
+      setError('Failed to load forums. Please check your internet connection and try again.');
       addToast('error', 'Failed to load forums. Please try again later.');
     } finally {
       setLoading(false);
@@ -269,9 +281,18 @@ const Community = () => {
     setSortOrder(prevOrder => prevOrder === 'asc' ? 'desc' : 'asc');
   };
 
+  const renderSkeletonForumItem = () => (
+    <SkeletonForumItem>
+      <SkeletonLine height="24px" width="60%" />
+      <SkeletonLine height="16px" width="100%" />
+      <SkeletonLine height="16px" width="80%" />
+      <SkeletonLine height="16px" width="40%" />
+    </SkeletonForumItem>
+  );
+
   const ForumRow = useMemo(() => ({ index, style }) => {
     const forum = forums[index];
-    if (!forum) return null;
+    if (!forum) return <div style={style}>{renderSkeletonForumItem()}</div>;
 
     return (
       <ForumItem style={style}>
@@ -297,19 +318,20 @@ const Community = () => {
     <CommunityWrapper>
       <CommunityHeader>
         <CommunityTitle>
-          <FaUsers />
+          <FaUsers aria-hidden="true" />
           Community Forums
         </CommunityTitle>
         <SearchBar>
-          <FaSearch />
+          <FaSearch aria-hidden="true" />
           <SearchInput
             type="text"
             placeholder="Search forums..."
             value={searchTerm}
             onChange={handleSearch}
+            aria-label="Search forums"
           />
         </SearchBar>
-        <FilterDropdown value={category} onChange={handleCategoryChange}>
+        <FilterDropdown value={category} onChange={handleCategoryChange} aria-label="Filter by category">
           <option value="all">All Categories</option>
           <option value="development">Development</option>
           <option value="design">Design</option>
@@ -317,41 +339,50 @@ const Community = () => {
           <option value="business">Business</option>
           <option value="community">Community</option>
         </FilterDropdown>
-        <SortButton onClick={handleSortChange}>
-          <FaSortAmountDown />
+        <SortButton onClick={handleSortChange} aria-label={`Sort by ${sortBy} in ${sortOrder}ending order`}>
+          <FaSortAmountDown aria-hidden="true" />
           Sort by: {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)} ({sortOrder.toUpperCase()})
         </SortButton>
       </CommunityHeader>
-      {error && (
-        <ErrorMessage>
-          <FaExclamationCircle /> {error}
+      {error ? (
+        <ErrorMessage role="alert">
+          <FaExclamationCircle aria-hidden="true" /> {error}
+          <RetryButton onClick={() => { setPage(1); setHasNextPage(true); fetchForums(); }} aria-label="Retry loading forums">
+            <FaRedoAlt aria-hidden="true" /> Retry
+          </RetryButton>
         </ErrorMessage>
+      ) : (
+        <ForumsList>
+          <AutoSizer>
+            {({ height, width }) => (
+              <InfiniteLoader
+                isItemLoaded={isItemLoaded}
+                itemCount={itemCount}
+                loadMoreItems={loadMoreItems}
+              >
+                {({ onItemsRendered, ref }) => (
+                  <List
+                    height={height}
+                    itemCount={itemCount}
+                    itemSize={150}
+                    onItemsRendered={onItemsRendered}
+                    ref={ref}
+                    width={width}
+                  >
+                    {ForumRow}
+                  </List>
+                )}
+              </InfiniteLoader>
+            )}
+          </AutoSizer>
+        </ForumsList>
       )}
-      <ForumsList>
-        <AutoSizer>
-          {({ height, width }) => (
-            <InfiniteLoader
-              isItemLoaded={isItemLoaded}
-              itemCount={itemCount}
-              loadMoreItems={loadMoreItems}
-            >
-              {({ onItemsRendered, ref }) => (
-                <List
-                  height={height}
-                  itemCount={itemCount}
-                  itemSize={150}
-                  onItemsRendered={onItemsRendered}
-                  ref={ref}
-                  width={width}
-                >
-                  {ForumRow}
-                </List>
-              )}
-            </InfiniteLoader>
-          )}
-        </AutoSizer>
-      </ForumsList>
-      {loading && <LoadingSpinner />}
+      {loading && forums.length === 0 && (
+        <div aria-live="polite" aria-busy="true">
+          <LoadingSpinner />
+          <p>Loading forums...</p>
+        </div>
+      )}
     </CommunityWrapper>
   );
 };

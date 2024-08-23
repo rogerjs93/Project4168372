@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
-import { useAuth } from '../AuthContext';
-import { useToast } from '../components/ToastProvider';
+import { FaEnvelope, FaLock, FaSignInAlt, FaExclamationCircle } from 'react-icons/fa';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -21,7 +21,7 @@ const LoginWrapper = styled.div`
   animation: ${fadeIn} 0.5s ease-out;
 `;
 
-const Title = styled.h2`
+const Title = styled.h1`
   color: ${({ theme }) => theme.colors.primary};
   font-size: ${({ theme }) => theme.fontSizes.xxlarge};
   margin-bottom: ${({ theme }) => theme.spacing.large};
@@ -90,6 +90,11 @@ const Button = styled.button`
     box-shadow: ${({ theme }) => theme.boxShadow.medium};
   }
 
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}33;
+  }
+
   &:active {
     transform: translateY(0);
   }
@@ -102,7 +107,7 @@ const Button = styled.button`
   }
 `;
 
-const ErrorMessage = styled.p`
+const ErrorMessage = styled.div`
   color: ${({ theme }) => theme.colors.error};
   font-size: ${({ theme }) => theme.fontSizes.small};
   margin-top: ${({ theme }) => theme.spacing.small};
@@ -110,6 +115,10 @@ const ErrorMessage = styled.p`
   background-color: ${({ theme }) => theme.colors.errorLight};
   padding: ${({ theme }) => theme.spacing.small};
   border-radius: ${({ theme }) => theme.borderRadius.small};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.small};
 `;
 
 const RememberMeWrapper = styled.div`
@@ -142,6 +151,11 @@ const Checkbox = styled.input`
       font-size: 12px;
     }
   }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}33;
+  }
 `;
 
 const CheckboxLabel = styled.label`
@@ -166,6 +180,11 @@ const StyledLink = styled(Link)`
     color: ${({ theme }) => theme.colors.secondary};
     text-decoration: underline;
   }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}33;
+  }
 `;
 
 const Login = () => {
@@ -177,13 +196,20 @@ const Login = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
-  const toast = useToast();
+  const addToast = useToast();
 
   const { email, password, rememberMe } = formData;
 
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setFormData(prevState => ({ ...prevState, email: rememberedEmail, rememberMe: true }));
+    }
+  }, []);
+
   const onChange = e => {
     const { name, value, type, checked } = e.target;
-    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
+    setFormData(prevState => ({ ...prevState, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const validateForm = () => {
@@ -194,26 +220,31 @@ const Login = () => {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.get(`http://localhost:3001/users?email=${email}&password=${password}`);
+      const res = await axios.get(`http://localhost:3001/users?email=${email}`);
       
       if (res.data.length > 0) {
         const user = res.data[0];
-        login(user.id);
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', email);
+        if (user.password === password) {
+          login(user.id);
+          if (rememberMe) {
+            localStorage.setItem('rememberedEmail', email);
+          } else {
+            localStorage.removeItem('rememberedEmail');
+          }
+          addToast('success', 'Login successful!');
+          navigate('/dashboard');
         } else {
-          localStorage.removeItem('rememberMe');
+          setError('Invalid email or password');
+          addToast('error', 'Invalid email or password');
         }
-        toast('success', 'Login successful!');
-        navigate('/dashboard');
       } else {
         setError('Invalid email or password');
-        toast('error', 'Invalid email or password');
+        addToast('error', 'Invalid email or password');
       }
     } catch (err) {
       console.error('Login error:', err);
       setError('An error occurred during login');
-      toast('error', 'An error occurred during login');
+      addToast('error', 'An error occurred during login');
     }
   };
 
@@ -222,7 +253,7 @@ const Login = () => {
       <Title>Sign In</Title>
       <Form onSubmit={onSubmit}>
         <InputWrapper>
-          <InputIcon><FaEnvelope /></InputIcon>
+          <InputIcon aria-hidden="true"><FaEnvelope /></InputIcon>
           <Input 
             type="email" 
             placeholder="Email Address" 
@@ -230,10 +261,11 @@ const Login = () => {
             value={email} 
             onChange={onChange} 
             required 
+            aria-label="Email Address"
           />
         </InputWrapper>
         <InputWrapper>
-          <InputIcon><FaLock /></InputIcon>
+          <InputIcon aria-hidden="true"><FaLock /></InputIcon>
           <Input 
             type="password" 
             placeholder="Password" 
@@ -241,6 +273,7 @@ const Login = () => {
             value={password} 
             onChange={onChange} 
             required 
+            aria-label="Password"
           />
         </InputWrapper>
         <RememberMeWrapper>
@@ -254,11 +287,16 @@ const Login = () => {
           <CheckboxLabel htmlFor="rememberMe">Remember me</CheckboxLabel>
         </RememberMeWrapper>
         <Button type="submit" disabled={!validateForm()}>
-          <FaSignInAlt />
+          <FaSignInAlt aria-hidden="true" />
           Login
         </Button>
       </Form>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {error && (
+        <ErrorMessage role="alert">
+          <FaExclamationCircle aria-hidden="true" />
+          {error}
+        </ErrorMessage>
+      )}
       <LinkWrapper>
         <StyledLink to="/forgot-password">Forgot Password?</StyledLink>
         <StyledLink to="/register">Don't have an account? Sign up</StyledLink>

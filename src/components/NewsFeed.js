@@ -18,7 +18,7 @@ const FeedWrapper = styled.div`
   flex-direction: column;
 `;
 
-const Post = styled.div`
+const Post = styled.article`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   padding: ${({ theme }) => theme.spacing.medium};
@@ -26,7 +26,8 @@ const Post = styled.div`
   box-shadow: ${({ theme }) => theme.boxShadow.small};
   transition: box-shadow 0.3s ease;
 
-  &:hover {
+  &:hover,
+  &:focus-within {
     box-shadow: ${({ theme }) => theme.boxShadow.medium};
   }
 `;
@@ -58,9 +59,13 @@ const ActionButton = styled.button`
   align-items: center;
   gap: 5px;
   transition: color 0.3s ease;
+  padding: ${({ theme }) => theme.spacing.small};
+  border-radius: ${({ theme }) => theme.borderRadius.small};
 
-  &:hover {
+  &:hover,
+  &:focus {
     color: ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
   }
 
   &:disabled {
@@ -83,8 +88,8 @@ const LoadingSpinner = styled(FaSpinner)`
 `;
 
 const ErrorMessage = styled.div`
-  color: ${({ theme }) => theme.colors.error};
-  background-color: ${({ theme }) => theme.colors.errorLight};
+  color: ${({ theme }) => theme.colors.surfaceLight};
+  background-color: ${({ theme }) => theme.colors.error};
   padding: ${({ theme }) => theme.spacing.medium};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   margin-bottom: ${({ theme }) => theme.spacing.medium};
@@ -100,11 +105,17 @@ const NewPostForm = styled.form`
 const NewPostInput = styled.textarea`
   width: 100%;
   padding: ${({ theme }) => theme.spacing.medium};
-  border: 1px solid ${({ theme }) => theme.colors.borderColor};
+  border: 2px solid ${({ theme }) => theme.colors.borderColor};
   border-radius: ${({ theme }) => theme.borderRadius.medium};
   font-size: ${({ theme }) => theme.fontSizes.medium};
   resize: vertical;
   min-height: 100px;
+
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}40;
+  }
 `;
 
 const SubmitButton = styled.button`
@@ -118,8 +129,10 @@ const SubmitButton = styled.button`
   margin-top: ${({ theme }) => theme.spacing.small};
   transition: background-color 0.3s ease;
 
-  &:hover {
+  &:hover,
+  &:focus {
     background-color: ${({ theme }) => theme.colors.primaryDark};
+    outline: 2px solid ${({ theme }) => theme.colors.primaryDark};
   }
 
   &:disabled {
@@ -263,17 +276,23 @@ const NewsFeed = () => {
         <PostAuthor>{post.userId}</PostAuthor>
         <PostContent>{post.content}</PostContent>
         <PostActions>
-          <ActionButton onClick={() => handleLike(post.id)} aria-label="Like post">
+          <ActionButton 
+            onClick={() => handleLike(post.id)} 
+            aria-label={`Like post by ${post.userId}. Current likes: ${post.likes}`}
+          >
             <FaHeart /> {post.likes} Likes
           </ActionButton>
-          <ActionButton aria-label="Comment on post">
+          <ActionButton 
+            aria-label={`Comment on post by ${post.userId}. Current comments: ${post.comments.length}`}
+          >
             <FaComment /> {post.comments.length} Comments
           </ActionButton>
-          <ActionButton aria-label="Share post">
+          <ActionButton aria-label={`Share post by ${post.userId}`}>
             <FaShare /> Share
           </ActionButton>
         </PostActions>
         <CommentsSection>
+          <h4 className="visually-hidden">Comments</h4>
           {post.comments.map((comment, index) => (
             <Comment key={index}>
               <CommentAuthor>{comment.userId}: </CommentAuthor>
@@ -302,22 +321,26 @@ const NewsFeed = () => {
 
   return (
     <FeedWrapper>
+      <h2 id="newsFeedTitle" className="visually-hidden">News Feed</h2>
       {error && (
-        <ErrorMessage>
+        <ErrorMessage role="alert">
           <FaExclamationCircle /> {error}
         </ErrorMessage>
       )}
       <NewPostForm onSubmit={handleNewPost}>
+        <label htmlFor="newPostContent" className="visually-hidden">Create a new post</label>
         <NewPostInput
+          id="newPostContent"
           value={newPostContent}
           onChange={(e) => setNewPostContent(e.target.value)}
           placeholder="What's on your mind?"
+          aria-label="Create a new post"
         />
         <SubmitButton type="submit" disabled={!newPostContent.trim()}>
           Post
         </SubmitButton>
       </NewPostForm>
-      <FeedListWrapper>
+      <FeedListWrapper aria-labelledby="newsFeedTitle">
         <AutoSizer>
           {({ height, width }) => (
             <InfiniteLoader
@@ -347,7 +370,7 @@ const NewsFeed = () => {
           )}
         </AutoSizer>
       </FeedListWrapper>
-      {loading && <LoadingSpinner />}
+      {loading && <LoadingSpinner aria-label="Loading more posts" />}
     </FeedWrapper>
   );
 };

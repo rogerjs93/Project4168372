@@ -16,19 +16,22 @@
       },
       "securitySettings": {
         "twoFactorAuth": false
-      }
+      },
+      "followers": 0
     },
     {
       "id": "bb10",
       "username": "johndoe",
       "email": "john@example.com",
-      "password": "password123"
+      "password": "password123",
+      "followers": 0
     },
     {
       "id": "cc11",
       "username": "janedoe",
       "email": "jane@example.com",
-      "password": "password456"
+      "password": "password456",
+      "followers": 0
     }
   ],
   "profiles": [

@@ -45,7 +45,8 @@ const Section = styled.section`
   height: ${props => props.scrollable ? '400px' : 'auto'};
   overflow-y: ${props => props.scrollable ? 'auto' : 'visible'};
 
-  &:hover {
+  &:hover,
+  &:focus-within {
     box-shadow: ${({ theme }) => theme.boxShadow.medium};
     transform: translateY(-2px);
   }
@@ -104,7 +105,8 @@ const StatItem = styled.div`
   text-align: center;
   transition: ${({ theme }) => theme.transitions.fast};
 
-  &:hover {
+  &:hover,
+  &:focus-within {
     transform: translateY(-2px);
     box-shadow: ${({ theme }) => theme.boxShadow.small};
   }
@@ -122,9 +124,12 @@ const StatLabel = styled.div`
 `;
 
 const DraggableSection = ({ id, children, index, moveSection }) => {
-  const [, ref] = useDrag({
+  const [{ isDragging }, drag] = useDrag({
     type: 'section',
     item: { id, index },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
   });
 
   const [, drop] = useDrop({
@@ -137,7 +142,17 @@ const DraggableSection = ({ id, children, index, moveSection }) => {
     },
   });
 
-  return <div ref={(node) => ref(drop(node))}>{children}</div>;
+  return (
+    <div
+      ref={(node) => drag(drop(node))}
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      aria-grabbed={isDragging}
+      tabIndex="0"
+      role="listitem"
+    >
+      {children}
+    </div>
+  );
 };
 
 const Profile = () => {
@@ -207,17 +222,17 @@ const Profile = () => {
 
   const renderSkeletonProfile = () => (
     <ProfileWrapper>
-      <SkeletonSection>
+      <SkeletonSection aria-label="Loading profile header">
         <Skeleton.Rect height="200px" />
       </SkeletonSection>
       <ProfileContent>
-        <SkeletonSection>
+        <SkeletonSection aria-label="Loading skills section">
           <SectionTitle>Skills</SectionTitle>
           <Skeleton.Line height="20px" width="100%" />
           <Skeleton.Line height="20px" width="80%" />
           <Skeleton.Line height="20px" width="60%" />
         </SkeletonSection>
-        <SkeletonSection>
+        <SkeletonSection aria-label="Loading user statistics">
           <SectionTitle>User Statistics</SectionTitle>
           <StatGrid>
             {[...Array(4)].map((_, index) => (
@@ -225,13 +240,13 @@ const Profile = () => {
             ))}
           </StatGrid>
         </SkeletonSection>
-        <SkeletonSection>
+        <SkeletonSection aria-label="Loading top games">
           <SectionTitle>Top Games</SectionTitle>
           <Skeleton.Rect height="100px" />
           <Skeleton.Line height="20px" width="60%" />
           <Skeleton.Line height="16px" width="40%" />
         </SkeletonSection>
-        <SkeletonSection>
+        <SkeletonSection aria-label="Loading recent activity">
           <SectionTitle>Recent Activity</SectionTitle>
           <Skeleton.Line height="16px" width="100%" />
           <Skeleton.Line height="16px" width="80%" />
@@ -247,9 +262,9 @@ const Profile = () => {
 
   const sections = {
     skills: (
-      <Section>
-        <SectionTitle>
-          <FaUser />
+      <Section aria-labelledby="skills-title">
+        <SectionTitle id="skills-title">
+          <FaUser aria-hidden="true" />
           Skills
         </SectionTitle>
         <SkillsSection
@@ -259,9 +274,9 @@ const Profile = () => {
       </Section>
     ),
     stats: (
-      <Section>
-        <SectionTitle>
-          <FaChartBar />
+      <Section aria-labelledby="stats-title">
+        <SectionTitle id="stats-title">
+          <FaChartBar aria-hidden="true" />
           User Statistics
         </SectionTitle>
         <StatGrid>
@@ -285,9 +300,9 @@ const Profile = () => {
       </Section>
     ),
     games: (
-      <Section scrollable>
-        <SectionTitle>
-          <FaGamepad />
+      <Section scrollable aria-labelledby="games-title">
+        <SectionTitle id="games-title">
+          <FaGamepad aria-hidden="true" />
           Top Games
         </SectionTitle>
         <GamesSection
@@ -297,9 +312,9 @@ const Profile = () => {
       </Section>
     ),
     activity: (
-      <Section scrollable>
-        <SectionTitle>
-          <FaHistory />
+      <Section scrollable aria-labelledby="activity-title">
+        <SectionTitle id="activity-title">
+          <FaHistory aria-hidden="true" />
           Recent Activity
         </SectionTitle>
         <ActivityFeed activities={games.map(game => ({
@@ -314,6 +329,7 @@ const Profile = () => {
   return (
     <DndProvider backend={HTML5Backend}>
       <ProfileWrapper>
+        <h1 id="profile-title" className="visually-hidden">User Profile</h1>
         <ProfileHeader
           profile={profile}
           onUpdateProfile={handleUpdateProfile}
@@ -322,17 +338,19 @@ const Profile = () => {
         {showSettings ? (
           <ProfileSettings />
         ) : (
-          <ProfileContent>
-            {sectionOrder.map((sectionId, index) => (
-              <DraggableSection
-                key={sectionId}
-                id={sectionId}
-                index={index}
-                moveSection={moveSection}
-              >
-                {sections[sectionId]}
-              </DraggableSection>
-            ))}
+          <ProfileContent role="main" aria-labelledby="profile-title">
+            <div role="list" aria-label="Profile sections">
+              {sectionOrder.map((sectionId, index) => (
+                <DraggableSection
+                  key={sectionId}
+                  id={sectionId}
+                  index={index}
+                  moveSection={moveSection}
+                >
+                  {sections[sectionId]}
+                </DraggableSection>
+              ))}
+            </div>
           </ProfileContent>
         )}
       </ProfileWrapper>

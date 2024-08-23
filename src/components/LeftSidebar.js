@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import styled, { keyframes, css } from 'styled-components';
 import { Link, useLocation } from 'react-router-dom';
-import { FaNewspaper, FaUserFriends, FaUsers, FaCalendarAlt, FaHistory, FaBookmark, FaRobot, FaPlayCircle, FaUserCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaNewspaper, FaUserFriends, FaUsers, FaCalendarAlt, FaHistory, FaBookmark, FaRobot, FaPlayCircle, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const slideIn = keyframes`
   from { transform: translateX(-100%); }
@@ -15,20 +15,36 @@ const slideOut = keyframes`
 
 const SidebarWrapper = styled.aside`
   background-color: ${({ theme }) => theme.colors.surfaceLight};
-  width: ${({ isCollapsed }) => (isCollapsed ? '80px' : '240px')};
+  width: ${({ $isCollapsed }) => ($isCollapsed ? '80px' : '240px')};
   position: fixed;
   left: 0;
-  top: 100px; // Adjust this value to match your header height
-  bottom: 0;
+  top: 180px; // Adjust this value to match your header height
+  bottom: 20;
   transition: width 0.3s ease;
   z-index: 1000;
   box-shadow: ${({ theme }) => theme.boxShadow.medium};
   overflow-x: hidden;
   overflow-y: auto;
-  animation: ${({ isCollapsed }) => (isCollapsed ? slideOut : slideIn)} 0.3s ease;
+  animation: ${({ $isCollapsed }) => ($isCollapsed ? slideOut : slideIn)} 0.3s ease;
 
-  &:hover {
-    width: ${({ isCollapsed }) => (isCollapsed ? '240px' : '240px')};
+  ${({ $isHovered, $isCollapsed }) =>
+    $isHovered &&
+    $isCollapsed &&
+    css`
+      width: 240px;
+    `}
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: ${({ theme }) => theme.colors.scrollbarThumb};
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: ${({ theme }) => theme.colors.scrollbarTrack};
   }
 `;
 
@@ -46,7 +62,7 @@ const SidebarHeader = styled.div`
   border-bottom: 1px solid ${({ theme }) => theme.colors.borderColor};
 `;
 
-const SidebarTitle = styled.h3`
+const SidebarTitle = styled.h2`
   color: ${({ theme }) => theme.colors.textPrimary};
   font-size: ${({ theme }) => theme.fontSizes.large};
   margin: 0;
@@ -72,11 +88,20 @@ const CollapseButton = styled.button`
     color: ${({ theme }) => theme.colors.primary};
     background-color: ${({ theme }) => theme.colors.background};
   }
+
+  &:focus {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
+`;
+
+const SidebarNav = styled.nav`
+  padding: ${({ theme }) => theme.spacing.medium};
 `;
 
 const SidebarList = styled.ul`
   list-style-type: none;
-  padding: ${({ theme }) => theme.spacing.medium};
+  padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -88,7 +113,7 @@ const SidebarItem = styled.li`
 `;
 
 const SidebarLink = styled(Link)`
-  color: ${({ theme, isActive }) => isActive ? theme.colors.primary : theme.colors.textSecondary};
+  color: ${({ theme, $isActive }) => $isActive ? theme.colors.primary : theme.colors.textSecondary};
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -98,9 +123,10 @@ const SidebarLink = styled(Link)`
   position: relative;
   overflow: hidden;
 
-  &:hover {
+  &:hover, &:focus {
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.primary};
+    outline: none;
   }
 
   &::after {
@@ -114,23 +140,23 @@ const SidebarLink = styled(Link)`
     transition: width 0.3s ease;
   }
 
-  &:hover::after {
+  &:hover::after, &:focus::after {
     width: 100%;
   }
 `;
 
-const LinkIcon = styled.div`
+const LinkIcon = styled.span`
   width: 24px;
   height: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 1.2rem;
-  color: ${({ theme, isActive }) => isActive ? theme.colors.primary : theme.colors.textSecondary};
+  color: ${({ theme, $isActive }) => $isActive ? theme.colors.primary : theme.colors.textSecondary};
   margin-right: ${({ theme }) => theme.spacing.medium};
   transition: ${({ theme }) => theme.transitions.fast};
 
-  ${SidebarLink}:hover & {
+  ${SidebarLink}:hover &, ${SidebarLink}:focus & {
     color: ${({ theme }) => theme.colors.primary};
     transform: scale(1.1);
   }
@@ -141,17 +167,37 @@ const LinkText = styled.span`
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: ${({ theme }) => theme.fontWeights.medium};
-  opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
+  opacity: ${({ $isVisible }) => ($isVisible ? 1 : 0)};
   transition: opacity 0.3s ease;
 `;
 
 export const LeftSidebar = ({ isCollapsed, onCollapse }) => {
   const [isHovered, setIsHovered] = useState(false);
   const location = useLocation();
+  const sidebarRef = useRef(null);
 
-  const toggleSidebar = () => {
+  const toggleSidebar = useCallback(() => {
     onCollapse(!isCollapsed);
-  };
+  }, [isCollapsed, onCollapse]);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      toggleSidebar();
+    }
+  }, [toggleSidebar]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsHovered(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const menuItems = [
     { icon: <FaNewspaper />, text: 'News Feed', path: '/feed' },
@@ -165,32 +211,44 @@ export const LeftSidebar = ({ isCollapsed, onCollapse }) => {
   ];
 
   return (
-    <SidebarWrapper 
-      isCollapsed={isCollapsed} 
-      onMouseEnter={() => setIsHovered(true)} 
+    <SidebarWrapper
+      ref={sidebarRef}
+      $isCollapsed={isCollapsed}
+      $isHovered={isHovered}
+      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      role="complementary"
+      aria-label="Left sidebar navigation"
     >
       <SidebarContent>
         <SidebarHeader>
           {(!isCollapsed || isHovered) && <SidebarTitle>Social</SidebarTitle>}
-          <CollapseButton onClick={toggleSidebar} aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
+          <CollapseButton
+            onClick={toggleSidebar}
+            onKeyDown={handleKeyDown}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
             {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
           </CollapseButton>
         </SidebarHeader>
-        <SidebarList>
-          {menuItems.map((item, index) => (
-            <SidebarItem key={index}>
-              <SidebarLink 
-                to={item.path} 
-                isActive={location.pathname === item.path}
-                aria-label={item.text}
-              >
-                <LinkIcon isActive={location.pathname === item.path}>{item.icon}</LinkIcon>
-                <LinkText isVisible={!isCollapsed || isHovered}>{item.text}</LinkText>
-              </SidebarLink>
-            </SidebarItem>
-          ))}
-        </SidebarList>
+        <SidebarNav>
+          <SidebarList>
+            {menuItems.map((item, index) => (
+              <SidebarItem key={index}>
+                <SidebarLink
+                  to={item.path}
+                  $isActive={location.pathname === item.path}
+                  aria-label={item.text}
+                  aria-current={location.pathname === item.path ? 'page' : undefined}
+                >
+                  <LinkIcon $isActive={location.pathname === item.path}>{item.icon}</LinkIcon>
+                  <LinkText $isVisible={!isCollapsed || isHovered}>{item.text}</LinkText>
+                </SidebarLink>
+              </SidebarItem>
+            ))}
+          </SidebarList>
+        </SidebarNav>
       </SidebarContent>
     </SidebarWrapper>
   );

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { FaUser, FaEnvelope, FaLock, FaUserPlus } from 'react-icons/fa';
-import { useToast } from '../components/ToastProvider';
+import { FaUser, FaEnvelope, FaLock, FaUserPlus, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
+import { useToast } from '../hooks/useToast';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -20,7 +20,7 @@ const RegisterWrapper = styled.div`
   animation: ${fadeIn} 0.5s ease-out;
 `;
 
-const Title = styled.h2`
+const Title = styled.h1`
   color: ${({ theme }) => theme.colors.primary};
   font-size: ${({ theme }) => theme.fontSizes.xxlarge};
   margin-bottom: ${({ theme }) => theme.spacing.large};
@@ -89,6 +89,11 @@ const Button = styled.button`
     box-shadow: ${({ theme }) => theme.boxShadow.medium};
   }
 
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}33;
+  }
+
   &:active {
     transform: translateY(0);
   }
@@ -101,24 +106,26 @@ const Button = styled.button`
   }
 `;
 
-const ErrorMessage = styled.p`
-  color: ${({ theme }) => theme.colors.error};
+const Message = styled.div`
   font-size: ${({ theme }) => theme.fontSizes.small};
   margin-top: ${({ theme }) => theme.spacing.small};
   text-align: center;
-  background-color: ${({ theme }) => theme.colors.errorLight};
   padding: ${({ theme }) => theme.spacing.small};
   border-radius: ${({ theme }) => theme.borderRadius.small};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.small};
 `;
 
-const SuccessMessage = styled.p`
+const ErrorMessage = styled(Message)`
+  color: ${({ theme }) => theme.colors.error};
+  background-color: ${({ theme }) => theme.colors.errorLight};
+`;
+
+const SuccessMessage = styled(Message)`
   color: ${({ theme }) => theme.colors.success};
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  text-align: center;
   background-color: ${({ theme }) => theme.colors.successLight};
-  padding: ${({ theme }) => theme.spacing.medium};
-  border-radius: ${({ theme }) => theme.borderRadius.medium};
-  margin-top: ${({ theme }) => theme.spacing.large};
 `;
 
 const LoginLink = styled(Link)`
@@ -133,6 +140,11 @@ const LoginLink = styled(Link)`
   &:hover {
     color: ${({ theme }) => theme.colors.secondary};
     text-decoration: underline;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary}33;
   }
 `;
 
@@ -150,54 +162,77 @@ const Register = () => {
 
   const { username, email, password, password2 } = formData;
 
-  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+    // Clear any existing user data from localStorage
+    localStorage.removeItem('userId');
+  }, []);
+
+  const onChange = e => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({ ...prevState, [name]: value }));
+    // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const validateForm = () => {
+    if (!username || !email || !password || !password2) {
+      setError('All fields are required');
+      return false;
+    }
+    if (password !== password2) {
+      setError('Passwords do not match');
+      return false;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return false;
+    }
+    return true;
+  };
 
   const onSubmit = async e => {
     e.preventDefault();
-    if (password !== password2) {
-      setError('Passwords do not match');
-      addToast('error', 'Passwords do not match');
-    } else {
-      try {
-        // Check if user already exists
-        const checkUser = await axios.get(`http://localhost:3001/users?email=${email}`);
-        if (checkUser.data.length > 0) {
-          setError('User already exists');
-          addToast('error', 'User already exists');
-          return;
-        }
+    if (!validateForm()) return;
 
-        const newUser = {
-          username,
-          email,
-          password // In a real app, never store plain text passwords
-        };
-
-        const res = await axios.post('http://localhost:3001/users', newUser);
-        
-        if (res.data) {
-          console.log(res.data);
-          localStorage.setItem('userId', res.data.id);
-          setSuccess(true);
-          setError('');
-          addToast('success', 'Registration successful!');
-          setTimeout(() => navigate('/dashboard'), 2000);
-        } else {
-          setError('Registration failed');
-          addToast('error', 'Registration failed');
-        }
-      } catch (err) {
-        console.error('Registration error:', err);
-        setError(err.message || 'An error occurred during registration');
-        addToast('error', err.message || 'An error occurred during registration');
+    try {
+      // Check if user already exists
+      const checkUser = await axios.get(`http://localhost:3001/users?email=${email}`);
+      if (checkUser.data.length > 0) {
+        setError('User with this email already exists');
+        addToast('error', 'User with this email already exists');
+        return;
       }
+
+      const newUser = {
+        username,
+        email,
+        password // In a real app, never store plain text passwords
+      };
+
+      const res = await axios.post('http://localhost:3001/users', newUser);
+      
+      if (res.data && res.data.id) {
+        setSuccess(true);
+        setError('');
+        addToast('success', 'Registration successful!');
+        setTimeout(() => navigate('/login'), 2000);
+      } else {
+        throw new Error('Registration failed');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError(err.response?.data?.message || 'An error occurred during registration');
+      addToast('error', err.response?.data?.message || 'An error occurred during registration');
     }
   };
 
   if (success) {
     return (
       <RegisterWrapper>
-        <SuccessMessage>Registration successful! Redirecting to dashboard...</SuccessMessage>
+        <SuccessMessage>
+          <FaCheckCircle />
+          Registration successful! Redirecting to login...
+        </SuccessMessage>
       </RegisterWrapper>
     );
   }
@@ -205,9 +240,9 @@ const Register = () => {
   return (
     <RegisterWrapper>
       <Title>Sign Up</Title>
-      <Form onSubmit={onSubmit}>
+      <Form onSubmit={onSubmit} noValidate>
         <InputWrapper>
-          <InputIcon><FaUser /></InputIcon>
+          <InputIcon><FaUser aria-hidden="true" /></InputIcon>
           <Input 
             type="text" 
             placeholder="Username" 
@@ -215,10 +250,11 @@ const Register = () => {
             value={username} 
             onChange={onChange} 
             required 
+            aria-label="Username"
           />
         </InputWrapper>
         <InputWrapper>
-          <InputIcon><FaEnvelope /></InputIcon>
+          <InputIcon><FaEnvelope aria-hidden="true" /></InputIcon>
           <Input 
             type="email" 
             placeholder="Email Address" 
@@ -226,10 +262,11 @@ const Register = () => {
             value={email} 
             onChange={onChange} 
             required 
+            aria-label="Email Address"
           />
         </InputWrapper>
         <InputWrapper>
-          <InputIcon><FaLock /></InputIcon>
+          <InputIcon><FaLock aria-hidden="true" /></InputIcon>
           <Input 
             type="password" 
             placeholder="Password" 
@@ -238,10 +275,11 @@ const Register = () => {
             onChange={onChange} 
             minLength="6" 
             required 
+            aria-label="Password"
           />
         </InputWrapper>
         <InputWrapper>
-          <InputIcon><FaLock /></InputIcon>
+          <InputIcon><FaLock aria-hidden="true" /></InputIcon>
           <Input 
             type="password" 
             placeholder="Confirm Password" 
@@ -250,14 +288,20 @@ const Register = () => {
             onChange={onChange} 
             minLength="6" 
             required 
+            aria-label="Confirm Password"
           />
         </InputWrapper>
         <Button type="submit">
-          <FaUserPlus />
+          <FaUserPlus aria-hidden="true" />
           Register
         </Button>
       </Form>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {error && (
+        <ErrorMessage role="alert">
+          <FaExclamationCircle aria-hidden="true" />
+          {error}
+        </ErrorMessage>
+      )}
       <LoginLink to="/login">Already have an account? Sign in</LoginLink>
     </RegisterWrapper>
   );

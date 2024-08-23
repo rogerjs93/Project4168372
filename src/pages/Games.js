@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import { FaGamepad, FaPlug, FaSort } from 'react-icons/fa';
+import { FaGamepad, FaPlug, FaSort, FaExclamationCircle, FaRedoAlt } from 'react-icons/fa';
 import ErrorBoundary from '../components/ErrorBoundary';
 import GameCard from '../components/GameCard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -10,6 +10,7 @@ import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import InfiniteLoader from 'react-window-infinite-loader';
 import { useToast } from '../hooks/useToast';
+import Skeleton from '../components/SkeletonLoader';
 
 const GamesWrapper = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
@@ -133,6 +134,23 @@ const SortButton = styled(Button)`
   }
 `;
 
+const ErrorContainer = styled.div`
+  text-align: center;
+  padding: ${({ theme }) => theme.spacing.large};
+`;
+
+const RetryButton = styled(Button)`
+  margin-top: ${({ theme }) => theme.spacing.medium};
+`;
+
+const SkeletonGameCard = styled.div`
+  background-color: ${({ theme }) => theme.colors.surfaceLight};
+  border-radius: ${({ theme }) => theme.borderRadius.medium};
+  padding: ${({ theme }) => theme.spacing.medium};
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  height: 300px; // Adjust based on your GameCard height
+`;
+
 const Games = () => {
   const [games, setGames] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -146,6 +164,15 @@ const Games = () => {
   const addToast = useToast();
 
   const ITEMS_PER_PAGE = 20;
+
+  const renderSkeletonGameCard = () => (
+    <SkeletonGameCard>
+      <Skeleton.Rect height="150px" />
+      <Skeleton.Line height="24px" width="80%" style={{ marginTop: '16px' }} />
+      <Skeleton.Line height="16px" width="60%" style={{ marginTop: '8px' }} />
+      <Skeleton.Line height="16px" width="40%" style={{ marginTop: '8px' }} />
+    </SkeletonGameCard>
+  );
 
   const fetchGames = useCallback(async () => {
     if (!hasNextPage) return;
@@ -172,7 +199,7 @@ const Games = () => {
       pageRef.current += 1;
     } catch (err) {
       console.error('Error fetching games:', err);
-      setError('Failed to load games. Please try again later.');
+      setError('Failed to load games. Please check your internet connection and try again.');
       addToast('error', 'Failed to load games. Please try again later.');
     } finally {
       setIsLoading(false);
@@ -206,10 +233,13 @@ const Games = () => {
   const MemoizedGameCard = useMemo(() => React.memo(GameCard), []);
 
   const Row = ({ index, style }) => {
-    if (index >= games.length) return null;
+    if (index >= games.length) return renderSkeletonGameCard();
     const game = games[index];
     return (
-      <div style={style}>
+      <div style={{
+        ...style,
+        paddingBottom: '16px', // Add some space between cards
+      }}>
         <MemoizedGameCard game={game} />
       </div>
     );
@@ -249,34 +279,49 @@ const Games = () => {
             <FaPlug /> Connect External Program
           </Button>
         </GamesHeader>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <GamesListWrapper>
-          <AutoSizer>
-            {({ height, width }) => (
-              <InfiniteLoader
-                isItemLoaded={isItemLoaded}
-                itemCount={itemCount}
-                loadMoreItems={loadMoreItems}
-              >
-                {({ onItemsRendered, ref }) => (
-                  <List
-                    ref={ref}
-                    height={height}
-                    itemCount={itemCount}
-                    itemSize={300} // Adjust based on your GameCard height
-                    width={width}
-                    onItemsRendered={onItemsRendered}
-                    className="scrollable-content"
-                    style={{ overflowX: 'hidden' }}
-                  >
-                    {Row}
-                  </List>
-                )}
-              </InfiniteLoader>
-            )}
-          </AutoSizer>
-        </GamesListWrapper>
-        {isLoading && <LoadingSpinner />}
+        {error ? (
+          <ErrorContainer>
+            <ErrorMessage>
+              <FaExclamationCircle aria-hidden="true" /> {error}
+            </ErrorMessage>
+            <RetryButton onClick={() => fetchGames()} aria-label="Retry loading games">
+              <FaRedoAlt aria-hidden="true" /> Retry
+            </RetryButton>
+          </ErrorContainer>
+        ) : (
+          <GamesListWrapper>
+            <AutoSizer>
+              {({ height, width }) => (
+                <InfiniteLoader
+                  isItemLoaded={isItemLoaded}
+                  itemCount={itemCount}
+                  loadMoreItems={loadMoreItems}
+                >
+                  {({ onItemsRendered, ref }) => (
+                    <List
+                      ref={ref}
+                      height={height}
+                      itemCount={itemCount}
+                      itemSize={300} // Adjust based on your GameCard height
+                      width={width}
+                      onItemsRendered={onItemsRendered}
+                      className="scrollable-content"
+                      style={{ overflowX: 'hidden' }}
+                    >
+                      {Row}
+                    </List>
+                  )}
+                </InfiniteLoader>
+              )}
+            </AutoSizer>
+          </GamesListWrapper>
+        )}
+        {isLoading && games.length === 0 && (
+          <div aria-live="polite" aria-busy="true">
+            <LoadingSpinner />
+            <p>Loading games...</p>
+          </div>
+        )}
       </GamesWrapper>
     </ErrorBoundary>
   );
@@ -284,30 +329,30 @@ const Games = () => {
 
 // Example of mock game data (to be removed when connecting to a real server)
 const mockGames = [
-  { id: 1, title: 'Adventure Quest', gameType: 'action', rating: 4.5 },
-  { id: 2, title: 'Puzzle Master', gameType: 'puzzle', rating: 4.2 },
-  { id: 3, title: 'Strategy Empire', gameType: 'strategy', rating: 4.7 },
-  { id: 4, title: 'RPG Legends', gameType: 'rpg', rating: 4.8 },
-  { id: 5, title: 'Racing Rivals', gameType: 'racing', rating: 4.3 },
-  { id: 6, title: 'Zombie Survival', gameType: 'action', rating: 4.1 },
-  { id: 7, title: 'Sudoku Challenge', gameType: 'puzzle', rating: 4.4 },
-  { id: 8, title: 'Civilization Builder', gameType: 'strategy', rating: 4.9 },
-  { id: 9, title: 'Fantasy Quest', gameType: 'rpg', rating: 4.6 },
-  { id: 10, title: 'Sports Simulator', gameType: 'sports', rating: 4.0 },
-  { id: 11, title: 'Ninja Warrior', gameType: 'action', rating: 4.2 },
-  { id: 12, title: 'Mind Bender', gameType: 'puzzle', rating: 4.5 },
-  { id: 13, title: 'Space Conqueror', gameType: 'strategy', rating: 4.7 },
-  { id: 14, title: 'Dragon Slayer', gameType: 'rpg', rating: 4.8 },
-  { id: 15, title: 'Street Racer', gameType: 'racing', rating: 4.1 },
-  { id: 16, title: 'Alien Invasion', gameType: 'action', rating: 4.3 },
-  { id: 17, title: 'Crossword Master', gameType: 'puzzle', rating: 4.2 },
-  { id: 18, title: 'War Commander', gameType: 'strategy', rating: 4.6 },
-  { id: 19, title: 'Mystic Realms', gameType: 'rpg', rating: 4.9 },
-  { id: 20, title: 'Basketball Pro', gameType: 'sports', rating: 4.4 },
-  { id: 21, title: 'Stealth Assassin', gameType: 'action', rating: 4.5 },
-  { id: 22, title: 'Logic Labyrinth', gameType: 'puzzle', rating: 4.3 },
-  { id: 23, title: 'City Planner', gameType: 'strategy', rating: 4.7 },
-  { id: 24, title: 'Pirate Adventures', gameType: 'rpg', rating: 4.6 },
+  { id: 1, title: 'Adventure Quest', gameType: 'action', rating: 4.5, image: 'https://example.com/adventure-quest.jpg' },
+  { id: 2, title: 'Puzzle Master', gameType: 'puzzle', rating: 4.2, image: 'https://example.com/puzzle-master.jpg' },
+  { id: 3, title: 'Strategy Empire', gameType: 'strategy', rating: 4.7, image: 'https://example.com/strategy-empire.jpg' },
+  { id: 4, title: 'RPG Legends', gameType: 'rpg', rating: 4.8, image: 'https://example.com/rpg-legends.jpg' },
+  { id: 5, title: 'Racing Rivals', gameType: 'racing', rating: 4.3, image: 'https://example.com/racing-rivals.jpg' },
+  { id: 6, title: 'Zombie Survival', gameType: 'action', rating: 4.1, image: 'https://example.com/zombie-survival.jpg' },
+  { id: 7, title: 'Sudoku Challenge', gameType: 'puzzle', rating: 4.4, image: 'https://example.com/sudoku-challenge.jpg' },
+  { id: 8, title: 'Civilization Builder', gameType: 'strategy', rating: 4.9, image: 'https://example.com/civilization-builder.jpg' },
+  { id: 9, title: 'Fantasy Quest', gameType: 'rpg', rating: 4.6, image: 'https://example.com/fantasy-quest.jpg' },
+  { id: 10, title: 'Sports Simulator', gameType: 'sports', rating: 4.0, image: 'https://example.com/sports-simulator.jpg' },
+  { id: 11, title: 'Ninja Warrior', gameType: 'action', rating: 4.2, image: 'https://example.com/ninja-warrior.jpg' },
+  { id: 12, title: 'Mind Bender', gameType: 'puzzle', rating: 4.5, image: 'https://example.com/mind-bender.jpg' },
+  { id: 13, title: 'Space Conqueror', gameType: 'strategy', rating: 4.7, image: 'https://example.com/space-conqueror.jpg' },
+  { id: 14, title: 'Dragon Slayer', gameType: 'rpg', rating: 4.8, image: 'https://example.com/dragon-slayer.jpg' },
+  { id: 15, title: 'Street Racer', gameType: 'racing', rating: 4.1, image: 'https://example.com/street-racer.jpg' },
+  { id: 16, title: 'Alien Invasion', gameType: 'action', rating: 4.3, image: 'https://example.com/alien-invasion.jpg' },
+  { id: 17, title: 'Crossword Master', gameType: 'puzzle', rating: 4.2, image: 'https://example.com/crossword-master.jpg' },
+  { id: 18, title: 'War Commander', gameType: 'strategy', rating: 4.6, image: 'https://example.com/war-commander.jpg' },
+  { id: 19, title: 'Mystic Realms', gameType: 'rpg', rating: 4.9, image: 'https://example.com/mystic-realms.jpg' },
+  { id: 20, title: 'Basketball Pro', gameType: 'sports', rating: 4.4, image: 'https://example.com/basketball-pro.jpg' },
+  { id: 21, title: 'Stealth Assassin', gameType: 'action', rating: 4.5, image: 'https://example.com/stealth-assassin.jpg' },
+  { id: 22, title: 'Logic Labyrinth', gameType: 'puzzle', rating: 4.3, image: 'https://example.com/logic-labyrinth.jpg' },
+  { id: 23, title: 'City Planner', gameType: 'strategy', rating: 4.7, image: 'https://example.com/city-planner.jpg' },
+  { id: 24, title: 'Pirate Adventures', gameType: 'rpg', rating: 4.6, image: 'https://example.com/pirate-adventures.jpg' },
   // Add more mock games as needed
 ];
 

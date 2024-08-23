@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import styled, { keyframes } from 'styled-components';
-import { FaPlus, FaSpinner, FaChevronLeft, FaChevronRight, FaChartLine, FaGamepad, FaUsers, FaStar } from 'react-icons/fa';
+import { FaPlus, FaSpinner, FaChartLine, FaGamepad, FaUsers, FaStar, FaExclamationCircle } from 'react-icons/fa';
 import UserProfileCard from './UserProfileCard';
 import TrendingTopicsCard from './TrendingTopicsCard';
 import SocialFeed from './SocialFeed';
@@ -11,7 +11,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { useAuth } from '../hooks/useAuth';
 import Skeleton from './SkeletonLoader';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const fadeIn = keyframes`
@@ -19,7 +19,7 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const DashboardContainer = styled.div`
+const DashboardContainer = styled.main`
   display: grid;
   grid-template-columns: 1fr;
   gap: ${({ theme }) => theme.spacing.medium};
@@ -40,7 +40,7 @@ const DashboardContainer = styled.div`
   }
 `;
 
-const Section = styled.div`
+const Section = styled.section`
   display: flex;
   flex-direction: column;
   gap: ${({ theme }) => theme.spacing.medium};
@@ -74,6 +74,11 @@ const Button = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondary};
     transform: translateY(-2px);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary}33;
   }
 
   &:disabled {
@@ -130,6 +135,10 @@ const ErrorMessage = styled.p`
   color: ${({ theme }) => theme.colors.error};
   text-align: center;
   padding: ${({ theme }) => theme.spacing.medium};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.small};
 `;
 
 const QuickGameCreation = styled.div`
@@ -274,7 +283,6 @@ const Dashboard = () => {
   useEffect(() => {
     if (gamesData) {
       setGames(gamesData);
-      // Generate mock activity data
       const mockActivityData = gamesData.map((game, index) => ({
         date: new Date(Date.now() - (30 - index) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         plays: Math.floor(Math.random() * 100)
@@ -283,9 +291,9 @@ const Dashboard = () => {
     }
   }, [gamesData]);
 
-  const handleCreateGame = () => {
+  const handleCreateGame = useCallback(() => {
     setShowCreateGame(true);
-  };
+  }, []);
 
   const handleGameCreated = useCallback(async (newGame) => {
     try {
@@ -302,7 +310,7 @@ const Dashboard = () => {
       console.error('Error creating game:', error);
       toast.error('Failed to create game. Please try again.');
     }
-  }, [user]);
+  }, [user.id]);
 
   const handleLikePost = useCallback(async (postId) => {
     try {
@@ -317,7 +325,7 @@ const Dashboard = () => {
     }
   }, [posts]);
 
-  const renderSkeletonDashboard = () => (
+  const renderSkeletonDashboard = useCallback(() => (
     <DashboardContainer>
       <Section>
         <SkeletonCard>
@@ -352,78 +360,87 @@ const Dashboard = () => {
         ))}
       </Section>
     </DashboardContainer>
-  );
+  ), []);
 
+  const renderDashboardContent = useMemo(() => (
+    <DashboardContainer>
+      <Section>
+        <UserProfileCard user={userData} />
+        <TrendingTopicsCard />
+        <QuickGameCreation>
+          <SectionTitle>Quick Game Creation</SectionTitle>
+          <Button onClick={handleCreateGame}>
+            <FaPlus aria-hidden="true" /> Create New Game
+          </Button>
+        </QuickGameCreation>
+        <StatsGrid>
+          <StatCard>
+            <StatValue><FaGamepad aria-hidden="true" /> {games.length}</StatValue>
+            <StatLabel>Games Created</StatLabel>
+          </StatCard>
+          <StatCard>
+            <StatValue><FaUsers aria-hidden="true" /> {userData?.followers || 0}</StatValue>
+            <StatLabel>Followers</StatLabel>
+          </StatCard>
+          <StatCard>
+            <StatValue><FaChartLine aria-hidden="true" /> {games.reduce((sum, game) => sum + game.playCount, 0)}</StatValue>
+            <StatLabel>Total Plays</StatLabel>
+          </StatCard>
+          <StatCard>
+            <StatValue><FaStar aria-hidden="true" /> {(games.reduce((sum, game) => sum + game.rating, 0) / games.length || 0).toFixed(1)}</StatValue>
+            <StatLabel>Avg. Rating</StatLabel>
+          </StatCard>
+        </StatsGrid>
+        <ChartContainer>
+          <SectionTitle>Game Activity</SectionTitle>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={activityData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="plays" stroke="#8884d8" activeDot={{ r: 8 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </Section>
+  
+      <Section>
+        <SectionTitle>Social Feed</SectionTitle>
+        <ScrollableSection>
+          <SocialFeed posts={posts} onLike={handleLikePost} />
+        </ScrollableSection>
+      </Section>
+  
+      <Section>
+        <SectionTitle>My Games</SectionTitle>
+        <ScrollableSection>
+          <GameList games={games} />
+        </ScrollableSection>
+      </Section>
+  
+      {showCreateGame && (
+        <Modal>
+          <ModalContent>
+            <CreateGame onGameCreated={handleGameCreated} />
+            <Button onClick={() => setShowCreateGame(false)}>Cancel</Button>
+          </ModalContent>
+        </Modal>
+      )}
+    </DashboardContainer>
+  ), [userData, games, activityData, posts, showCreateGame, handleCreateGame, handleGameCreated, handleLikePost]);
+  
   if (userLoading || postsLoading || gamesLoading) return renderSkeletonDashboard();
-  if (userError || postsError || gamesError) return <ErrorMessage>Error loading dashboard data. Please try again later.</ErrorMessage>;
-
+  if (userError || postsError || gamesError) return (
+    <ErrorMessage>
+      <FaExclamationCircle aria-hidden="true" />
+      Error loading dashboard data. Please try again later.
+    </ErrorMessage>
+  );
+  
   return (
     <ErrorBoundary>
-      <DashboardContainer>
-        <Section>
-          <UserProfileCard user={userData} />
-          <TrendingTopicsCard />
-          <QuickGameCreation>
-            <SectionTitle>Quick Game Creation</SectionTitle>
-            <Button onClick={handleCreateGame}>
-              <FaPlus /> Create New Game
-            </Button>
-          </QuickGameCreation>
-          <StatsGrid>
-            <StatCard>
-              <StatValue><FaGamepad /> {games.length}</StatValue>
-              <StatLabel>Games Created</StatLabel>
-            </StatCard>
-            <StatCard>
-              <StatValue><FaUsers /> {userData.followers || 0}</StatValue>
-              <StatLabel>Followers</StatLabel>
-            </StatCard>
-            <StatCard>
-              <StatValue><FaChartLine /> {games.reduce((sum, game) => sum + game.playCount, 0)}</StatValue>
-              <StatLabel>Total Plays</StatLabel>
-            </StatCard>
-            <StatCard>
-              <StatValue><FaStar /> {(games.reduce((sum, game) => sum + game.rating, 0) / games.length || 0).toFixed(1)}</StatValue>
-              <StatLabel>Avg. Rating</StatLabel>
-            </StatCard>
-          </StatsGrid>
-          <ChartContainer>
-            <SectionTitle>Game Activity</SectionTitle>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={activityData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="plays" stroke="#8884d8" activeDot={{ r: 8 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Section>
-
-        <Section>
-          <SectionTitle>Social Feed</SectionTitle>
-          <ScrollableSection>
-            <SocialFeed posts={posts} onLike={handleLikePost} />
-          </ScrollableSection>
-        </Section>
-
-        <Section>
-          <SectionTitle>My Games</SectionTitle>
-          <ScrollableSection>
-            <GameList games={games} />
-          </ScrollableSection>
-        </Section>
-
-        {showCreateGame && (
-          <Modal>
-            <ModalContent>
-              <CreateGame onGameCreated={handleGameCreated} />
-              <Button onClick={() => setShowCreateGame(false)}>Cancel</Button>
-            </ModalContent>
-          </Modal>
-        )}
-      </DashboardContainer>
+      {renderDashboardContent}
       <ToastContainer position="bottom-right" autoClose={3000} />
     </ErrorBoundary>
   );
