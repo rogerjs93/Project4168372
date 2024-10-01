@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunknaama_online1=self.webpackChunknaama_online1||[]).push([[615],{5615:(n,s,a)=>{a.r(s),a.d(s,{Contact:()=>t});a(5043);var e=a(579);const t=()=>(0,e.jsxs)("div",{children:[(0,e.jsx)("h1",{children:"Contact Us"}),(0,e.jsx)("p",{children:"This is the Contact page. Content coming soon."})]})}}]);
+//# sourceMappingURL=615.ebdb6eaf.chunk.js.map
