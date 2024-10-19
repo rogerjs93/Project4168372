@@ -204,48 +204,19 @@ const Community = () => {
 
     setLoading(true);
     try {
-      // Simulated API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock data (replace with actual API call when available)
-      const mockForums = [
-        { id: 1, name: "Game Development", description: "Discuss game development techniques and share your projects", threads: 150, posts: 1200 },
-        { id: 2, name: "Player Lounge", description: "Chat about your favorite games and connect with other players", threads: 300, posts: 5000 },
-        { id: 3, name: "Feedback & Suggestions", description: "Share your ideas to improve the Naama platform", threads: 75, posts: 450 },
-        { id: 4, name: "Indie Showcase", description: "Show off your indie game projects and get feedback", threads: 100, posts: 800 },
-        { id: 5, name: "Technical Support", description: "Get help with technical issues and troubleshooting", threads: 200, posts: 1500 },
-        // ... (add more mock forums as needed)
-      ];
-
-      const filteredForums = mockForums
-        .filter(forum => 
-          (category === 'all' || forum.category === category) &&
-          (forum.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           forum.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        )
-        .sort((a, b) => {
-          if (sortBy === 'name') {
-            return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-          } else if (sortBy === 'threads') {
-            return sortOrder === 'asc' ? a.threads - b.threads : b.threads - a.threads;
-          } else if (sortBy === 'posts') {
-            return sortOrder === 'asc' ? a.posts - b.posts : b.posts - a.posts;
-          }
-          return 0;
-        });
-
-      const paginatedForums = filteredForums.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-      setForums(prevForums => [...prevForums, ...paginatedForums]);
-      setHasNextPage(paginatedForums.length === ITEMS_PER_PAGE);
+      const response = await axios.get('http://your-api-url/forums', {
+        params: { 
+          _page: page, 
+          _limit: ITEMS_PER_PAGE, 
+          q: searchTerm, 
+          category, 
+          _sort: sortBy, 
+          _order: sortOrder 
+        }
+      });
+      setForums(prevForums => [...prevForums, ...response.data]);
+      setHasNextPage(response.data.length === ITEMS_PER_PAGE);
       setPage(prevPage => prevPage + 1);
-
-      // Uncomment the following lines when connecting to a real server
-      // const response = await axios.get('http://localhost:3001/forums', {
-      //   params: { _page: page, _limit: ITEMS_PER_PAGE, q: searchTerm, category, _sort: sortBy, _order: sortOrder }
-      // });
-      // setForums(prevForums => [...prevForums, ...response.data]);
-      // setHasNextPage(response.data.length === ITEMS_PER_PAGE);
-      // setPage(prevPage => prevPage + 1);
     } catch (error) {
       console.error('Error fetching forums:', error);
       setError('Failed to load forums. Please check your internet connection and try again.');
@@ -253,7 +224,7 @@ const Community = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, category, sortBy, sortOrder, page, hasNextPage, addToast]);
+  }, [searchTerm, category, sortBy, sortOrder, page, hasNextPage, addToast, ITEMS_PER_PAGE]);
 
   useEffect(() => {
     setForums([]);
